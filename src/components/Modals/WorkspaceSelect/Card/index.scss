@@ -1,0 +1,25 @@
+@import '~scss/variables';
+
+.wrapper {
+  cursor: pointer;
+
+  &:hover {
+    a {
+      color: $primary;
+    }
+  }
+}
+
+.title {
+  flex: 1;
+}
+
+.name {
+  min-width: 400px;
+}
+
+.qicon-dark {
+  color: #65a428 !important;
+  fill: #d8da00 !important;
+  }
+  
