@@ -89,7 +89,7 @@ $titleHeight: 30px;
     }
     .log {
       border-radius: 4px;
-      background-color: #242e42;
+      background-color: #3563AD;
       color: #fff;
       display: grid;
       grid-template-rows: auto 1fr;
@@ -111,7 +111,7 @@ $titleHeight: 30px;
               border-radius: 3px;
               :global {
                 .select-control {
-                  background-color: #242e42;
+                  background-color: #3563AD;
                   color: inherit;
                   font-weight: 400;
                   border: none;
@@ -135,7 +135,7 @@ $titleHeight: 30px;
             .pollingBtn {
               border: solid 1px #182236;
               border-radius: 2px;
-              background-color: #242e42;
+              background-color: #3563AD;
               width: 32px;
               text-align: center;
               line-height: 32px;

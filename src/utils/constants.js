@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export const WORKLOAD_STATUS = [
@@ -569,10 +569,10 @@ export const COLORS_MAP = {
   white: '#fff',
   light: '#f9fbfd',
   lightest: '#f9fbfd',
-  dark: '#242e42',
+  dark: '#3563AD',
   grey: '#e3e9ef',
-  green: '#55bc8a',
-  blue: '#329dce',
+  green: '#F18918',
+  blue: '#F18918',
   red: '#ca2621',
   yellow: '#f5a623',
   darkerGreen: '#479e88',

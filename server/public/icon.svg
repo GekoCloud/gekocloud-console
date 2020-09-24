@@ -30,7 +30,7 @@
         <stop offset="100%" stop-color="#86919C"></stop>
       </linearGradient>
       <linearGradient id="spinner-b" x1="95.833%" x2="95.833%" y1="0%" y2="100%">
-        <stop offset="0%" stop-color="#324558"></stop>
+        <stop offset="0%" stop-color="#C0690C"></stop>
         <stop offset="100%" stop-color="#86919C"></stop>
       </linearGradient>
     </defs>

@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -50,7 +50,7 @@ export default {
   'Workspaces Manager': 'Workspaces Manager',
 
   WORKSPACE_OVERVIEW_DESC:
-    'Workspace provides Geko Cloud with a secure, isolated and accessible platform. Here you can see the resource running status in the current workspace.',
+    'Workspace provides Smartkube with a secure, isolated and accessible platform. Here you can see the resource running status in the current workspace.',
   WORKSPACE_DESC:
     'Workspace is a logical unit to organize your workload projects / Kubernetes namespaces, DevOps projects, manage resource access and share information within your team. It is an isolated working place for your team.',
   WORKSPACE_SEARCH_PLACEHOLDER: 'Please enter your workspace name to find it',

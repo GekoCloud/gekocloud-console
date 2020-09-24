@@ -6,7 +6,7 @@
             <feGaussianBlur in="shadowOffsetOuter1" result="shadowBlurOuter1" stdDeviation="2"/>
             <feColorMatrix in="shadowBlurOuter1" values="0 0 0 0 0.141176471 0 0 0 0 0.180392157 0 0 0 0 0.258823529 0 0 0 0.1 0"/>
         </filter>
-        <text id="prefix__b" fill="#242E42" font-family="ProximaNova-Semibold, Proxima Nova" font-size="24" font-weight="500">
+        <text id="prefix__b" fill="#3563AD" font-family="ProximaNova-Semibold, Proxima Nova" font-size="24" font-weight="500">
             <tspan x="11.924" y="28">A</tspan>
         </text>
     </g>

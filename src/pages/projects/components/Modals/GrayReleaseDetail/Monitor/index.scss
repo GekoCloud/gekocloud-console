@@ -14,7 +14,7 @@
     width: 10px;
     height: 10px;
     border-radius: 1px;
-    background-color: #329dce;
+    background-color: #F18918;
   }
 
   & + .tag {
@@ -70,7 +70,7 @@
     }
 
     &.selected {
-      background-color: #329dce;
+      background-color: #F18918;
 
       .tag {
         color: #fff;

@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -128,9 +128,9 @@ export default {
   'You can limit the number of resources. Blank means no limit.':
     'Puedes limitar la cantidad de recursos. En blanco significa que no hay límite.',
   PROJECTS_DESC:
-    'Un proyecto es un namespace de Kubernetes en KubeSphere, que proporciona un mecanismo para organizar los recursos en un espacio de trabajo.',
+    'Un proyecto es un namespace de Kubernetes en Smartkube, que proporciona un mecanismo para organizar los recursos en un espacio de trabajo.',
   PROJECT_CREATE_DESC:
-    'Un proyecto es un namespace de Kubernetes en KubeSphere, que proporciona un mecanismo para organizar los recursos en un espacio de trabajo.',
+    'Un proyecto es un namespace de Kubernetes en Smartkube, que proporciona un mecanismo para organizar los recursos en un espacio de trabajo.',
   PROJECT_ADVANCE_DESC:
     'Establecer la solicitud de recursos predeterminada del proyecto',
   PROJECT_NAME_DESC:
@@ -138,7 +138,7 @@ export default {
   PROJECT_BASEINFO_DESC: 'Configuración de información básica del proyecto',
   PROJECT_TYPES_PROJECT_TITLE: 'Crear un proyecto de recursos',
   PROJECT_TYPES_PROJECT_DESC:
-    'El proyecto en Geko Cloud corresponde al namespace de Kubernetes, que es una colección abstracta de un conjunto de recursos y objetos que se pueden agrupar de acuerdo con diferentes unidades de negocio o proyectos de productos.',
+    'El proyecto en Smartkube corresponde al namespace de Kubernetes, que es una colección abstracta de un conjunto de recursos y objetos que se pueden agrupar de acuerdo con diferentes unidades de negocio o proyectos de productos.',
   PROJECT_TYPES_DEVOPS_TITLE: 'Crear un proyecto DevOps',
   PROJECT_TYPES_DEVOPS_DESC:
     'Cree y pruebe proyectos de software de forma continua y automática.',

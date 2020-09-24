@@ -1,6 +1,6 @@
-# Contributing to Geko Cloud Console
+# Contributing to Smartkube Console
 
-The following is a set of guidelines for contributing to Geko Cloud Console. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
+The following is a set of guidelines for contributing to Smartkube Console. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
 Table Of Contents
 
@@ -15,13 +15,13 @@ Table Of Contents
   * [JavaScript Styleguide](#javascript-styleguide)
 
 ## Code of Conduct
-All members of the Geko Cloud community must abide by [Code of Conduct](docs/code-of-conduct.md). Only by respecting each other can we develop a productive, collaborative community.
+All members of the Smartkube community must abide by [Code of Conduct](docs/code-of-conduct.md). Only by respecting each other can we develop a productive, collaborative community.
 
 ## How Can I Contribute?
 
 ### Reporting Bugs
 
-This section guides you through submitting a bug report for Geko Cloud Console. Following these guidelines helps maintainers and the community understand your report, reproduce the behavior, and find related reports.
+This section guides you through submitting a bug report for Smartkube Console. Following these guidelines helps maintainers and the community understand your report, reproduce the behavior, and find related reports.
 
 When you are creating a bug report, please fill out [the required template](https://github.com/kubesphere/console/blob/master/.github/ISSUE_TEMPLATE/bug_report.md), the information it asks for helps us resolve issues faster.
 
@@ -35,7 +35,7 @@ When you are creating a bug report, please fill out [the required template](http
 
 The process described here has several goals:
 
-- Maintain Geko Cloud Console's quality
+- Maintain Smartkube Console's quality
 - Fix problems that are important to users
 
 Please follow these steps to have your contribution considered by the maintainers:

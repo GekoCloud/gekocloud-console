@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -28,13 +28,13 @@ export default {
   'Service Details': '服务详情',
 
   SERVICE_COMPONENTS_DESC:
-    '服务组件提供 KubeSphere、Kubernetes 和 OpenPitrix 集群内各项服务组件的健康状态监控，可以查看当前集群的健康状态和运行时间，能够帮助用户监测集群的状况和及时定位问题。',
+    '服务组件提供 Smartkube、Kubernetes 和 OpenPitrix 集群内各项服务组件的健康状态监控，可以查看当前集群的健康状态和运行时间，能够帮助用户监测集群的状况和及时定位问题。',
 
   'KS-ACCOUNT_DESC': '提供用户、权限管理相关的 API',
   'KS-APIGATEWAY_DESC': '负责处理服务请求和处理 API 调用过程中的所有任务',
   'KS-APISERVER_DESC':
     '整个集群管理的 API 接口和集群内部各个模块之间通信的枢纽，以及集群安全控制',
-  'KS-CONSOLE_DESC': '提供 Geko Cloud 的控制台服务',
+  'KS-CONSOLE_DESC': '提供 Smartkube 的控制台服务',
   OPENLDAP_DESC: '负责集中存储和管理用户账号信息',
   REDIS_DESC: '将结构化的数据存储在内存中的存储系统',
 

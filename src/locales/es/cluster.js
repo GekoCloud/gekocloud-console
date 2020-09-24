@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -62,8 +62,8 @@ export default {
   'Nodes Management': 'Gestión de nodos',
   'Not Ready': 'No está listo',
   'Please input cluster name': 'Por favor introduce el nombre del clúster',
-  'Please input the geko cloud api server address of the cluster':
-    'Introduce la dirección del servidor de la API de Geko Cloud del clúster',
+  'Please input the kubesphere api server address of the cluster':
+    'Introduce la dirección del servidor de la API de Smartkube del clúster',
   'Please select or input a provider':
     'Por favor selecciona o introduce un proveedor',
   'Please select or input a tag':
@@ -86,10 +86,10 @@ export default {
   'Waiting for the cluster to join': 'Esperando a que el clúster se añada',
   NO_CLUSTER_TIP: 'Agregue al menos un clúster.',
   NO_CLUSTER_TIP_DESC:
-    'Un clúster es un grupo de nodos (máquinas físicas o virtuales) que ejecutan Kubernetes, y la función de Geko Cloud también depende de los nodos en el clúster.',
+    'Un clúster es un grupo de nodos (máquinas físicas o virtuales) que ejecutan Kubernetes, y la función de Smartkube también depende de los nodos en el clúster.',
   ADD_NEW_CLUSTER_DESC: 'Agregar un nuevo clúster de Kubernetes',
   CHOOSE_PROVIDER_DESC:
-    'KubeSphere proporciona una solución para implementar rápidamente los clústeres de Kubernetes entre los principales proveedores de servicios.',
+    'Smartkube proporciona una solución para implementar rápidamente los clústeres de Kubernetes entre los principales proveedores de servicios.',
   VISIBILITY_PART: 'Parcialmente visible',
   VISIBILITY_PUBLIC: 'Público',
   MULTI_CLUSTER: 'Multi-Clústers',
@@ -124,21 +124,21 @@ export default {
     'Este módulo resume la información básica del clúster actual.',
   INVITE_CLUSTER_MEMBER_DESC:
     'Puedes invitar a nuevos miembros a este clúster.',
-  CLUSTER_API_SERVER_TITLE: 'Servidor API Geko Cloud para agregar al clúster',
+  CLUSTER_API_SERVER_TITLE: 'Servidor API Smartkube para agregar al clúster',
   CLUSTER_API_SERVER_DESC:
-    'Debes indicar la dirección del servidor API de Geko Cloud para agregarla al clúster',
+    'Debes indicar la dirección del servidor API de Smartkube para agregarla al clúster',
   INPUT_KUBECONFIG: 'Complete el KubeConfig del clúster de destino',
   CLUSTER_DIRECT_IMPORT_TIP:
-    'La interfaz de control de múltiples clústeres de Geko Cloud se conecta a los clústeres importados a través del kubeconfig proporcionado. Para este método, el clúster actual debe poder acceder directamente a los clústeres que se importarán a través de la dirección del servidor en kubeconfig. </br></br> Este método generalmente se aplica a las siguientes condiciones: </br> 1. El clúster actual y los clústeres que se importarán están en la misma red interna. </br> 2. La red tanto del clúster actual como de los clústeres que se importarán está conectada a través de VPN u otras tecnologías (por ejemplo, Túneles). </br> 3. Se puedes acceder a la dirección del servidor en kubeconfig a través de la red pública.',
+    'La interfaz de control de múltiples clústeres de Smartkube se conecta a los clústeres importados a través del kubeconfig proporcionado. Para este método, el clúster actual debe poder acceder directamente a los clústeres que se importarán a través de la dirección del servidor en kubeconfig. </br></br> Este método generalmente se aplica a las siguientes condiciones: </br> 1. El clúster actual y los clústeres que se importarán están en la misma red interna. </br> 2. La red tanto del clúster actual como de los clústeres que se importarán está conectada a través de VPN u otras tecnologías (por ejemplo, Túneles). </br> 3. Se puedes acceder a la dirección del servidor en kubeconfig a través de la red pública.',
   CLUSTER_AGENT_IMPORT_TIP:
-    'La interfaz de control de Geko Cloud se conecta a los clústeres que se importarán a través de un proxy. La interfaz de control ejecuta un servicio de proxy público, que está conectado a un componente de cliente creado por clústeres para importar. Por lo tanto, se crea un proxy de reserva. Para este método, la interfaz de control y los clústeres que se van a importar no necesitan estar en la misma red. La dirección de apiserver de los clústeres a importar tampoco necesita exponerse. Sin embargo, el rendimiento de la red puedes verse afectado. </br></br> Este método generalmente se aplica a las siguientes condiciones: </br> 1. El clúster actual y los clústeres que se importarán no están en la misma red. <br/> 2. La red tanto del clúster actual como de los clústeres que se van a importar no se puedes conectar a través de VPN u otras tecnologías (por ejemplo, Túneles). <br/> 3. Se pueden aceptar deficiencias de rendimiento de la red dentro de los clústeres.',
+    'La interfaz de control de Smartkube se conecta a los clústeres que se importarán a través de un proxy. La interfaz de control ejecuta un servicio de proxy público, que está conectado a un componente de cliente creado por clústeres para importar. Por lo tanto, se crea un proxy de reserva. Para este método, la interfaz de control y los clústeres que se van a importar no necesitan estar en la misma red. La dirección de apiserver de los clústeres a importar tampoco necesita exponerse. Sin embargo, el rendimiento de la red puedes verse afectado. </br></br> Este método generalmente se aplica a las siguientes condiciones: </br> 1. El clúster actual y los clústeres que se importarán no están en la misma red. <br/> 2. La red tanto del clúster actual como de los clústeres que se van a importar no se puedes conectar a través de VPN u otras tecnologías (por ejemplo, Túneles). <br/> 3. Se pueden aceptar deficiencias de rendimiento de la red dentro de los clústeres.',
   CLUSTER_AGENT_TITLE:
     'Agregue el clúster en función del agente proporcionado en el clúster.',
   CLUSTER_AGENT_DESC:
     'Se debe establecer un agente correspondiente en el clúster.',
   HOW_TO_GET_KUBECONFIG: '¿Cómo obtener KubeConfig?',
   UNBIND_CLUSTER_DESC:
-    'Una vez que el clúster no está vinculado, Geko Cloud no podrá administrar el clúster y los recursos de Kubernetes dentro del clúster no se eliminarán.',
+    'Una vez que el clúster no está vinculado, Smartkube no podrá administrar el clúster y los recursos de Kubernetes dentro del clúster no se eliminarán.',
   SURE_TO_UNBIND_CLUSTER: 'Sí, confirmo que quiero desvincular el clúster.',
   AUTHORIZE_CLUSTER_TO_WORKSPACE_DESC:
     'Los clústeres se pueden asignar a espacios de trabajo mediante autorización.',

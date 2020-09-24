@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -30,7 +30,7 @@ export default {
     'Este módulo proporciona servicios de entrega de correo electrónico con configuraciones personalizadas.',
   EMPTY_MAIL_SERVER:
     'Por el momento no se ha configurado un servidor de correo electrónico. Debe configurar un servidor de correo para disponer de servicios de envío de correo electrónico.',
-  TEST_EMAIL_TITLE: '[KubeSphere] Correo electrónico de prueba',
+  TEST_EMAIL_TITLE: '[Smartkube] Correo electrónico de prueba',
   TEST_EMAIL_RECIPIENT: 'Dirección de correo electrónico de prueba',
   TEST_EMAIL_ADDRESS_FORM_DESC:
     'La dirección de prueba para recibir correos electrónicos',

@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -84,7 +84,7 @@ export default {
   USER_AVATAR_TIP:
     'The avatar size must be less than 120px X 120px and support png, jpg format.',
   MEMBER_ROLE_CREATE_DESC:
-    'What a user is authorized to do depends on the role which defines the user’s identity, as well as the relation between the user and resources that the user has access to view and handle. Users can create custom roles when the preset role of Geko Cloud does not meet their needs. The biggest advantage of custom roles is that they can be set to support fine-grained management of platform resources as different roles can be authorized to access different resources.',
+    'What a user is authorized to do depends on the role which defines the user’s identity, as well as the relation between the user and resources that the user has access to view and handle. Users can create custom roles when the preset role of Smartkube does not meet their needs. The biggest advantage of custom roles is that they can be set to support fine-grained management of platform resources as different roles can be authorized to access different resources.',
   CLUSTER_ROLE_DESC:
     'This module allows you to manage the access of users within a cluster.',
 }

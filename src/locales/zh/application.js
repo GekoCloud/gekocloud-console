@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -51,7 +51,7 @@ export default {
   'Choose existing services or create new service components to build an app':
     '选择已有服务或者新建服务组件来构建应用',
   'Deploy applications with one-click application templates provided by Kubesphere':
-    '通过 Geko Cloud 提供的应用模板一键部署应用',
+    '通过 Smartkube 提供的应用模板一键部署应用',
   'Sample apps can help you get started with app creation and app governance':
     '示例应用可以帮助您快速入手应用创建, 以及应用治理功能',
 
@@ -203,7 +203,7 @@ export default {
   WORKLOAD_NAME_EXIST: '工作负载 {name} 已存在',
 
   APPLICATION_TYPE_DESC:
-    'KubeSphere 支持来自于应用商店和应用仓库的应用部署(基于 Helm)，同样也支持自制应用 (Application CRD)。',
+    'Smartkube 支持来自于应用商店和应用仓库的应用部署(基于 Helm)，同样也支持自制应用 (Application CRD)。',
 
   APPLICATION_SERVICE_DESC:
     '根据应用中服务类型的不同设置不同类型的服务组件，支持无状态服务和有状态服务',
@@ -217,7 +217,7 @@ export default {
 
   'App Types': '应用的类型',
   TIP_APP_TYPE:
-    'KubeSphere 支持来自于应用商店和应用仓库的应用部署(基于 Helm)，同样也支持自制应用 (Application CRD)。',
+    'Smartkube 支持来自于应用商店和应用仓库的应用部署(基于 Helm)，同样也支持自制应用 (Application CRD)。',
   'How to use Application Governance': '如何使用应用治理',
   TIP_APP_GOVERNANCE:
     '使用应用治理需要创建自制应用并对每项服务开启服务治理功能',
@@ -226,14 +226,14 @@ export default {
   'From App Templates': '来自应用模板',
   'From third party Helm': '来自第三方 Helm',
   FROM_APP_STORE_DESC:
-    '来自KubeSphere官方应用商店，提供高质量应用和简易的部署方式',
+    '来自Smartkube官方应用商店，提供高质量应用和简易的部署方式',
   FROM_APP_TEMPLATES_DESC:
     '来自于企业空间的自制应用模板以及应用仓库中添加的第三方Helm 应用模板',
   COMPOSING_APP_DESC: '通过资源编排的方式发布服务构建应用(支持应用治理功能)',
   APP_TEMPLATES_MODAL_DESC:
-    '应用模板来自于企业空间和第三方的Helm应用模板，支持一键部署并可通过可视化的方式在KubeSphere中展示并提供部署及管理的功能',
+    '应用模板来自于企业空间和第三方的Helm应用模板，支持一键部署并可通过可视化的方式在Smartkube中展示并提供部署及管理的功能',
   APP_REPOS_DESC:
-    '应用仓库来自于第三方的 Helm Chart Repo，通过可视化的方式在 Geko Cloud 中展示并提供部署及管理功能，用户可以基于应用仓库中的模板快速地一键部署应用。',
+    '应用仓库来自于第三方的 Helm Chart Repo，通过可视化的方式在 Smartkube 中展示并提供部署及管理功能，用户可以基于应用仓库中的模板快速地一键部署应用。',
   SEARCH_TIPS: '您可以根据相关条件进行过滤',
 
   'From workspace': '来自企业空间',

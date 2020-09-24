@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -26,14 +26,14 @@ export default {
   'Running Status': 'Estado de ejecución',
   'Service Details': 'Detalles del servicio',
   SERVICE_COMPONENTS_DESC:
-    'Este módulo monitorea el estado de varios componentes del servicio en KubeSphere, Kubernetes, OpenPitrix, etc. Muestra el estado de mantenimiento y el tiempo de ejecución del clúster actual, y ayuda a los usuarios a monitorear el estado del clúster y localizar problemas a tiempo.',
+    'Este módulo monitorea el estado de varios componentes del servicio en Smartkube, Kubernetes, OpenPitrix, etc. Muestra el estado de mantenimiento y el tiempo de ejecución del clúster actual, y ayuda a los usuarios a monitorear el estado del clúster y localizar problemas a tiempo.',
   'KS-ACCOUNT_DESC':
     'Proporciona la API de administración de usuarios y autorizaciones.',
   'KS-APIGATEWAY_DESC':
     'Responsable de procesar solicitudes de servicio y manejar todas las tareas en el proceso de llamada a la API',
   'KS-APISERVER_DESC':
     'Sirve los puntos finales API REST y proporciona la interfaz para el estado compartido del clúster a través del cual interactúan todos los demás componentes, así como el control de seguridad del clúster',
-  'KS-CONSOLE_DESC': 'Proporciona servicios de consola para KubeSphere.',
+  'KS-CONSOLE_DESC': 'Proporciona servicios de consola para Smartkube.',
   OPENLDAP_DESC:
     'Responsable del almacenamiento centralizado y la gestión de la información de la cuenta del usuario.',
   REDIS_DESC:

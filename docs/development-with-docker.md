@@ -1,6 +1,6 @@
 # Development with Docker
 
-KubeSphere Console can be developed in a docker enviroment by following the steps as below.
+Smartkube Console can be developed in a docker enviroment by following the steps as below.
 
 Required:
 
@@ -24,9 +24,9 @@ make install
 make yarn-lego
 ```
 
-## Start Geko Cloud Console for development
+## Start Smartkube Console for development
 
-Before start development, please follow [the guide](/docs/access-backend.md) to configure the backend services of KubeSphere.
+Before start development, please follow [the guide](/docs/access-backend.md) to configure the backend services of Smartkube.
 
 ```bash
 make dev
@@ -40,7 +40,7 @@ Now you can access http://localhost:8000 to view the console using the default a
 make yarn-test
 ```
 
-### Build Geko Cloud Console for production
+### Build Smartkube Console for production
 
 The project can be built for production by using the following task:
 
@@ -48,7 +48,7 @@ The project can be built for production by using the following task:
 make build
 ```
 
-To build Geko Cloud console to an image, run the following task after `yarn build`:
+To build Smartkube console to an image, run the following task after `yarn build`:
 
 ```sh
 docker build -t ks-console .

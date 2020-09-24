@@ -30,15 +30,15 @@
     }
 
     &:hover {
-      border-color: #329dce;
+      border-color: #F18918;
     }
 
     &.select {
-      border-color: #329dce;
-      color: #329dce;
+      border-color: #F18918;
+      color: #F18918;
 
       :global .icon > svg {
-        color: #329dce;
+        color: #F18918;
       }
     }
   }

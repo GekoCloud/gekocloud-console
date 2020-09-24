@@ -23,7 +23,7 @@
   color: #ffffff;
 
   border-radius: 16px;
-  background-color: #242e42;
+  background-color: #3563AD;
 
   @include ellipsis;
 }
@@ -67,13 +67,13 @@
 
   .content__title {
     font-weight: 500;
-    color: #329dce;
+    color: #F18918;
   }
   .content__title__error {
     color: #ca2621;
   }
   .content__detail {
-    color: #242e42;
+    color: #3563AD;
   }
 }
 
@@ -101,7 +101,7 @@
 
   &:hover {
     background-color: $bg-color;
-    border: dashed 1px #329dce;
+    border: dashed 1px #F18918;
     border-color: #51a6d3;
   }
 }
@@ -121,7 +121,7 @@
     margin-right: 8px;
   }
   &:hover {
-    border: dashed 1px #329dce;
+    border: dashed 1px #F18918;
     background-color: $bg-color;
   }
 }
@@ -143,7 +143,7 @@
     top: 0;
     width: 6px;
     height: 100%;
-    background-color: #329dce;
+    background-color: #F18918;
   }
   .nestsStage_detail {
     background: white;

@@ -20,8 +20,8 @@ html, body, h1, h2, h3, h4, h5, h6, a, p {
 svg {
   height: 20px;
   width: 20px;
-    color: #324558;
-    fill: #b6c2cd;
+    color: #C0690C;
+    fill: #F9CE9F;
 }
 
 ::selection {
@@ -59,11 +59,11 @@ p {
   font-size: 20px;
   font-weight: 600;
   line-height: 1.4;
-  color: #242e42;
+  color: #3563AD;
 }
 
 a {
   margin-left: 4px;
-  color: #329dce;
+  color: #F18918;
   text-decoration: none;
 }

@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -530,7 +530,7 @@ export default {
     '容器組副本將會盡量部署在同一節點上',
   'Pod replicas will be deployed by the default policy.':
     '容器組副本將根據預設策略部署',
-  'KubeSphere supports pulling images from the Image Registries and creating new images through source code (Source to Image).':
+  'Smartkube supports pulling images from the Image Registries and creating new images through source code (Source to Image).':
     'Kubesphere 支持從鏡像倉庫拉取鏡像以及通過代碼構建新的鏡像並部署',
 
   'Scheduling Info': '調度資訊',

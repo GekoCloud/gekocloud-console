@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -96,7 +96,7 @@ export default {
   SERVICE_DESC:
     'Un servicio es una abstracción que define una colección lógica de Pods y una estrategia para acceder a ellos.',
   SERVICE_CREATE_DESC:
-    'Un servicio es una abstracción que define una colección lógica de Pods y una estrategia para acceder a ellos. Puedes seleccionar el tipo de servicio o cómo se crea un servicio. Geko Cloud admite servicios con y sin estado y los servicios se pueden crear a través de códigos o artefactos.',
+    'Un servicio es una abstracción que define una colección lógica de Pods y una estrategia para acceder a ellos. Puedes seleccionar el tipo de servicio o cómo se crea un servicio. Smartkube admite servicios con y sin estado y los servicios se pueden crear a través de códigos o artefactos.',
   SERVICES_BASEINFO_DESC:
     'El nombre y la descripción del servicio deben proporcionarse para crear el servicio. El nombre del servicio no puedes ser el mismo que el nombre del servicio existente en el mismo proyecto.',
   SERVICES_SETTINGS_DESC:

@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -23,7 +23,7 @@ export default {
 
   APP_TEMPLATE_DESCRIPTION_TITLE: '应用一键部署',
   APP_TEMPLATE_DESCRIPTION_ARTICLE:
-    '通过可视化的方式在 Geko Cloud 中展示并提供部署及管理功能，用户可以基于应用模板快速地一键部署应用',
+    '通过可视化的方式在 Smartkube 中展示并提供部署及管理功能，用户可以基于应用模板快速地一键部署应用',
 
   'App README': '应用介绍',
 

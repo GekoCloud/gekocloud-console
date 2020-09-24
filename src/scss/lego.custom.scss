@@ -25,8 +25,8 @@
 
   &.icon-clickable:hover {
     .qicon-light {
-      color: #324558;
-      fill: #b6c2cd;
+      color: #C0690C;
+      fill: #F9CE9F;
     }
   }
 }
@@ -68,7 +68,7 @@
         background-color: transparent;
 
         &:hover {
-          background-color: #36435c;
+          background-color: #3563AD;
         }
       }
     }
@@ -347,7 +347,7 @@ label.checkbox {
     padding: 8px;
 
     .select-option {
-      background-color: #242e42;
+      background-color: #3563AD;
       padding: 6px 12px;
       color: $white;
       cursor: pointer;
@@ -628,7 +628,7 @@ label.checkbox {
 
     .qicon-dark {
       color: #ffffff;
-      fill: #324558;
+      fill: #C0690C;
     }
   }
 }
@@ -710,7 +710,7 @@ label.checkbox:before {
     position: relative;
     font-weight: 500;
     min-width: 117px;
-    color: #36435c;
+    color: #3563AD;
     padding: 4px 24px;
     border-radius: 16px !important;
     border: none;
@@ -723,7 +723,7 @@ label.checkbox:before {
     }
 
     &.checked {
-      background-color: #36435c;
+      background-color: #3563AD;
       color: #ffffff;
     }
   }
@@ -851,13 +851,13 @@ label.checkbox:before {
   .collapse-item-label {
     font-weight: 600;
     color: #fff;
-    box-shadow: 0 1px 0 0 #36435c, 0 -1px 0 0 #36435c;
-    background-color: #242e42;
+    box-shadow: 0 1px 0 0 #3563AD, 0 -1px 0 0 #3563AD;
+    background-color: #3563AD;
     border: none !important;
     border-radius: 0 !important;
 
     &.collapse-item-label-border-bottom {
-      color: #242e42;
+      color: #3563AD;
       box-shadow: 0 1px 0 0 #d8dee5, 0 -1px 0 0 #d8dee5;
       background-color: $lightest;
     }
@@ -878,7 +878,7 @@ label.checkbox:before {
   font-size: $size-small;
   padding: 0 9px;
   border-radius: 1px;
-  background-color: #329dce;
+  background-color: #F18918;
   text-shadow: 0 2px 4px rgba(36, 46, 66, 0.1);
   font-weight: 500;
   line-height: 1.33;

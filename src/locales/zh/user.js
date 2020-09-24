@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of Smartkube Console.
+ * Copyright (C) 2019 The Smartkube Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * Smartkube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * Smartkube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -61,14 +61,14 @@ export default {
   USER_PENDING: '等待中',
   USER_DISABLED: '已禁用',
   USER_DESC:
-    '系统管理员用此功能模块管理账号，如创建、更新、读取、删除账号等，同时还能关联每个账号的角色；用户用账号名称或邮件地址登录 Geko Cloud 平台。',
+    '系统管理员用此功能模块管理账号，如创建、更新、读取、删除账号等，同时还能关联每个账号的角色；用户用账号名称或邮件地址登录 Smartkube 平台。',
   USER_CREATE_DESC:
-    '系统管理员用此功能模块管理账号，如创建、更新、读取、删除账号等，同时还能关联每个账号的角色；用户用账号名称或邮件地址登录 Geko Cloud 平台。',
+    '系统管理员用此功能模块管理账号，如创建、更新、读取、删除账号等，同时还能关联每个账号的角色；用户用账号名称或邮件地址登录 Smartkube 平台。',
   CLUSTER_ROLE_DESC: '集群角色定义了在集群范围内授权用户的访问权限。',
   ROLE_BASEINFO_DESC: '',
   ROLE_AUTHORIZATION_DESC: '',
   MEMBER_ROLE_CREATE_DESC:
-    '用户的权限管理依赖项目角色定义，角色标识了用户的身份，定义了用户和可访问/操作的资源之间的关系。当 Geko Cloud 预置角色不满足使用要求的时候，可以根据实际情况，为用户创建自定义角色，自定义角色最大的优势即对平台资源的细粒度管理，指定该角色拥有某些指定资源的何种权限。',
+    '用户的权限管理依赖项目角色定义，角色标识了用户的身份，定义了用户和可访问/操作的资源之间的关系。当 Smartkube 预置角色不满足使用要求的时候，可以根据实际情况，为用户创建自定义角色，自定义角色最大的优势即对平台资源的细粒度管理，指定该角色拥有某些指定资源的何种权限。',
 
   'A built-in cluster administrator': '默认创建的管理员帐户。',
 
