@@ -55,14 +55,14 @@ Podemos hacer el build y el tag automático con este script:
 ### Cambiar texto "Kubesphere" por "Smartkube"
 
 ```yaml
-for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile)); do sed -i 's%Kubesphere%Smartkube%g' $i; done
+for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%Kubesphere%Smartkube%g' $i; done
 for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%KubeSphere%Smartkube%g' $i; done
 ```
 
 ### Cambiar colores - Usamos el flag I al final del sed para que sea case-insensitive
 
 ```yaml
-for i in $(grep -ri "#36435c" . | cut -d ":" -f1 | uniq | sort -n); do sed 's%#36435c%#65a428%gI' $i; done
+for i in $(grep -ri "#36435c" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#36435c%#65a428%gI' $i; done
 ```
 
 ### Cambiar ruta al logo
