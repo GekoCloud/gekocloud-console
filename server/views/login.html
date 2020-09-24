@@ -15,11 +15,16 @@
 
 <body>
   <%- include('../public/icon.svg') %>
-  <div class="background"><img class="background-fond"src="/assets/background.png" alt=""></div>
+  <a href="/" class="logo">
+    <img src="/assets/login-logo.svg" alt="">
+  </a>
+  <div class="background"><img src="/assets/login.svg" alt=""></div>
   <div class="login">
     <div class="login-form <%- error ? 'login-form-error' : '' %>">
       <div class="login-header">
-        <img src="/assets/logo_cloud.svg" alt="">
+        <h1><%- t('Login') %></h1>
+        <p>Welcome to KubeSphere</p>
+        <div class="mask">Login</div>
       </div>
       <% if (error) { %>
       <div class="login-error">

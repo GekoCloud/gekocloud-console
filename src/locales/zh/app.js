@@ -1,34 +1,34 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of KubeSphere Console.
+ * Copyright (C) 2019 The KubeSphere Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * KubeSphere Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * KubeSphere Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with KubeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
   APP_TEMPLATE_DESCRIPTION:
-    'Geko Cloud 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
+    'KubeSphere 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
   DEVELOP_APP_TITLE: '开发应用模板',
   DEVELOP_APP_DESC:
-    '您可以上传 Helm Chart 或者使用 Geko Cloud 提供的资源编排工具进行应用模板的开发',
+    '您可以上传 Helm Chart 或者使用 KubeSphere 提供的资源编排工具进行应用模板的开发',
   HOW_PUBLISH_APP_TITLE: '如何发布已有应用',
   HOW_PUBLISH_APP_DESC:
-    'Geko Cloud 目前支持将已有应用的 Helm Chart 上传至企业空间的应用模板，提交审核后，可以将应用发布在应用商店中。',
+    'KubeSphere 目前支持将已有应用的 Helm Chart 上传至企业空间的应用模板，提交审核后，可以将应用发布在应用商店中。',
   HOW_APP_DEPLOY_TITLE: '如何部署和测试应用',
   'Upload Template': '上传模板',
   APPS_CREATE_DESC:
-    'Geko Cloud 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
+    'KubeSphere 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
 
   'Apps Management': '应用管理',
   'Certified Provider': '已认证服务商',
@@ -103,7 +103,7 @@ export default {
   'Adjust Successfully': '调整成功',
 
   APP_TEMPLATES_DESC:
-    'Geko Cloud 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
+    'KubeSphere 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
   UPLOAD_HELM_TITLE: '上传 Helm 配置文件',
   UPLOAD_HELM_DESC: '上传已有的 Helm  Chart ',
   'Edit App Informatio': '编辑应用信息',
@@ -135,7 +135,7 @@ export default {
     '轻量级、可移植、自包含的软件打包技术，使应用可以在几乎任何地方以相同的方式运行。',
   RESOURCE_TOOL_TITLE: '通过资源编排工具创建',
   RESOURCE_TOOL_DESCRIPTION:
-    'Geko Cloud 提供了可视化的资源编排工具，您可以通过资源预编辑来创建应用模板，部署测试',
+    'KubeSphere 提供了可视化的资源编排工具，您可以通过资源预编辑来创建应用模板，部署测试',
   UPLOAD_HELM_DESCRIPTION: '上传已有的 Helm Chart. 文件格式支持 tar.gz 和 tgz',
   START_UPLOAD: '开始上传',
   'Start Create': '开始创建',

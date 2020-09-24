@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of KubeSphere Console.
+ * Copyright (C) 2019 The KubeSphere Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * KubeSphere Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * KubeSphere Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with KubeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -23,7 +23,7 @@ export default {
   'involved project': '参与项目',
   'create project': '创建项目',
   'Project Top3': '项目 Top3',
-  'Geko Cloud Running Status': 'Geko Cloud 运行状态',
+  'KubeSphere Running Status': 'KubeSphere 运行状态',
   quota: '配额',
   Usage: '使用量',
   Utilization: '利用率',

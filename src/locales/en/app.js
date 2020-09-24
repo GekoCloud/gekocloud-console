@@ -1,41 +1,41 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of KubeSphere Console.
+ * Copyright (C) 2019 The KubeSphere Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * KubeSphere Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * KubeSphere Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
- * You should have Geko Cloud a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with KubeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
   FILE_UPLOAD_MAX: 'The file size cannot exceed 2M.',
 
   APP_TEMPLATE_DESCRIPTION:
-    'Geko Cloud provides lifecycle management of application template. You can upload or create new application template and test it quickly. In addition, you can publish your application template to App Store so that other users can purchase and deploy it.',
+    'KubeSphere provides lifecycle management of application template. You can upload or create new application template and test it quickly. In addition, you can publish your application template to App Store so that other users can purchase and deploy it.',
 
   DEVELOP_APP_TITLE: 'How to Develop Application Template',
 
   DEVELOP_APP_DESC:
-    'You can upload Helm Chart or use the resource orchestration tool provided by Geko Cloud to develop application templates.',
+    'You can upload Helm Chart or use the resource orchestration tool provided by KubeSphere to develop application templates.',
 
   HOW_PUBLISH_APP_TITLE: 'How to publish applications to App Store',
 
   HOW_PUBLISH_APP_DESC:
-    'Geko Cloud currently supports uploading Helm Charts through Application Templates within Workspace, from where you can submit your template for review. Once approved then you can publish the template to App Store.',
+    'KubeSphere currently supports uploading Helm Charts through Application Templates within Workspace, from where you can submit your template for review. Once approved then you can publish the template to App Store.',
 
   HOW_APP_DEPLOY_TITLE: 'How to deploy and test applications',
 
   APPS_CREATE_DESC:
-    'Geko Cloud provides lifecycle management of application template. You can upload or create new application template and test it quickly. In addition, you can publish your application template to App Store so that other users can purchase and deploy it.',
+    'KubeSphere provides lifecycle management of application template. You can upload or create new application template and test it quickly. In addition, you can publish your application template to App Store so that other users can purchase and deploy it.',
 
   APP_NAME_DESC: 'Important Identification of Applications',
 
@@ -70,7 +70,7 @@ export default {
   DELETE_CATEGORY_DESC: 'Are you sure to delete the category [{name}] ?',
 
   APP_TEMPLATES_DESC:
-    'Geko Cloud provides application full lifecycle management. You can upload or create new application templates and test them quickly. In addition, you can publish your application to App Store so that other users deploy it in one-click wat.',
+    'KubeSphere provides application full lifecycle management. You can upload or create new application templates and test them quickly. In addition, you can publish your application to App Store so that other users deploy it in one-click wat.',
 
   UPLOAD_HELM_TITLE: 'Upload Helm Chart Package',
 
@@ -84,7 +84,7 @@ export default {
   RESOURCE_TOOL_TITLE: 'Created through Resource Choreographer',
 
   RESOURCE_TOOL_DESCRIPTION:
-    'Geko Cloud provides a visual resource orchestration tool that allows you to' +
+    'KubeSphere provides a visual resource orchestration tool that allows you to' +
     ' create application templates and deploy tests through resource pre-editing',
 
   UPLOAD_HELM_DESCRIPTION:

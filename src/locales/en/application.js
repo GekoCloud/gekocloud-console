@@ -1,26 +1,26 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of KubeSphere Console.
+ * Copyright (C) 2019 The KubeSphere Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * KubeSphere Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * KubeSphere Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with KubeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
   TOTAL_APPS: 'Total {num} applications',
 
   APPLICATIONS_DESC:
-    'An application provides users with full business functionalities in one package. Application templates in Geko Cloud are built on the Helm packaging specification. They are delivered through a unified public or private Helm repository. An application is composed of one or more Kubernetes objects such as workloads, services, ingress etc.',
+    'An application provides users with full business functionalities in one package. Application templates in KubeSphere are built on the Helm packaging specification. They are delivered through a unified public or private Helm repository. An application is composed of one or more Kubernetes objects such as workloads, services, ingress etc.',
   APP_DEPLOYMENT_DESC:
     'Lightweight, portable, self-contained software packaging technology that enables applications to run in the same way almost anywhere.',
 
@@ -73,26 +73,26 @@ export default {
   WORKLOAD_NAME_EXIST: 'Workload {name} exists',
 
   APPLICATION_TYPE_DESC:
-    'Geko Cloud supports application deployments (based on Helm) from the app store, as well as Application CRD.',
+    'KubeSphere supports application deployments (based on Helm) from the app store, as well as Application CRD.',
 
   HOW_TO_USE_APPLICATION_GOVE_Q: 'How to use application governance',
   HOW_TO_USE_APPLICATION_GOVE_A:
     'Using App Governance requires creating a composing app and turning on service governance for each service.',
 
   FROM_APP_STORE_DESC:
-    'From the official app store of Geko Cloud, providing high-quality applications and easy deployment',
+    'From the official app store of KubeSphere, providing high-quality applications and easy deployment',
   FROM_APP_TEMPLATES_DESC:
     'From the application templates of workspace and the third-party helm application templates of app repo',
   COMPOSING_APP_DESC:
     'Publish services to build applications through resource orchestration(support application governance function)',
   APP_TEMPLATES_MODAL_DESC:
-    'The application template comes from the workspace and the third-party helm application templates. It supports one click deployment and can be visualized in Geko Cloud to show and provide deployment and management functions',
+    'The application template comes from the workspace and the third-party helm application templates. It supports one click deployment and can be visualized in KubeSphere to show and provide deployment and management functions',
 
   TIP_APP_TYPE:
-    'Geko Cloud supports application deployment (based on Helm) from app stores and app repositories, as well as home-made applications (Application CRD).',
+    'KubeSphere supports application deployment (based on Helm) from app stores and app repositories, as well as home-made applications (Application CRD).',
   TIP_APP_GOVERNANCE:
     'Using App Governance requires creating a homebrew app and turning on service governance for each service',
   APP_REPOS_DESC:
-    'The application repository comes from a third-party Helm Chart Repo, which visually exposes and provides deployment and management capabilities in Geko Cloud, allowing users to quickly deploy applications one-click based on templates in the application repository.',
+    'The application repository comes from a third-party Helm Chart Repo, which visually exposes and provides deployment and management capabilities in KubeSphere, allowing users to quickly deploy applications one-click based on templates in the application repository.',
   SEARCH_TIPS: 'You can filter based on relevant conditions',
 }

@@ -12,9 +12,6 @@
   vertical-align: middle;
   svg {
     display: block;
-    color: #65a428;
-fill: #d8da00;
-
   }
 
   &.warn {
@@ -92,16 +89,10 @@ fill: #d8da00;
 
   .icon {
     margin-right: 12px;
-    color: #65a428;
-fill: #d8da00;
-
   }
 
   .qicon {
     vertical-align: initial;
-    color: #65a428;
-fill: #d8da00;
-
   }
 }
 
@@ -390,8 +381,8 @@ label.checkbox {
 
     &-icon {
       .qicon-dark {
-        color: #65a428 !important;
-        fill: #d8da00 !important;
+        color: #fff;
+        fill: #fff;
       }
     }
   }
@@ -513,7 +504,7 @@ label.checkbox {
   font-family: $font-family-id;
 
   .qicon-dark {
-    color: #65a428 !important;
+    color: $second-text-color;
   }
 }
 
@@ -618,8 +609,8 @@ label.checkbox {
     }
 
     .qicon-dark {
-      color: #65a428 !important;
-      fill: #d8da00 !important;
+      color: #ffffff;
+      fill: #324558;
     }
   }
 }

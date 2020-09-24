@@ -75,8 +75,6 @@
     background-color: $primary;
     border-radius: 50%;
     vertical-align: inherit;
-    color: #65a428;
-  fill: #d8da00;
   }
 }
 
@@ -86,7 +84,7 @@
   border-radius: 2px;
   background-color: $bg-color;
   font-weight: $font-bold;
-  color: white;
+  color: #36435c;
   text-align: center;
   cursor: pointer;
   transition: all $trans-speed ease-in-out;
@@ -97,8 +95,6 @@
 
   :global .icon {
     margin-right: 12px;
-    color: #65a428;
-fill: #d8da00;
   }
 }
 
@@ -125,8 +121,6 @@ fill: #d8da00;
   :global {
     .icon {
       margin-right: 28px;
-      color: #65a428;
-  fill: #d8da00;
     }
     .h3 {
       line-height: 32px;
@@ -182,8 +176,6 @@ fill: #d8da00;
           width: 8px;
           height: 8px;
           margin-right: 5px;
-          color: #65a428;
-fill: #d8da00;
         }
       }
     }

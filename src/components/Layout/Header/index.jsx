@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of KubeSphere Console.
+ * Copyright (C) 2019 The KubeSphere Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * KubeSphere Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * KubeSphere Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with KubeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -43,9 +43,26 @@ class Header extends React.Component {
     this.props.jumpTo(link)
   }
 
+  handleDocumentLinkClick = (e, key) => {
+    window.open(key)
+  }
+
+  renderDocumentList() {
+    return (
+      <Menu onClick={this.handleDocumentLinkClick} data-test="header-docs">
+        <Menu.MenuItem key={globals.config.documents.url}>
+          <Icon name="hammer" /> {t("User's Manual")}
+        </Menu.MenuItem>
+        <Menu.MenuItem key={globals.config.documents.api}>
+          <Icon name="api" /> {t('API Documents')}
+        </Menu.MenuItem>
+      </Menu>
+    )
+  }
+
   render() {
     const { className, innerRef, location } = this.props
-    const logo = globals.config.logo || '/assets/geko_logo_cloud_negativo.svg'
+    const logo = globals.config.logo || '/assets/logo.svg'
 
     return (
       <div
@@ -61,7 +78,7 @@ class Header extends React.Component {
         <Link to="/">
           <img
             className={styles.logo}
-            src={isAppsPage() ? `/assets/geko_logo_cloud_negativo.svg` : logo}
+            src={isAppsPage() ? `/assets/login-logo.svg` : logo}
             alt=""
           />
         </Link>
@@ -102,6 +119,11 @@ class Header extends React.Component {
           </div>
         )}
         <div className={styles.right}>
+          {this.isLoggedIn && (
+            <Dropdown content={this.renderDocumentList()}>
+              <Button type="flat" icon="documentation" />
+            </Dropdown>
+          )}
           <LoginInfo className={styles.loginInfo} isAppsPage={isAppsPage()} />
         </div>
       </div>

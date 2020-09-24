@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of KubeSphere Console.
+ * Copyright (C) 2019 The KubeSphere Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * KubeSphere Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * KubeSphere Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with KubeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -36,5 +36,5 @@ export default {
   USER_AVATAR_TIP:
     'The avatar size must be less than 120px X 120px and support png, jpg format.',
   MEMBER_ROLE_CREATE_DESC:
-    "User rights management roles depend on the definition, role identifies the user's identity, defines the relationship between the user and can access resources / operations. When Geko Cloud does not meet the requirements of preset roles, according to the actual situation, create a custom role to a user, self-defined roles that is the biggest advantage of fine-grained management of platform resources, specify what the role has certain specified resource authorization.",
+    "User rights management roles depend on the definition, role identifies the user's identity, defines the relationship between the user and can access resources / operations. When KubeSphere does not meet the requirements of preset roles, according to the actual situation, create a custom role to a user, self-defined roles that is the biggest advantage of fine-grained management of platform resources, specify what the role has certain specified resource authorization.",
 }

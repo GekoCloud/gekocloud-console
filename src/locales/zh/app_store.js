@@ -1,26 +1,26 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of KubeSphere Console.
+ * Copyright (C) 2019 The KubeSphere Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
- * it Geko Cloud the terms of the GNU Affero General Public License as published by
+ * KubeSphere Console is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * KubeSphere Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with KubeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
   'App Store Settings': '应用商店管理',
   'App Store': '应用商店',
   HOME_APP_STORE_DESC:
-    'Geko Cloud 官方应用商店，提供部署及管理功能，用户可以基于应用模板快速地一键部署应用',
+    'KubeSphere 官方应用商店，提供部署及管理功能，用户可以基于应用模板快速地一键部署应用',
   'Find app': '查找应用',
   TOTAL_CATE_COUNT: '共收录 {total} 款应用',
   Discoveries: '发现',

@@ -1,19 +1,19 @@
 /*
- * This file is part of Geko Cloud Console.
- * Copyright (C) 2019 The Geko Cloud Console Authors.
+ * This file is part of KubeSphere Console.
+ * Copyright (C) 2019 The KubeSphere Console Authors.
  *
- * Geko Cloud Console is free software: you can redistribute it and/or modify
+ * KubeSphere Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Geko Cloud Console is distributed in the hope that it will be useful,
+ * KubeSphere Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with KubeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export default {
@@ -115,7 +115,7 @@ export default {
     '工作负载 (Workload) 通常是访问服务的实际载体, 也是对节点日志收集、监控等系统应用的实际运行载体，是对一组容器组 (Pod) 的抽象模型。',
 
   DEPLOYMENT_DESC:
-    'Geko Cloud 部署提供对常见用户应用程序的细粒度管理。部署配置，它将应用程序的特定组件的所需状态描述为 Pod 模板。',
+    'KubeSphere 部署提供对常见用户应用程序的细粒度管理。部署配置，它将应用程序的特定组件的所需状态描述为 Pod 模板。',
   DEPLOYMENT_CREATE_DESC:
     '部署 (Deployment) 为 Pod 和 ReplicaSet 提供了一个声明式定义 (declarative) 方法，用来替代以前的 ReplicationController 来方便的管理应用。<br/>典型的应用场景包括定义 Deployment 来创建 Pod 和 ReplicaSet、滚动升级和回滚应用、扩容和缩容以及暂停和继续 Deployment。',
   STATEFULSET_DESC:
@@ -534,8 +534,8 @@ export default {
     '容器组副本将会尽量分散在不同的节点中',
   'Pod will be deployed at the same node': '容器组副本将会部署在同一节点上',
   'Pod will be deployed by default policy': '容器组副本将根据默认策略部署',
-  'Geko Cloud supports pulling images from the Image Registries and creating new images through source code (Source to Image).':
-    'Geko Cloud 支持从镜像仓库拉取镜像以及通过代码构建新的镜像并部署',
+  'KubeSphere supports pulling images from the Image Registries and creating new images through source code (Source to Image).':
+    'Kubesphere 支持从镜像仓库拉取镜像以及通过代码构建新的镜像并部署',
 
   'Schedule Info': '调度信息',
   'Node Schedule Info': '节点调度信息',
