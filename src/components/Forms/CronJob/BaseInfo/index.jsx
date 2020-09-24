@@ -18,15 +18,11 @@
 
 import { get, set, debounce } from 'lodash'
 import React from 'react'
-import { Columns, Column, Input, TextArea, Select } from '@pitrix/lego-ui'
-import { Form } from 'components/Base'
-import { NumberInput, SelectInput } from 'components/Inputs'
+import { Columns, Column, Input, Select } from '@pitrix/lego-ui'
+import { Form, TextArea } from 'components/Base'
+import { NumberInput, SelectInput, ProjectSelect } from 'components/Inputs'
 import ToggleView from 'components/ToggleView'
-import {
-  MODULE_KIND_MAP,
-  PATTERN_LENGTH_52,
-  PATTERN_NAME,
-} from 'utils/constants'
+import { MODULE_KIND_MAP, PATTERN_NAME } from 'utils/constants'
 
 export default class BaseInfo extends React.Component {
   get formTemplate() {
@@ -49,7 +45,7 @@ export default class BaseInfo extends React.Component {
 
   handleNameChange = debounce(value => {
     const labels = get(this.formTemplate, 'metadata.labels', {})
-    labels.app = value
+    labels.app = value.slice(0, 63)
 
     set(this.formTemplate, 'spec.jobTemplate.metadata.labels', labels)
   }, 200)
@@ -60,7 +56,11 @@ export default class BaseInfo extends React.Component {
     }
 
     this.props.store
-      .checkName({ name: value, namespace: this.namespace })
+      .checkName({
+        name: value,
+        namespace: this.namespace,
+        cluster: this.props.cluster,
+      })
       .then(resp => {
         if (resp.exist) {
           return callback({ message: t('Name exists'), field: rule.field })
@@ -91,10 +91,6 @@ export default class BaseInfo extends React.Component {
                   pattern: PATTERN_NAME,
                   message: `${t('Invalid name')}, ${t('CRONJOB_NAME_DESC')}`,
                 },
-                {
-                  pattern: PATTERN_LENGTH_52,
-                  message: t('CRONJOB_NAME_TOO_LONG'),
-                },
                 { validator: this.nameValidator },
               ]}
             >
@@ -102,26 +98,44 @@ export default class BaseInfo extends React.Component {
                 name="metadata.name"
                 onChange={this.handleNameChange}
                 autoFocus={true}
+                maxLength={52}
               />
             </Form.Item>
           </Column>
           <Column>
             <Form.Item label={t('Alias')} desc={t('ALIAS_DESC')}>
-              <Input name="metadata.annotations['kubesphere.io/alias-name']" />
+              <Input
+                name="metadata.annotations['kubesphere.io/alias-name']"
+                maxLength={63}
+              />
             </Form.Item>
           </Column>
         </Columns>
-        <Columns>
-          <Column>
-            <Form.Item label={t('Description')}>
-              <TextArea name="metadata.annotations['kubesphere.io/description']" />
-            </Form.Item>
-          </Column>
-          <Column>
+        <Columns className="is-multiline">
+          {!this.props.namespace && (
+            <Column className="is-6">
+              <Form.Item
+                label={t('Project')}
+                desc={t('PROJECT_DESC')}
+                rules={[
+                  { required: true, message: t('Please select a project') },
+                ]}
+              >
+                <ProjectSelect
+                  name="metadata.namespace"
+                  cluster={this.props.cluster}
+                  defaultValue={this.namespace}
+                />
+              </Form.Item>
+            </Column>
+          )}
+          <Column className="is-6">
             <Form.Item
               label={t('Schedule')}
               desc={t.html('CRONJOB_CRON_DESC')}
-              rules={[{ required: true, message: t('Please input schedule') }]}
+              rules={[
+                { required: true, message: t('Please input a schedule.') },
+              ]}
             >
               <SelectInput
                 name="spec.schedule"
@@ -129,7 +143,16 @@ export default class BaseInfo extends React.Component {
               />
             </Form.Item>
           </Column>
+          <Column className="is-6">
+            <Form.Item label={t('Description')} desc={t('DESCRIPTION_DESC')}>
+              <TextArea
+                name="metadata.annotations['kubesphere.io/description']"
+                maxLength={256}
+              />
+            </Form.Item>
+          </Column>
         </Columns>
+
         <ToggleView>
           <Columns className="margin-t8">
             <Column>
@@ -145,7 +168,7 @@ export default class BaseInfo extends React.Component {
               </Form.Item>
               <Form.Item
                 label={t('failedJobsHistoryLimit')}
-                desc={t('Number of failed jobs allowed to be retained')}
+                desc={t('The number of failed jobs allowed to be retained.')}
               >
                 <NumberInput
                   min={0}
@@ -157,7 +180,9 @@ export default class BaseInfo extends React.Component {
             <Column>
               <Form.Item
                 label={t('successfulJobsHistoryLimit')}
-                desc={t('Number of success jobs allowed to be retained')}
+                desc={t(
+                  'The number of successful jobs allowed to be retained.'
+                )}
               >
                 <NumberInput
                   min={0}
@@ -167,7 +192,7 @@ export default class BaseInfo extends React.Component {
               </Form.Item>
               <Form.Item
                 label={t('concurrencyPolicy')}
-                desc={t('Concurrency policy settings')}
+                desc={t('The concurrency policy setting.')}
               >
                 <Select
                   name="spec.concurrencyPolicy"

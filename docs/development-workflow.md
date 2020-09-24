@@ -58,14 +58,14 @@ git rebase -i master
 ```
 **Commit local changes**
 
-See [Git Commit Messages Style Guide](./contributing-guide.md#git-commit-messages)
+See [Git Commit Messages Style Guide](../CONTRIBUTING.md#git-commit-messages)
 
 ```bash
 $ git add <file>
 $ git commit -a
 ```
 
-### 6 Push to your folk
+### 6 Push to your fork
 
 When ready to review (or just to establish an offsite backup or your work), push your branch to your fork on github.com:
 
@@ -77,4 +77,4 @@ $ git push -f ${your_remote_name} myfeature
 
 - Visit your fork at https://github.com/$user/console
 - Click the` Compare & Pull Request` button next to your myfeature branch.
-- Check out the [pull request guide](./contributing-guide.md#pull-requests) for more details and advice.
+- Check out the [pull request guide](./CONTRIBUTING.md#pull-requests) for more details and advice.

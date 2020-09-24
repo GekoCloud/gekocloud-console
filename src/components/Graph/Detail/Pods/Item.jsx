@@ -26,8 +26,14 @@ import { getLocalTime } from 'utils'
 import styles from './index.scss'
 
 export default class Item extends React.Component {
+  handleLinkClick = () => {
+    localStorage.setItem('pod-detail-referrer', location.pathname)
+  }
+
   render() {
     const { data } = this.props
+    const { workspace, cluster, namespace } = this.props.match.params
+
     const status = data.podStatus
 
     const statusStr =
@@ -42,8 +48,12 @@ export default class Item extends React.Component {
           <span className={classnames(styles.status, styles[statusStr])} />
         </div>
         <div className={styles.text}>
-          <Link to={`/projects/${data.namespace}/pods/${data.name}`}>
-            <strong>{data.name}</strong>
+          <Link
+            to={`/${workspace}/clusters/${cluster}/projects/${namespace}/pods/${
+              data.name
+            }`}
+          >
+            <strong onClick={this.handleLinkClick}>{data.name}</strong>
           </Link>
           <p>
             {t('Updated at')}{' '}

@@ -18,11 +18,10 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
-
-import { observable } from 'mobx'
 import { observer } from 'mobx-react'
-import { Form, Modal } from 'components/Base'
-import { Input, Select } from '@pitrix/lego-ui'
+
+import { Form, Modal, SearchSelect, Tag } from 'components/Base'
+import { Input } from '@pitrix/lego-ui'
 
 import styles from './index.scss'
 
@@ -41,22 +40,22 @@ export default class Git extends React.Component {
   constructor(props) {
     super(props)
     this.formRef = React.createRef()
+    this.state = { formData: {} }
   }
 
-  componentWillReceiveProps(nextProps) {
+  static getDerivedStateFromProps(nextProps) {
     if (nextProps.edittingData && nextProps.edittingData.type === 'git') {
-      this.formData = nextProps.edittingData.data.reduce((prev, arg) => {
+      const formData = nextProps.edittingData.data.reduce((prev, arg) => {
         prev[arg.key] = arg.value.value
         return prev
       }, {})
+      return { formData }
     }
+    return null
   }
 
-  @observable
-  formData = {}
-
   handleOk = () => {
-    const formData = this.formRef.current._formData
+    const formData = this.formRef.current.getData()
     this.formRef.current.validate(() => {
       const _arguments = Object.keys(formData).map(key => ({
         key,
@@ -88,9 +87,33 @@ export default class Git extends React.Component {
     })
   }
 
+  getCredentialsListData = params => {
+    return this.props.store.getCredentials(params)
+  }
+
+  getCredentialsList = () => {
+    return [
+      ...this.props.store.credentialsList.data.map(credential => ({
+        label: credential.name,
+        value: credential.name,
+        type: credential.type,
+        disabled: false,
+      })),
+    ]
+  }
+
+  optionRender = ({ label, type, disabled }) => (
+    <span style={{ display: 'flex', alignItem: 'center' }}>
+      {label}&nbsp;&nbsp;
+      <Tag type={disabled ? '' : 'warning'}>
+        {type === 'ssh' ? 'SSH' : t(type)}
+      </Tag>
+    </span>
+  )
+
   render() {
     const { visible, onCancel } = this.props
-    const { credentials } = this.props.store
+    const { credentialsList } = this.props.store
 
     return (
       <Modal
@@ -102,7 +125,7 @@ export default class Git extends React.Component {
         closable={false}
         title={'Git'}
       >
-        <Form data={this.formData} ref={this.formRef}>
+        <Form data={this.state.formData} ref={this.formRef}>
           <Form.Item
             label={t('Url')}
             rules={[{ required: true, message: t('This param is required') }]}
@@ -110,7 +133,7 @@ export default class Git extends React.Component {
             <Input name="url" />
           </Form.Item>
           <Form.Item
-            label={t('Credential Id')}
+            label={t('Credential ID')}
             desc={
               <p>
                 {t('ADD_NEW_CREDENTIAL_DESC')}
@@ -123,7 +146,17 @@ export default class Git extends React.Component {
               </p>
             }
           >
-            <Select name="credentialsId" options={credentials} />
+            <SearchSelect
+              name="credentialsId"
+              options={this.getCredentialsList()}
+              page={credentialsList.page}
+              total={credentialsList.total}
+              currentLength={credentialsList.data.length}
+              isLoading={credentialsList.isLoading}
+              onFetch={this.getCredentialsListData}
+              optionRenderer={this.optionRender}
+              valueRenderer={this.optionRender}
+            />
           </Form.Item>
           <Form.Item label={t('Branch')}>
             <Input name="branch" />

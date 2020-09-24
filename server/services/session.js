@@ -16,21 +16,84 @@
  * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const intersection = require('lodash/intersection')
+const get = require('lodash/get')
+const uniq = require('lodash/uniq')
+const isEmpty = require('lodash/isEmpty')
+const isArray = require('lodash/isArray')
 const jwtDecode = require('jwt-decode')
 
 const { send_gateway_request } = require('../libs/request')
 
-const { getServerConfig, formatRules, isAppsRoute } = require('../libs/utils')
+const { getServerConfig, isAppsRoute, safeParseJSON } = require('../libs/utils')
 
 const { client: clientConfig } = getServerConfig()
 
 const login = async (data, headers) => {
   const resp = await send_gateway_request({
     method: 'POST',
-    url: '/kapis/iam.kubesphere.io/v1alpha2/login',
-    headers,
-    params: data,
+    url: '/oauth/token',
+    headers: {
+      ...headers,
+      'content-type': 'application/x-www-form-urlencoded',
+    },
+    params: {
+      ...data,
+      grant_type: 'password',
+    },
+  })
+
+  const { access_token, refresh_token, expires_in } = resp || {}
+
+  if (!access_token) {
+    throw new Error(resp.message)
+  }
+
+  const { username } = jwtDecode(access_token)
+
+  return {
+    username,
+    token: access_token,
+    refreshToken: refresh_token,
+    expire: new Date().getTime() + Number(expires_in) * 1000,
+  }
+}
+
+const getNewToken = async ctx => {
+  const refreshToken = ctx.cookies.get('refreshToken')
+  let newToken = {}
+
+  const resp = await send_gateway_request({
+    method: 'POST',
+    url: '/oauth/token',
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded',
+    },
+    params: {
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+    },
+    token: refreshToken,
+  })
+
+  const { access_token, refresh_token, expires_in } = resp || {}
+
+  if (!access_token) {
+    throw new Error(resp.message)
+  }
+
+  newToken = {
+    token: access_token,
+    refreshToken: refresh_token,
+    expire: new Date().getTime() + Number(expires_in) * 1000,
+  }
+
+  return newToken
+}
+
+const oAuthLogin = async params => {
+  const resp = await send_gateway_request({
+    method: 'GET',
+    url: `/oauth/callback/${params.state}?code=${params.code}`,
   })
 
   if (!resp.access_token) {
@@ -40,6 +103,37 @@ const login = async (data, headers) => {
   const { username } = jwtDecode(resp.access_token)
 
   return { username, token: resp.access_token }
+}
+
+const getUserGlobalRules = async (username, token) => {
+  const resp = await send_gateway_request({
+    method: 'GET',
+    url: `/kapis/iam.kubesphere.io/v1alpha2/users/${username}/globalroles`,
+    token,
+  })
+
+  const rules = {}
+  resp.forEach(item => {
+    const rule = safeParseJSON(
+      get(
+        item,
+        "metadata.annotations['iam.kubesphere.io/role-template-rules']"
+      ),
+      {}
+    )
+
+    Object.keys(rule).forEach(key => {
+      rules[key] = rules[key] || []
+      if (isArray(rule[key])) {
+        rules[key].push(...rule[key])
+      } else {
+        rules[key].push(rule[key])
+      }
+      rules[key] = uniq(rules[key])
+    })
+  })
+
+  return rules
 }
 
 const getUserDetail = async (username, token) => {
@@ -52,18 +146,22 @@ const getUserDetail = async (username, token) => {
   })
 
   if (resp) {
-    user = resp
+    user = {
+      email: get(resp, 'spec.email'),
+      lang: get(resp, 'spec.lang'),
+      username: get(resp, 'metadata.name'),
+      globalrole: get(
+        resp,
+        'metadata.annotations["iam.kubesphere.io/globalrole"]'
+      ),
+    }
   } else {
     throw new Error(resp)
   }
 
-  return user
-}
-
-const formatUserDetail = user => {
-  user.groups = user.groups || []
-
-  user.cluster_rules = formatRules(user.cluster_rules)
+  try {
+    user.globalRules = await getUserGlobalRules(username, token)
+  } catch (error) {}
 
   return user
 }
@@ -74,6 +172,7 @@ const getWorkspaces = async token => {
   const resp = await send_gateway_request({
     method: 'GET',
     url: '/kapis/tenant.kubesphere.io/v1alpha2/workspaces',
+    params: { limit: 10 },
     token,
   })
 
@@ -84,21 +183,12 @@ const getWorkspaces = async token => {
   return workspaces
 }
 
-const getWorkspaceRules = async (token, workspace) => {
-  const resp = await send_gateway_request({
-    method: 'GET',
-    url: `/kapis/tenant.kubesphere.io/v1alpha2/workspaces/${workspace}/rules`,
-    token,
-  })
-  return resp
-}
-
 const getKSConfig = async token => {
   let resp = []
   try {
     resp = await send_gateway_request({
       method: 'GET',
-      url: `/kapis/v1alpha1/configz`,
+      url: `/kapis/config.kubesphere.io/v1alpha2/configs/configz`,
       token,
     })
   } catch (error) {
@@ -130,36 +220,62 @@ const getCurrentUser = async ctx => {
     getKSConfig(token),
   ])
 
-  const workspace_rules = {}
-
-  if (workspaces.length === 1) {
-    const rules = await getWorkspaceRules(token, workspaces[0])
-
-    const formatedRules = formatRules(rules)
-    if (workspaces[0] === clientConfig.systemWorkspace) {
-      Object.keys(formatedRules).forEach(key => {
-        formatedRules[key] = intersection(
-          formatedRules[key],
-          clientConfig.systemWorkspaceRules[key]
-        )
-      })
-    }
-
-    workspace_rules[workspaces[0]] = formatedRules
-  }
-
   return {
-    config: { ...clientConfig },
-    user: {
-      ...formatUserDetail(userDetail),
-      workspaces,
-      workspace_rules,
-    },
+    config: clientConfig,
+    user: { ...userDetail, workspaces },
     ksConfig,
   }
 }
 
+const getOAuthInfo = async () => {
+  let resp = []
+  try {
+    resp = await send_gateway_request({
+      method: 'GET',
+      url: `/kapis/config.kubesphere.io/v1alpha2/configs/oauth`,
+    })
+  } catch (error) {
+    console.error(error)
+  }
+
+  const servers = []
+  if (resp && !isEmpty(resp.identityProviders)) {
+    resp.identityProviders.forEach(item => {
+      if (item && item.provider) {
+        const title = item.name
+        const params = {
+          state: item.name,
+          client_id: item.provider.clientID,
+          response_type: 'code',
+        }
+
+        if (item.provider.redirectURL) {
+          params.redirect_uri = item.provider.redirectURL
+        }
+
+        if (item.provider.scopes && item.provider.scopes.length > 0) {
+          params.scope = item.provider.scopes.join(' ')
+        }
+
+        const url = `${item.provider.endpoint.authURL}?${Object.keys(params)
+          .map(
+            key =>
+              `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
+          )
+          .join('&')}`
+
+        servers.push({ title, url })
+      }
+    })
+  }
+
+  return servers
+}
+
 module.exports = {
   login,
+  oAuthLogin,
   getCurrentUser,
+  getOAuthInfo,
+  getNewToken,
 }

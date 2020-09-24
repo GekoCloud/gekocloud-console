@@ -20,7 +20,7 @@ import React from 'react'
 import classNames from 'classnames'
 import { action } from 'mobx'
 import { observer } from 'mobx-react'
-import { get, isEmpty } from 'lodash'
+import { get, isEmpty, isArray } from 'lodash'
 import { Input, Icon, Loading } from '@pitrix/lego-ui'
 import { Form, Button } from 'components/Base'
 import { REPO_KEY_MAP } from 'utils/constants'
@@ -47,13 +47,17 @@ export default class GitHubForm extends React.Component {
     this.props.store.handleChangeActiveRepoIndex(parseInt(repoIndex, 10))
 
     const repoList = get(orgList.data, `[${repoIndex}].repositories.items`, [])
-    if (!repoList.length) {
-      this.props.store.getRepoList(parseInt(repoIndex, 10))
+
+    if (!isArray(repoList) || isEmpty(repoList)) {
+      this.props.store.getRepoList({
+        activeRepoIndex: parseInt(repoIndex, 10),
+        cluster: this.props.cluster,
+      })
     }
   }
 
   handleGetRepoList = () => {
-    this.props.store.getRepoList()
+    this.props.store.getRepoList({ cluster: this.props.cluster })
   }
 
   handleSubmit = e => {
@@ -65,7 +69,7 @@ export default class GitHubForm extends React.Component {
         repo: get(
           orgList.data,
           `${activeRepoIndex}.repositories.items.${index}.name`
-        ), // repo
+        ),
         credential_id: githubCredentialId,
         owner: get(orgList.data[activeRepoIndex], 'name'),
         discover_branches: 1,
@@ -82,12 +86,17 @@ export default class GitHubForm extends React.Component {
 
   @action
   handlePasswordConfirm = async () => {
-    const { name } = this.props
-    const data = this.tokenFormRef.current._formData
+    const { name, cluster, devops } = this.props
+    const data = this.tokenFormRef.current.getData()
+
+    if (isEmpty(data)) return false
+
     this.setState({ isLoading: true })
-    this.props.store.putAccessToken({ token: data.token, name }).finally(() => {
-      this.setState({ isLoading: false })
-    })
+    this.props.store
+      .putAccessToken({ token: data.token, name, cluster, devops })
+      .finally(() => {
+        this.setState({ isLoading: false })
+      })
   }
 
   renderAccessTokenForm() {
@@ -198,7 +207,14 @@ export default class GitHubForm extends React.Component {
               ? repoList.map((repo, index) => (
                   <div className={styles.repo} key={repo.name}>
                     <div className={styles.icon}>
-                      <Icon name={this.scmType} size={40} />
+                      <Icon
+                        name={
+                          this.scmType === 'bitbucket_server'
+                            ? 'bitbucket'
+                            : this.scmType
+                        }
+                        size={40}
+                      />
                     </div>
                     <div className={styles.info}>
                       <div className={styles.name}>{repo.name}</div>

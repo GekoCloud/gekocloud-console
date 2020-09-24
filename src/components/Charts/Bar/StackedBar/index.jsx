@@ -13,13 +13,13 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Geko CloudGeko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
 import classnames from 'classnames'
-import { get, isEmpty, remove } from 'lodash'
+import { isEmpty, isEqual, remove } from 'lodash'
 
 import { COLORS_MAP } from 'utils/constants'
 
@@ -35,6 +35,7 @@ import {
 } from 'recharts'
 import CustomLegend from 'components/Charts/Custom/Legend'
 import CustomTooltip from 'components/Charts/Custom/Tooltip'
+import { getActiveSeries } from 'components/Charts/utils'
 
 import styles from './index.scss'
 
@@ -68,22 +69,22 @@ export default class StackedBar extends React.Component {
   constructor(props) {
     super(props)
 
-    this.series = this.getActiveSeries(props)
+    const series = getActiveSeries(props)
     this.state = {
-      activeSeries: this.series,
+      series,
+      activeSeries: series,
     }
   }
 
-  componentWillReceivePorps(nextProps) {
-    if (nextProps.data !== this.props.data) {
-      this.series = this.getActiveSeries(nextProps)
-      this.setState({ activeSeries: this.series })
+  static getDerivedStateFromProps(props, state) {
+    const series = getActiveSeries(props)
+    if (!isEqual(series, state.series)) {
+      return {
+        series,
+        activeSeries: series,
+      }
     }
-  }
-
-  getActiveSeries = (props = {}) => {
-    const { xKey, data } = props
-    return Object.keys(data[0] || {}).filter(key => key !== xKey)
+    return null
   }
 
   getBarSize = (data = []) => (data.length <= 20 ? 20 : 8)
@@ -133,12 +134,12 @@ export default class StackedBar extends React.Component {
 
   renderBar() {
     const { unit, areaColors, renderBar } = this.props
-
+    const { series, activeSeries } = this.state
     if (renderBar) {
       return renderBar()
     }
 
-    return this.series.map((key, index) => {
+    return series.map((key, index) => {
       const colorName = areaColors[index]
       const color = COLORS_MAP[colorName] || colorName
       const barSize = this.getBarSize(this.series)
@@ -160,7 +161,7 @@ export default class StackedBar extends React.Component {
           fill={color}
           radius={radius}
           unit={unit}
-          hide={!this.state.activeSeries.includes(key)}
+          hide={!activeSeries.includes(key)}
         />
       )
     })
@@ -183,15 +184,7 @@ export default class StackedBar extends React.Component {
               strokeDasharray="2 3"
               vertical={false}
             />
-            <XAxis
-              dataKey={xKey}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={value => {
-                const times = value.split(' ')
-                return get(times, '[1]') || get(times, '[0]') || ''
-              }}
-            />
+            <XAxis dataKey={xKey} axisLine={false} tickLine={false} />
             <YAxis
               width={45}
               axisLine={false}

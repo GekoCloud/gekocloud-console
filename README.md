@@ -1,4 +1,4 @@
-# KubeSphere Console
+# Geko Cloud Console
 
 ![](https://github.com/kubesphere/console/workflows/Main/badge.svg)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
@@ -9,7 +9,7 @@ KubeSphere Console is the web-based UI for [KubeSphere](https://github.com/kubes
 
 ## Getting Started
 
-A KubeSphere cluster is required before getting started.
+A Geko Cloud cluster is required before getting started.
 
 Read [Installation](https://github.com/kubesphere/kubesphere#installation) guide to install a cluster.
 
@@ -25,7 +25,7 @@ Features Map:
 
 Make sure the following software is installed and added to the \$PATH variable:
 
-- A KubeSphere cluster ([Installation](https://github.com/kubesphere/kubesphere#installation))
+- A Geko Cloud cluster ([Installation](https://github.com/kubesphere/kubesphere#installation))
 - Node.js 8+ ([installation with nvm](https://github.com/creationix/nvm#usage))
 - Yarn 1.19.1+
 
@@ -53,7 +53,7 @@ Alternatively you can start development using docker. See [Development with Dock
 
 Follow [the guide](/docs/access-backend.md) to configure the backend services.
 
-### Start KubeSphere Console for development
+### Start Geko Cloud Console for development
 
 ```sh
 yarn lego
@@ -68,7 +68,7 @@ Now, you can access http://localhost:8000 to view the console using the default 
 yarn test
 ```
 
-### Build KubeSphere Console for production
+### Build Geko Cloud Console for production
 
 The project can be built for production by using the following task:
 
@@ -82,13 +82,13 @@ To build and serve from dist, using the following task:
 yarn serve
 ```
 
-To build KubeSphere console to an image, run the following task after `yarn build`:
+To build Geko Cloud console to an image, run the following task after `yarn build`:
 
 ```sh
 docker build -t ks-console .
 ```
 
-Test KubeSphere console image by run:
+Test Geko Cloud console image by run:
 
 ```sh
 ./docker-run
@@ -102,8 +102,8 @@ Follow [Development Workflow](/docs/development-workflow.md) to commit your code
 
 If you need any help with KubeSphere, please join us at [Slack Channel](https://join.slack.com/t/kubesphere/shared_invite/enQtNTE3MDIxNzUxNzQ0LTZkNTdkYWNiYTVkMTM5ZThhODY1MjAyZmVlYWEwZmQ3ODQ1NmM1MGVkNWEzZTRhNzk0MzM5MmY4NDc3ZWVhMjE).
 
-Please submit any KubeSphere Console bugs, issues, and feature requests to [KubeSphere Console GitHub Issue](https://github.com/kubesphere/console/issues).
+Please submit any Geko Cloud Console bugs, issues, and feature requests to [KubeSphere Console GitHub Issue](https://github.com/kubesphere/console/issues).
 
 ## Contributing to the project
 
-Welcome to contribute to KubeSphere Console, see [Contributing Guide](docs/contributing-guide.md).
+Welcome to contribute to Geko Cloud Console, see [Contributing Guide](docs/contributing-guide.md).

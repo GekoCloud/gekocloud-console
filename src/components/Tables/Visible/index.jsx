@@ -51,7 +51,7 @@ export default class VisibleTable extends React.Component {
     minHeight: this.props.defaultRowHeight,
   })
 
-  componentWillReceiveProps() {
+  componentDidUpdate() {
     this.clearMeasurerCache()
   }
 
@@ -78,12 +78,6 @@ export default class VisibleTable extends React.Component {
     this.props.onTrClick(data)
   }
 
-  scrollHandler = ({ clientHeight, scrollHeight, scrollTop }) => {
-    if (Math.ceil(clientHeight + scrollTop) >= scrollHeight) {
-      this.props.onScrollEnd()
-    }
-  }
-
   @action
   toggleCol = e => {
     const index = e.currentTarget.dataset.index
@@ -93,7 +87,7 @@ export default class VisibleTable extends React.Component {
   }
 
   render() {
-    const { data, body: bodyClassName, tableRef } = this.props
+    const { data, body: bodyClassName, tableRef, onScroll } = this.props
     const dataLength = data.length
     return (
       <div className={styles.table}>
@@ -101,16 +95,16 @@ export default class VisibleTable extends React.Component {
         <div
           className={classnames(styles.body, bodyClassName)}
           onClick={this.onTrClick}
-          ref={tableRef}
         >
           <AutoSizer onResize={this.CellMeasurerCache}>
             {({ width, height }) => (
               <List
+                ref={tableRef}
                 width={width}
                 height={height}
                 overscanRowCount={10}
                 rowRenderer={this.renderItem}
-                onScroll={this.scrollHandler}
+                onScroll={onScroll}
                 rowCount={dataLength}
                 rowHeight={this.measureCache.rowHeight}
                 deferredMeasurementCache={this.measureCache}
@@ -143,7 +137,7 @@ export default class VisibleTable extends React.Component {
             onClose={this.handleClose}
           >
             <div>
-              {t('Display content')} <Icon name="cogwheel" />
+              {t('Display Content')} <Icon name="cogwheel" />
             </div>
           </Dropdown>
         </div>
@@ -153,7 +147,7 @@ export default class VisibleTable extends React.Component {
 
   renderDropdownContent = () => (
     <div className={styles.dropdown}>
-      <h3>{t('Display content')}</h3>
+      <h3>{t('Display Content')}</h3>
       {this.dropDownCols.map((col, index) => (
         <div
           key={col.thead}

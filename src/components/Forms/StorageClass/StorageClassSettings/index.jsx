@@ -29,9 +29,16 @@ export default class StorageClassSetting extends React.Component {
   constructor(props) {
     super(props)
 
-    const { provisioner: provisionerValue } = this.formTemplate
     this.isCustomizedProvision = PROVISIONERS.every(
-      ({ value }) => value !== provisionerValue
+      ({ value }) => value !== this.provisionerValue
+    )
+  }
+
+  get provisionerValue() {
+    return get(
+      this.formTemplate,
+      'metadata.annotations["kubesphere.io/provisioner"]',
+      this.formTemplate.provisioner
     )
   }
 
@@ -41,9 +48,8 @@ export default class StorageClassSetting extends React.Component {
   }
 
   getAccessModesOptions() {
-    const { provisioner: provisionerValue } = this.formTemplate
     const provisioner =
-      PROVISIONERS.find(({ value }) => value === provisionerValue) || {}
+      PROVISIONERS.find(({ value }) => value === this.provisionerValue) || {}
 
     const supportedAccessModes = isEmpty(provisioner.access_modes)
       ? Object.keys(ACCESS_MODES)
@@ -64,10 +70,8 @@ export default class StorageClassSetting extends React.Component {
   }
 
   renderParams() {
-    const { provisioner: provisionerValue } = this.formTemplate
-
     const provisioner = PROVISIONERS.find(
-      ({ value }) => value === provisionerValue
+      ({ value }) => value === this.provisionerValue
     )
 
     if (isEmpty(provisioner) || isEmpty(provisioner.params)) {
@@ -132,7 +136,7 @@ export default class StorageClassSetting extends React.Component {
               </Form.Item>
             </Column>
             <Column>
-              <Form.Item label={t('Reclaim Policy')}>
+              <Form.Item label={t('Reclaiming Policy')}>
                 <Input name="reclaimPolicy" disabled />
               </Form.Item>
             </Column>
@@ -140,32 +144,25 @@ export default class StorageClassSetting extends React.Component {
           <Columns>
             <Column>
               <Form.Item
-                label={t('Supported Access Modes')}
+                label={t('Supported Access Mode')}
                 desc={t('ACCESS_MODES_DESC')}
               >
                 <Select
-                  name="metadata.annotations['storageclass.kubesphere.io/supported_access_modes']"
+                  name="metadata.annotations['storageclass.kubesphere.io/supported-access-modes']"
                   options={accessModesOptions}
                   defaultValue={defaultModes}
                   multi
                 />
               </Form.Item>
             </Column>
-            {this.isCustomizedProvision && (
-              <Column>
-                <Form.Item
-                  rules={[
-                    {
-                      required: true,
-                      message: t('required'),
-                    },
-                  ]}
-                  label={t('Storage System')}
-                >
-                  <Input name={'provisioner'} />
-                </Form.Item>
-              </Column>
-            )}
+            <Column>
+              <Form.Item
+                rules={[{ required: true, message: t('required') }]}
+                label={t('Storage System')}
+              >
+                <Input name={'provisioner'} />
+              </Form.Item>
+            </Column>
           </Columns>
           {this.renderParams()}
         </Form>

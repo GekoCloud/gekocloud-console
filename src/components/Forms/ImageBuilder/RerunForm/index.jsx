@@ -94,7 +94,14 @@ export default class RerunForm extends React.Component {
   }
 
   render() {
-    const { visible, isSubmitting, onCancel, detail } = this.props
+    const {
+      visible,
+      isSubmitting,
+      onCancel,
+      cluster,
+      detail,
+      namespace,
+    } = this.props
     const isB2i = get(detail, 'spec.config.isBinaryURL')
 
     return (
@@ -111,9 +118,21 @@ export default class RerunForm extends React.Component {
         isSubmitting={isSubmitting}
       >
         {isB2i ? (
-          <B2iForm formTemplate={detail} formRef={this.content} mode="edit" />
+          <B2iForm
+            formTemplate={detail}
+            formRef={this.content}
+            cluster={cluster}
+            namespace={namespace}
+            mode="edit"
+          />
         ) : (
-          <S2iForm formTemplate={detail} formRef={this.content} mode="edit" />
+          <S2iForm
+            formTemplate={detail}
+            formRef={this.content}
+            cluster={cluster}
+            namespace={namespace}
+            mode="edit"
+          />
         )}
         {this.renderEnableUpdate()}
       </Modal.Form>

@@ -19,7 +19,7 @@
 import React from 'react'
 import { PropTypes } from 'prop-types'
 import { Input, Select, TextArea } from '@pitrix/lego-ui'
-import { find } from 'lodash'
+import { find, last } from 'lodash'
 
 import { Form, Upload, Image, Button } from 'components/Base'
 import { PATTERN_URL } from 'utils/constants'
@@ -60,18 +60,34 @@ export default class AppBaseEdit extends React.Component {
   }
 
   checkPackage = async file => {
-    const { checkFile, handleFileByBase64Str } = this.props.fileStore
+    const {
+      checkFile,
+      handleFileByBase64Str,
+      validateImageSize,
+    } = this.props.fileStore
     const result = checkFile(file, 'icon')
     if (result) {
       this.setState({ error: result, base64Str: '' })
     } else {
-      await handleFileByBase64Str(file, base64Str => {
-        this.setState({
-          base64Str,
-          error: '',
-        })
-        this.handleAppChange(base64Str, 'icon')
-        this.props.store.uploadIcon(base64Str)
+      const fileType = last(file.name.toLocaleLowerCase().split('.'))
+      await handleFileByBase64Str(file, async base64Str => {
+        const type = fileType === 'svg' ? 'svg+xml' : fileType
+        const base64Show = `data:image/${type};base64,${base64Str}`
+        const imagesResult = await validateImageSize(base64Show)
+
+        if (!imagesResult) {
+          this.setState({
+            error: t('FILE_MAX_SIZE_ICON'),
+            base64Str: '',
+          })
+        } else {
+          this.handleAppChange(base64Str, 'icon')
+          this.props.store.uploadIcon(base64Str)
+          this.setState({
+            error: '',
+            base64Str,
+          })
+        }
       })
     }
     return Promise.reject()
@@ -141,7 +157,7 @@ export default class AppBaseEdit extends React.Component {
             />
           </Form.Item>
           <Form.Item
-            label={t('App Abstraction')}
+            label={t('App Description')}
             desc={t('APP_ABSTRACTION_DESC')}
           >
             <TextArea
@@ -164,12 +180,12 @@ export default class AppBaseEdit extends React.Component {
             />
           </Form.Item>
           <Form.Item
-            label={t('Service provider website')}
+            label={t('Service Provider Website')}
             desc={t("Service provider's official website address")}
             rules={[
               {
                 pattern: PATTERN_URL,
-                message: t('Website format is error'),
+                message: t('Wrong website format'),
               },
             ]}
           >

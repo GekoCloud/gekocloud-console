@@ -157,12 +157,12 @@ export default class AddVolume extends React.Component {
     const { volume, namespace, checkVolumeNameExist } = this.props
 
     if (checkVolumeNameExist(value) && volume.metadata.name !== value) {
-      callback({ message: t('volume name exist'), field: rule.field })
+      callback({ message: t('The volume name exists'), field: rule.field })
     } else {
       this.volumeStore.checkName({ name: value, namespace }).then(resp => {
         if (resp.exist) {
           return callback({
-            message: t('volume name exist'),
+            message: t('The volume name exists'),
             field: rule.field,
           })
         }
@@ -204,7 +204,7 @@ export default class AddVolume extends React.Component {
                   { validator: this.nameValidator },
                 ]}
               >
-                <Input name="metadata.name" autoFocus={true} />
+                <Input name="metadata.name" autoFocus={true} maxLength={253} />
               </Form.Item>
               <VolumeFormTemplate />
               <Form.Item

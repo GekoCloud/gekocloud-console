@@ -47,14 +47,14 @@ export default class SelectorsInput extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (!isEqual(nextProps.value, this.props.value)) {
-      this.fetchRelatedWorkloads(nextProps)
+  componentDidUpdate(prevProps) {
+    if (!isEqual(prevProps.value, this.props.value)) {
+      this.fetchRelatedWorkloads(this.props)
     }
   }
 
   fetchRelatedWorkloads = debounce(props => {
-    const { value, namespace } = props
+    const { value, cluster, namespace } = props
 
     if (
       isEmpty(value) ||
@@ -76,9 +76,24 @@ export default class SelectorsInput extends React.Component {
     const labelSelector = joinSelector(value)
 
     Promise.all([
-      this.store.fetchByK8s({ namespace, labelSelector }, 'deployments'),
-      this.store.fetchByK8s({ namespace, labelSelector }, 'daemonsets'),
-      this.store.fetchByK8s({ namespace, labelSelector }, 'statefulsets'),
+      this.store.fetchListByK8s({
+        cluster,
+        namespace,
+        labelSelector,
+        module: 'deployments',
+      }),
+      this.store.fetchListByK8s({
+        cluster,
+        namespace,
+        labelSelector,
+        module: 'daemonsets',
+      }),
+      this.store.fetchListByK8s({
+        cluster,
+        namespace,
+        labelSelector,
+        module: 'statefulsets',
+      }),
     ]).then(([relatedDeployments, relatedDaemonSets, relatedStatefulSets]) => {
       this.setState({
         relatedDeployments,
@@ -91,7 +106,10 @@ export default class SelectorsInput extends React.Component {
   handleWorkloadSelect = labels => {
     const { onChange } = this.props
     onChange && onChange(labels)
-    this.setState({ selectLabels: labels })
+  }
+
+  handleCancel = () => {
+    this.setState({ visible: false })
   }
 
   renderRelatedTips() {
@@ -111,10 +129,10 @@ export default class SelectorsInput extends React.Component {
       return null
     }
 
-    let tips = t('The currently selectors')
+    let tips = t('The current selector')
 
     if (count === 0) {
-      tips += t(' has no corresponding workload')
+      tips += t(' has no corresponding workload.')
       return <Alert className={styles.alert} message={tips} type="warning" />
     }
 
@@ -160,10 +178,13 @@ export default class SelectorsInput extends React.Component {
   }
 
   renderWorkloadSelectForm() {
+    const { cluster, namespace } = this.props
     return (
       <WorkloadSelect
-        namespace={this.props.namespace}
+        cluster={cluster}
+        namespace={namespace}
         onSelect={this.handleWorkloadSelect}
+        onCancel={this.handleCancel}
       />
     )
   }
@@ -173,10 +194,7 @@ export default class SelectorsInput extends React.Component {
     return (
       <div className={styles.wrapper}>
         {this.renderRelatedTips()}
-        <PropertiesInput
-          {...this.props}
-          controlledValue={this.state.selectLabels}
-        />
+        <PropertiesInput {...this.props} controlled />
         <Popper
           className={styles.popper}
           trigger="click"

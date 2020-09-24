@@ -26,12 +26,12 @@ import { getLocalTime } from 'utils'
 import { getJobStatus } from 'utils/status'
 import RecordStore from 'stores/workload/record'
 
-import { Icon, Table } from '@pitrix/lego-ui'
-import { Card, Status } from 'components/Base'
+import { Table } from '@pitrix/lego-ui'
+import { Button, Card, Status } from 'components/Base'
 
 import styles from './index.scss'
 
-@inject('rootStore')
+@inject('rootStore', 'detailStore')
 @observer
 class JobRecords extends React.Component {
   constructor(props) {
@@ -49,8 +49,10 @@ class JobRecords extends React.Component {
   }
 
   get prefix() {
-    const { namespace } = this.params
-    return `/projects/${namespace}`
+    const { cluster, workspace, namespace } = this.props.match.params
+    return `${
+      workspace ? `/${workspace}` : ''
+    }/clusters/${cluster}/projects/${namespace}`
   }
 
   componentDidMount() {
@@ -59,11 +61,13 @@ class JobRecords extends React.Component {
 
   fetchData = params => {
     const detail = toJS(this.store.detail)
+    const { cluster, namespace } = detail
     const selector = get(detail, 'spec.jobTemplate.metadata.labels', {})
 
     this.recordStore.fetchListByK8s({
       ...params,
-      namespace: detail.namespace,
+      cluster,
+      namespace,
       selector,
     })
   }
@@ -109,7 +113,7 @@ class JobRecords extends React.Component {
     },
     {
       render: record => (
-        <Icon name="refresh" clickable onClick={this.handleRerun(record)} />
+        <Button icon="refresh" type="flat" onClick={this.handleRerun(record)} />
       ),
     },
   ]
@@ -126,7 +130,7 @@ class JobRecords extends React.Component {
     return (
       <Table
         className={styles.table}
-        dataSource={data}
+        dataSource={toJS(data)}
         columns={this.getColumns()}
         loading={isLoading}
       />

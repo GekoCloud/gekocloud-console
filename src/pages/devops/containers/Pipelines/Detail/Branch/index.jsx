@@ -42,9 +42,12 @@ export default class Branch extends React.Component {
   }
 
   get enabledActions() {
+    const { cluster, devops } = this.props.match.params
+
     return globals.app.getActions({
       module: 'pipelines',
-      project: this.props.match.params.project_id,
+      cluster,
+      devops,
     })
   }
 
@@ -78,7 +81,8 @@ export default class Branch extends React.Component {
     const { detail } = this.props.detailStore
 
     await this.props.detailStore.scanRepository({
-      project_id: params.project_id,
+      devops: params.devops,
+      cluster: params.cluster,
       name: detail.name,
     })
     this.store.fetchDetail(params)
@@ -122,7 +126,7 @@ export default class Branch extends React.Component {
       render: weatherScore => <Health score={weatherScore} />,
     },
     {
-      title: t('Last message'),
+      title: t('Last Message'),
       dataIndex: 'latestRun',
       width: '15%',
       render: latestRun => result(latestRun, 'causes[0].shortDescription', ''),
@@ -144,7 +148,7 @@ export default class Branch extends React.Component {
     const isEmptyList = isLoading === false && total === 0
 
     const omitFilters = omit(filters, 'page')
-    const runnable = this.enabledActions.includes('trigger')
+    const runnable = this.enabledActions.includes('edit')
 
     if (isEmptyList && !filters.page) {
       return (

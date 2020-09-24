@@ -21,7 +21,7 @@ import PropTypes from 'prop-types'
 
 import { observable, action } from 'mobx'
 import { observer } from 'mobx-react'
-import { Form, Modal, Checkbox } from 'components/Base'
+import { Form, Modal, Checkbox, SearchSelect, Tag } from 'components/Base'
 import { Input, Select, Icon, Columns, Column } from '@pitrix/lego-ui'
 
 import styles from './index.scss'
@@ -57,28 +57,34 @@ export default class KubernetesDeploy extends React.Component {
   constructor(props) {
     super(props)
     this.formRef = React.createRef()
+    this.state = { formData: {} }
   }
 
-  componentWillReceiveProps(nextProps) {
+  static getDerivedStateFromProps(nextProps) {
     if (nextProps.edittingData.type === 'kubernetesDeploy') {
-      this.formData = nextProps.edittingData.data.reduce((prev, arg) => {
+      const formData = nextProps.edittingData.data.reduce((prev, arg) => {
         prev[arg.key] = arg.value.value
         return prev
       }, {})
+      return { formData }
     }
+    return null
   }
 
   @observable
-  formData = {}
-  @observable
   dockerCredentials = [{ key: 'default' }]
+
   @observable
   isShowAdvenced = false
+
   @observable
   isShowDetail = false
 
   handleChange = type => e => {
-    this.formData[type] = e.target ? e.target.value.trim() : e
+    this.setState(state => {
+      state.formData[type] = e.target ? e.target.value.trim() : e
+      return state
+    })
   }
 
   @action
@@ -111,11 +117,11 @@ export default class KubernetesDeploy extends React.Component {
 
   handleOk = () => {
     this.formRef.current.validate(() => {
-      const _arguments = Object.keys(this.formData).map(key => ({
+      const _arguments = Object.keys(this.state.formData).map(key => ({
         key,
         value: {
           isLiteral: true,
-          value: this.formData[key],
+          value: this.state.formData[key],
         },
       }))
       if (this.isShowAdvenced) {
@@ -156,14 +162,14 @@ export default class KubernetesDeploy extends React.Component {
         <Form.Item label={t('Kubernetes Namespace for Secret')}>
           <Input
             name="secretNamespace"
-            value={this.formData.secretNamespace}
+            value={this.state.formData.secretNamespace}
             onChange={this.handleChange('secretNamespace')}
           />
         </Form.Item>
         <Form.Item label={t('Secret Name')}>
           <Input
             name="secretName"
-            value={this.formData.secretName}
+            value={this.state.formData.secretName}
             onChange={this.handleChange('secretName')}
           />
         </Form.Item>
@@ -182,13 +188,13 @@ export default class KubernetesDeploy extends React.Component {
                 className={styles.dockerCredentialsContent__trashicon}
                 onClick={this.handleRemove(credential.key)}
               />
-              <Form.Item label={t('Docker registry URL')}>
+              <Form.Item label={t('Docker Registry URL')}>
                 <Input
                   value={credential.url}
                   onChange={this.handleCredentialChange(credential.key, 'url')}
                 />
               </Form.Item>
-              <Form.Item label={t('Registry credentials')}>
+              <Form.Item label={t('Registry Credentials')}>
                 <Select
                   value={credential.credentialsId}
                   options={passWordCredentials}
@@ -211,9 +217,42 @@ export default class KubernetesDeploy extends React.Component {
     )
   }
 
+  getCredentialsListData = params => {
+    return this.props.store.getCredentials(params)
+  }
+
+  getCredentialsList = () => {
+    return [
+      ...this.props.store.credentialsList.data.map(credential => ({
+        label: credential.name,
+        value: credential.name,
+        type: credential.type,
+        disabled: !this.props.store.isKubeconfigCredentials(credential.type),
+      })),
+    ]
+  }
+
+  optionRender = ({ label, type, disabled }) => (
+    <span style={{ display: 'flex', alignItem: 'center' }}>
+      {label}&nbsp;&nbsp;
+      <Tag type={disabled ? '' : 'warning'}>
+        {type === 'ssh' ? 'SSH' : t(type)}
+      </Tag>
+    </span>
+  )
+
+  optionRender = ({ label, type, disabled }) => (
+    <span style={{ display: 'flex', alignItem: 'center' }}>
+      {label}&nbsp;&nbsp;
+      <Tag type={disabled ? '' : 'warning'}>
+        {type === 'ssh' ? 'SSH' : t(type)}
+      </Tag>
+    </span>
+  )
+
   render() {
     const { visible, onCancel } = this.props
-    const { kubeconfigCredentials } = this.props.store
+    const { credentialsList } = this.props.store
 
     return (
       <Modal
@@ -234,7 +273,7 @@ export default class KubernetesDeploy extends React.Component {
         </div>
         <Form
           className={styles.KubernetesForm}
-          data={this.formData}
+          data={this.state.formData}
           ref={this.formRef}
         >
           <Form.Item
@@ -252,9 +291,19 @@ export default class KubernetesDeploy extends React.Component {
               </p>
             }
           >
-            <Select name="kubeconfigId" options={kubeconfigCredentials} />
+            <SearchSelect
+              name="kubeconfigId"
+              options={this.getCredentialsList()}
+              page={credentialsList.page}
+              total={credentialsList.total}
+              currentLength={credentialsList.data.length}
+              isLoading={credentialsList.isLoading}
+              onFetch={this.getCredentialsListData}
+              optionRenderer={this.optionRender}
+              valueRenderer={this.optionRender}
+            />
           </Form.Item>
-          <Form.Item label={t('Config Files')}>
+          <Form.Item label={t('Config File Path')}>
             <Input name="configs" />
           </Form.Item>
           <Columns className="margin-t12">
@@ -268,7 +317,7 @@ export default class KubernetesDeploy extends React.Component {
             <Column>
               <Form.Item>
                 <Checkbox name="deleteResource" defaultValue={false}>
-                  {t('Enable Delete All Resource to the deployment file')}
+                  {t('Delete all resources of the deployment file')}
                 </Checkbox>
               </Form.Item>
             </Column>
@@ -280,7 +329,7 @@ export default class KubernetesDeploy extends React.Component {
               className={styles.clickable}
               onClick={this.showAdvencedSetting}
             >
-              {t('show advanced setting')}
+              {t('Show Advanced Settings')}
             </div>
           )}
         </Form>

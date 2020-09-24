@@ -20,10 +20,10 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { get } from 'lodash'
 
-import { observable, action } from 'mobx'
+import { action } from 'mobx'
 import { observer } from 'mobx-react'
-import { Form, Modal } from 'components/Base'
-import { Input, Select } from '@pitrix/lego-ui'
+import { Form, Modal, SearchSelect, Tag } from 'components/Base'
+import { Input } from '@pitrix/lego-ui'
 import { groovyToJS } from 'utils/devops'
 
 import styles from './index.scss'
@@ -43,6 +43,18 @@ const typesDict = {
   kubeconfig: 'kubeconfigContent',
 }
 
+const setCredentialType = str => {
+  const typeReg = /\$\{\[([\w-]*)\(/
+  const type = str.match(typeReg) && str.match(typeReg)[1]
+  if (type) {
+    const credentialType = Object.entries(typesDict).find(
+      typeArr => typeArr[1] === type
+    )[0]
+    return credentialType
+  }
+  return null
+}
+
 @observer
 export default class WithCredentials extends React.Component {
   static propTypes = {
@@ -58,56 +70,52 @@ export default class WithCredentials extends React.Component {
   constructor(props) {
     super(props)
     this.formRef = React.createRef()
+    this.state = {
+      formData: {},
+      credentialType: 'username_password',
+    }
   }
 
   componentDidMount() {
     this.props.store.getCredentials()
+    this.initEditor()
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.edittingData.type === 'withCredentials') {
-      const str = get(nextProps, 'edittingData.data.value', '')
+  initEditor = () => {
+    const { edittingData } = this.props
+    if (edittingData.type === 'withCredentials') {
+      const str = get(edittingData, 'data.value', '')
       if (str) {
-        this.formData = groovyToJS(str)
-        this.setCredentialType(str)
+        const formData = groovyToJS(str)
+        const credentialType = setCredentialType(str)
+        this.setState({ formData, credentialType })
       }
-    }
-  }
-
-  @observable
-  formData = {}
-  @observable
-  credentialType = 'username_password'
-
-  @action
-  setCredentialType = str => {
-    const typeReg = /\$\{\[([\w-]*)\(/
-    const type = str.match(typeReg) && str.match(typeReg)[1]
-    if (type) {
-      this.credentialType = Object.entries(typesDict).find(
-        typeArr => typeArr[1] === type
-      )[0]
     }
   }
 
   @action
   handleCredentialChange = id => {
-    const { credentials } = this.props.store
-
-    const selectedCredential = credentials.find(
+    const credentialsList = this.getCredentialsList()
+    const selectedCredential = credentialsList.find(
       credential => credential.value === id
     )
-    this.credentialType = selectedCredential.type
+
+    const credentialType = get(selectedCredential, 'type', 'username_password')
+
+    this.setState({
+      credentialType,
+      formData: { credentialsId: id },
+    })
   }
 
   handleOk = () => {
-    const formData = this.formRef.current._formData
+    const formData = this.formRef.current.getData()
     this.formRef.current.validate(() => {
       this.props.onAddStep({
         name: 'withCredentials',
         arguments: {
           isLiteral: false,
-          value: formatParams(formData, typesDict[this.credentialType]),
+          value: formatParams(formData, typesDict[this.state.credentialType]),
         },
         children: [],
       })
@@ -115,14 +123,14 @@ export default class WithCredentials extends React.Component {
   }
 
   renderParams = () => {
-    switch (this.credentialType) {
+    switch (this.state.credentialType) {
       case 'username_password':
         return (
           <React.Fragment>
-            <Form.Item label={t('password Variable')}>
+            <Form.Item label={t('Password Variable')}>
               <Input name="passwordVariable" />
             </Form.Item>
-            <Form.Item label={t('username Variable')}>
+            <Form.Item label={t('Username Variable')}>
               <Input name="usernameVariable" />
             </Form.Item>
           </React.Fragment>
@@ -144,7 +152,7 @@ export default class WithCredentials extends React.Component {
             <Form.Item label={t('passphrase Variable')}>
               <Input name="passphraseVariable" />
             </Form.Item>
-            <Form.Item label={t('username Variable')}>
+            <Form.Item label={t('Username Variable')}>
               <Input name="usernameVariable" />
             </Form.Item>
           </React.Fragment>
@@ -160,9 +168,34 @@ export default class WithCredentials extends React.Component {
     }
   }
 
+  getCredentialsListData = params => {
+    return this.props.store.getCredentials(params)
+  }
+
+  getCredentialsList = () => {
+    return [
+      ...this.props.store.credentialsList.data.map(credential => ({
+        label: credential.name,
+        value: credential.name,
+        type: credential.type,
+        disabled: false,
+      })),
+    ]
+  }
+
+  optionRender = ({ label, type, disabled }) => (
+    <span style={{ display: 'flex', alignItem: 'center' }}>
+      {label}&nbsp;&nbsp;
+      <Tag type={disabled ? '' : 'warning'}>
+        {type === 'ssh' ? 'SSH' : t(type)}
+      </Tag>
+    </span>
+  )
+
   render() {
     const { visible, onCancel } = this.props
-    const { credentials } = this.props.store
+    const { credentialsList } = this.props.store
+
     return (
       <Modal
         width={680}
@@ -173,7 +206,7 @@ export default class WithCredentials extends React.Component {
         closable={false}
         title={t('withCredentials')}
       >
-        <Form data={this.formData} ref={this.formRef}>
+        <Form data={this.state.formData} ref={this.formRef}>
           <Form.Item
             label={t('Credential ID')}
             rules={[{ required: true, message: t('This param is required') }]}
@@ -189,10 +222,17 @@ export default class WithCredentials extends React.Component {
               </p>
             }
           >
-            <Select
+            <SearchSelect
               name="credentialsId"
-              options={credentials}
+              options={this.getCredentialsList()}
+              page={credentialsList.page}
+              total={credentialsList.total}
+              currentLength={credentialsList.data.length}
+              isLoading={credentialsList.isLoading}
+              onFetch={this.getCredentialsListData}
               onChange={this.handleCredentialChange}
+              optionRenderer={this.optionRender}
+              valueRenderer={this.optionRender}
             />
           </Form.Item>
           {this.renderParams()}

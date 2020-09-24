@@ -18,17 +18,14 @@
 
 import React from 'react'
 import { toJS } from 'mobx'
-import { observer } from 'mobx-react'
+import { inject, observer } from 'mobx-react'
 
 import VolumesCard from 'components/Cards/Volumes'
 import ProbeCard from 'projects/components/Cards/Probe'
 
+@inject('detailStore')
 @observer
 class ContainersResourceStatus extends React.Component {
-  get module() {
-    return this.props.module
-  }
-
   get store() {
     return this.props.detailStore
   }
@@ -36,7 +33,6 @@ class ContainersResourceStatus extends React.Component {
   renderVolumes() {
     const containers = [toJS(this.store.detail)]
     const volumes = toJS(this.store.volumes)
-    const { namespace } = this.props.match.params
 
     return (
       <VolumesCard
@@ -44,7 +40,7 @@ class ContainersResourceStatus extends React.Component {
         volumes={volumes}
         containers={containers}
         loading={this.store.isLoading}
-        prefix={`/projects/${namespace}`}
+        match={this.props.match}
       />
     )
   }

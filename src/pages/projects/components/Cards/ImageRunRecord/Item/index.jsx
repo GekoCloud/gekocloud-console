@@ -19,7 +19,7 @@
 import React from 'react'
 import classnames from 'classnames'
 import { observer } from 'mobx-react'
-import { get } from 'lodash'
+import { get, isArray } from 'lodash'
 import { Icon, Loading, Tooltip } from '@pitrix/lego-ui'
 
 import { Status, Button } from 'components/Base'
@@ -33,6 +33,7 @@ export default class ImageBuilderLastRun extends React.Component {
     super(props)
     this.state = {
       showLog: false,
+      noModuleMsg: null,
     }
     this.LogContent = React.createRef()
     this.store = props.store
@@ -40,12 +41,25 @@ export default class ImageBuilderLastRun extends React.Component {
 
   componentWillUnmount() {
     clearTimeout(this.refreshTimer)
+    this.setState({
+      noModuleMsg: null,
+    })
   }
 
   toggleShowLog = () => {
     const { showLog } = this.state
     if (!showLog) {
-      this.getLog()
+      if (globals.app.hasKSModule('logging')) {
+        this.getLog()
+        this.setState({
+          noModuleMsg: null,
+        })
+      } else {
+        this.store.logData.isLoading = false
+        this.setState({
+          noModuleMsg: t('The logging module is not installed.'),
+        })
+      }
     } else {
       clearTimeout(this.refreshTimer)
     }
@@ -53,7 +67,7 @@ export default class ImageBuilderLastRun extends React.Component {
   }
 
   getLog = async () => {
-    const { logURL, status } = this.props.runDetail
+    const { logURL, status, cluster } = this.props.runDetail
     const { logData } = this.store
     const isRunning = status === 'Building' || status === 'Unknown'
     clearTimeout(this.refreshTimer)
@@ -62,11 +76,9 @@ export default class ImageBuilderLastRun extends React.Component {
       this.refreshTimer = setTimeout(this.getLog, 4000)
       return
     }
-    if (globals.app.hasKSModule('logging')) {
-      await this.store.getLog(logURL)
-    } else {
-      await this.store.fetchPodsLogs(logURL)
-    }
+
+    await this.store.getLog(logURL, cluster)
+
     this.handleScrollToBottom()
     if (logData.hasMore) {
       this.getLog()
@@ -92,17 +104,27 @@ export default class ImageBuilderLastRun extends React.Component {
     e && e.stopPropagation()
   }
 
+  pathAddCluster = (path, cluster) => {
+    const match = path.match(/(\/kapis|api|apis)(.*)/)
+    return !cluster || cluster === 'default' || !isArray(match)
+      ? path
+      : `${match[1]}/clusters/${cluster}${match[2]}`
+  }
+
   handleDownload = () => {
-    const { sourceUrl } = this.props.runDetail
+    const { sourceUrl, cluster } = this.props.runDetail
     const path = get(parseUrl(sourceUrl), 'pathname', `/${sourceUrl}`)
+    const url = this.pathAddCluster(path, cluster)
     const downLoadUrl = `${window.location.protocol}//${
       window.location.host
-    }/b2i_download${path}`
+    }/b2i_download${url}`
     window.open(downLoadUrl)
   }
 
   renderLog = () => {
     const { log, isLoading } = this.store.logData
+    const { noModuleMsg } = this.state
+
     if (!this.state.showLog) {
       return null
     }
@@ -117,13 +139,21 @@ export default class ImageBuilderLastRun extends React.Component {
 
     return (
       <div className={styles.logContent} onClick={this.stopPropagation}>
-        <pre ref={this.LogContent}>{log || t('Log is loading...')}</pre>
+        <pre ref={this.LogContent}>
+          {noModuleMsg || log || t('Log is loading...')}
+        </pre>
       </div>
     )
   }
 
   renderDetailInfo = () => {
-    const { imageName, branch, binaryName, binarySize } = this.props.runDetail
+    const {
+      imageName,
+      branch,
+      binaryName,
+      binarySize,
+      status,
+    } = this.props.runDetail
 
     if (!this.props.isB2i) {
       return (
@@ -147,7 +177,12 @@ export default class ImageBuilderLastRun extends React.Component {
           <Icon name="templet" />
           <p>{imageName}</p>
         </div>
-        <Button onClick={this.handleDownload} type="primary">
+
+        <Button
+          onClick={this.handleDownload}
+          type="primary"
+          disabled={status !== 'Successful'}
+        >
           {t('Download Artifact')}
         </Button>
       </div>
@@ -163,7 +198,6 @@ export default class ImageBuilderLastRun extends React.Component {
   render() {
     const { count, status, imageName, startTime, name } = this.props.runDetail
     const { loading } = this.props
-
     if (loading) {
       return null
     }

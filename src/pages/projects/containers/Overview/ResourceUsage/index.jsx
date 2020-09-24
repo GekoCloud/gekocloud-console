@@ -18,6 +18,7 @@
 
 import React from 'react'
 import { inject, observer } from 'mobx-react'
+import isEqual from 'react-fast-compare'
 import { get } from 'lodash'
 import { toJS } from 'mobx'
 
@@ -46,7 +47,6 @@ const APP_RESOURCE_METRIC_TYPES = [
   'namespace_secret_count',
   'namespace_configmap_count',
   'namespace_ingresses_extensions_count',
-  'namespace_s2ibuilder_count',
 ]
 
 const PHYSICAL_RESOURCE_METRIC_TYPES = [
@@ -66,16 +66,15 @@ class ResourceUsage extends React.Component {
     }
 
     this.dashboardStore = new DashboardStore()
-    this.projectStore = props.rootStore.project
     this.appResourceMonitorStore = new ProjectMonitorStore()
     this.physicalResourceMonitorStore = new ProjectMonitorStore()
 
-    this.fetchData(this.namespace)
+    this.fetchData(this.props.match.params)
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.match.params.namespace !== this.namespace) {
-      this.fetchData(nextProps.match.params.namespace)
+  componentDidUpdate(prevProps) {
+    if (!isEqual(prevProps.match.params, this.props.match.params)) {
+      this.fetchData(this.props.match.params)
     }
   }
 
@@ -99,8 +98,8 @@ class ResourceUsage extends React.Component {
     return get(this.props.match, 'params.namespace')
   }
 
-  get project() {
-    return toJS(this.props.rootStore.project)
+  get cluster() {
+    return get(this.props.match, 'params.cluster')
   }
 
   get timeOptions() {
@@ -116,9 +115,7 @@ class ResourceUsage extends React.Component {
     ]
   }
 
-  fetchData = namespace => {
-    const params = { namespace }
-
+  fetchData = params => {
     this.fetchMetrics()
     this.dashboardStore.fetchResourceStatus(params)
   }
@@ -127,7 +124,7 @@ class ResourceUsage extends React.Component {
     const { resourceType, range } = this.state
     if (resourceType === 'application') {
       this.appResourceMonitorStore.fetchMetrics({
-        namespace: this.namespace,
+        ...this.props.match.params,
         metrics: APP_RESOURCE_METRIC_TYPES,
         step: `${Math.floor(range / 10)}s`,
         times: 10,
@@ -137,7 +134,7 @@ class ResourceUsage extends React.Component {
       })
     } else {
       this.physicalResourceMonitorStore.fetchMetrics({
-        namespace: this.namespace,
+        ...this.props.match.params,
         metrics: PHYSICAL_RESOURCE_METRIC_TYPES,
         step: `${Math.floor(range / 40)}s`,
         times: 40,
@@ -190,15 +187,6 @@ class ResourceUsage extends React.Component {
         metric: 'namespace_daemonset_count',
       },
       {
-        key: 's2ibuilders',
-        icon: ICON_TYPES['s2ibuilders'],
-        name: 'Image Builders',
-        routeName: 's2ibuilders',
-        num: used['count/s2ibuilders.devops.kubesphere.io'],
-        metric: 'namespace_s2ibuilder_count',
-        disabled: !globals.app.hasKSModule('devops'),
-      },
-      {
         key: 'jobs',
         icon: ICON_TYPES['jobs'],
         name: 'Jobs',
@@ -236,7 +224,7 @@ class ResourceUsage extends React.Component {
         key: 'routes',
         icon: ICON_TYPES['ingresses'],
         name: 'Routes',
-        routeName: 'routes',
+        routeName: 'ingresses',
         num: used['count/ingresses.extensions'],
         metric: 'namespace_ingresses_extensions_count',
       },
@@ -271,7 +259,7 @@ class ResourceUsage extends React.Component {
             .filter(item => !item.disabled)
             .map(item => (
               <AppResourceItem
-                namespace={this.namespace}
+                {...this.props.match.params}
                 {...item}
                 metrics={get(metrics, `${item.metric}.data.result`)}
                 isMetricsLoading={isMetricsLoading || isRefreshing}

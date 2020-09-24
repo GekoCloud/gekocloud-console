@@ -65,16 +65,6 @@ export default class SecretEditModal extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.detail !== this.props.detail) {
-      this.setState({ formTemplate: this.getFormTemplate(nextProps.detail) })
-    }
-
-    if (nextProps.visible && nextProps.visible !== this.props.visible) {
-      this.setState({ subRoute: {} })
-    }
-  }
-
   registerSubRoute = (onSave, onCancel) => {
     this.setState({
       subRoute: {
@@ -107,22 +97,7 @@ export default class SecretEditModal extends React.Component {
 
   getFormTemplate(detail = {}) {
     const originData = toJS(detail._originData)
-
-    if (detail.type === 'kubernetes.io/dockerconfigjson') {
-      const data = detail.data
-      const url = Object.keys(data['.dockerconfigjson'].auths)[0]
-
-      return {
-        ...originData,
-        data: {
-          '.dockerconfigjson': {
-            url,
-            ...data['.dockerconfigjson'].auths[url],
-          },
-        },
-      }
-    }
-    return { ...originData, data: detail.data }
+    return { ...originData }
   }
 
   handleOk = () => {
@@ -147,8 +122,8 @@ export default class SecretEditModal extends React.Component {
   }
 
   render() {
-    const { subRoute } = this.state
-    const { visible, isSubmitting, onCancel } = this.props
+    const { subRoute, formTemplate } = this.state
+    const { visible, isSubmitting, onCancel, isFederated } = this.props
 
     return (
       <Modal
@@ -163,7 +138,11 @@ export default class SecretEditModal extends React.Component {
         disableSubmit={!isEmpty(subRoute)}
         isSubmitting={isSubmitting}
       >
-        <SecretSettings formTemplate={this.state.formTemplate} mode="edit" />
+        <SecretSettings
+          formTemplate={formTemplate}
+          isFederated={isFederated}
+          mode="edit"
+        />
         {this.renderSaveBar()}
       </Modal>
     )

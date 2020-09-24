@@ -30,24 +30,49 @@ import BaseInfo from 'core/containers/Base/Detail/BaseInfo'
 import Status from 'devops/components/Status'
 
 import RunDetailStore from 'stores/devops/run'
+import DevopsStore from 'stores/devops'
 
-@observer
 class RunSider extends Base {
   constructor(props) {
     super(props)
 
     this.store = new RunDetailStore()
+    this.devopsStore = new DevopsStore()
 
     this.state = {
       showEdit: false,
       showYamlEdit: false,
+      isLoading: true,
     }
+
     this.refreshTimer = setInterval(this.refreshHandler, 4000)
+    this.init()
   }
 
   get listUrl() {
-    const { project_id } = this.props.match.params
-    return `/devops/${project_id}/pipelines`
+    const { workspace, devops, cluster } = this.props.match.params
+    return `/${workspace}/clusters/${cluster}/devops/${devops}/pipelines`
+  }
+
+  init = async () => {
+    const { params } = this.props.match
+
+    await Promise.all([
+      this.devopsStore.fetchDetail(params),
+      this.props.rootStore.getRules({
+        workspace: params.workspace,
+      }),
+    ])
+
+    await this.props.rootStore.getRules({
+      cluster: params.cluster,
+      workspace: params.workspace,
+      devops: params.devops,
+    })
+
+    this.setState({
+      isLoading: false,
+    })
   }
 
   refreshHandler = () => {
@@ -71,22 +96,26 @@ class RunSider extends Base {
     this.store.getRunDetail(params)
   }
 
-  componentWillReceiveProps(nextProps) {
-    const { params } = nextProps.match
-    const { params: thisParmas } = this.props.match
-    if (params.runId !== thisParmas.runid) {
+  componentDidUpdate(prevProps) {
+    const { runDetail } = this.store
+    const {
+      devops,
+      runid,
+      branch,
+      workspace,
+      cluster,
+    } = this.props.match.params
+    const { params: lastParams } = prevProps.match
+
+    if (runid !== lastParams.runid) {
       clearInterval(this.refreshTimer)
       this.refreshTimer = setInterval(this.refreshHandler, 4000)
     }
-  }
 
-  componentDidUpdate() {
-    const { runDetail } = this.store
-    const { params } = this.props.match
-    if (runDetail.id && runDetail.id !== params.runid) {
+    if (runDetail.id && runDetail.id !== runid) {
       this.routing.push(
-        `/devops/${params.project_id}/pipelines/${params.name}${
-          params.branch ? `/branch/${params.branch}` : ''
+        `/${workspace}/clusters/${cluster}devops/${devops}/pipelines/${name}${
+          branch ? `/branch/${branch}` : ''
         }/run/${runDetail.id}`
       )
     }
@@ -109,14 +138,16 @@ class RunSider extends Base {
   @action
   rePlay = async () => {
     const { params } = this.props.match
+
     const result = await this.store.replay(params)
-    if (params.branch) {
-      this.routing.push(
-        `/devops/${params.project_id}/pipelines/${params.name}${
-          params.branch ? `/branch/${params.branch}` : ''
-        }/activity`
-      )
-    }
+    this.routing.push(
+      `/${params.workspace}/clusters/${params.cluster}/devops/${
+        params.devops
+      }/pipelines/${params.name}${
+        params.branch ? `/branch/${params.branch}` : ''
+      }/activity`
+    )
+
     if (result.id) {
       this.store.runDetail = result
     }
@@ -128,13 +159,6 @@ class RunSider extends Base {
 
   get routing() {
     return this.props.rootStore.routing
-  }
-
-  get application() {
-    const { detail } = this.store
-    return detail.labels && detail.labels.chart && detail.labels.release
-      ? `${detail.labels.release}/${detail.labels.chart}`
-      : '-'
   }
 
   get creator() {
@@ -157,9 +181,12 @@ class RunSider extends Base {
   }
 
   get enabledActions() {
+    const { cluster, devops } = this.props.match.params
+
     return globals.app.getActions({
       module: 'pipelines',
-      project: this.props.match.params.project_id,
+      cluster,
+      devops,
     })
   }
 
@@ -168,7 +195,7 @@ class RunSider extends Base {
       key: 'rerun',
       type: 'control',
       text: t('Rerun'),
-      action: 'trigger',
+      action: 'edit',
       onClick: this.rePlay,
     },
   ]
@@ -211,7 +238,7 @@ class RunSider extends Base {
     const {
       runDetail: { id, annotations, labels },
     } = this.store
-
+    const { isLoading } = this.state
     const operations = this.getOperations().filter(item =>
       this.enabledActions.includes(item.action)
     )
@@ -223,6 +250,7 @@ class RunSider extends Base {
         desc={get(annotations, 'desc')}
         operations={operations}
         labels={labels}
+        isLoading={isLoading}
         attrs={this.getAttrs()}
       />
     )

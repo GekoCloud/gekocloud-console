@@ -3,7 +3,7 @@
  * Copyright (C) 2019 The Geko Cloud Console Authors.
  *
  * Geko Cloud Console is free software: you can redistribute it and/or modify
- * it Geko Cloud the terms of the GNU Affero General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
@@ -20,7 +20,7 @@ export default {
   'App Store Settings': '应用商店管理',
   'App Store': '应用商店',
   HOME_APP_STORE_DESC:
-    'Geko Cloud 官方应用商店，提供部署及管理功能，用户可以基于应用模板快速地一键部署应用',
+    'KubeSphere 官方应用商店，提供部署及管理功能，用户可以基于应用模板快速地一键部署应用',
   'Find app': '查找应用',
   TOTAL_CATE_COUNT: '共收录 {total} 款应用',
   Discoveries: '发现',
@@ -34,6 +34,7 @@ export default {
   Introduction: '介绍',
   Screenshots: '截图',
   Versions: '版本',
+  VERSION_LIST_DES: '只显示 10 个最新的版本',
   None: '无',
   'Version Number': '版本号',
   'Change Log': '更新日志',

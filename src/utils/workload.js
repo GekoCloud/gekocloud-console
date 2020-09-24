@@ -36,7 +36,7 @@ export const getHpaFormattedData = (formData = {}) => {
   const memoryCurrentValue = get(
     formData,
     'metadata.annotations.memoryCurrentValue',
-    ''
+    0
   )
   const memoryTargetValue = get(
     formData,
@@ -91,6 +91,11 @@ export const getHpaFormattedData = (formData = {}) => {
 }
 
 export const getWorkloadVolumes = async (detail, setDetail = false) => {
+  const prefix = detail.cluster
+    ? `api/v1/klusters/${detail.cluster}/namespaces/${
+        detail.namespace
+      }/persistentvolumeclaims`
+    : `api/v1/namespaces/${detail.namespace}/persistentvolumeclaims`
   let specVolumes = []
   if (!isEmpty(detail.volumes)) {
     const promises = []
@@ -98,15 +103,7 @@ export const getWorkloadVolumes = async (detail, setDetail = false) => {
       let volumeName = ''
       if (volume.persistentVolumeClaim) {
         volumeName = volume.persistentVolumeClaim.claimName
-        promises.push(
-          to(
-            request.get(
-              `api/v1/namespaces/${
-                detail.namespace
-              }/persistentvolumeclaims/${volumeName}`
-            )
-          )
-        )
+        promises.push(to(request.get(`${prefix}/${volumeName}`)))
       } else {
         volumeName = volume.hostPath ? volume.hostPath.path : volume.name
       }
@@ -182,6 +179,24 @@ export const getWorkloadUpdateTime = item => {
   return lastTime
 }
 
+export const getJobUpdateTime = item => {
+  const status = get(item, 'status', {})
+
+  const conditions = status.conditions || []
+
+  if (isEmpty(conditions)) return get(item, 'metadata.creationTimestamp')
+
+  let lastTime = new Date(
+    get(conditions, '[0].lastTransitionTime', 0)
+  ).valueOf()
+  conditions.forEach(({ lastTransitionTime }) => {
+    const value = new Date(lastTransitionTime).valueOf()
+    value > lastTime && (lastTime = value)
+  })
+
+  return lastTime
+}
+
 export const getCurrentRevision = (
   workloadDetail,
   revisions,
@@ -230,7 +245,7 @@ export const getWorkloadReplicaCount = (record, module) => {
       result.total = get(record, 'podNums', 0)
       break
     case 'daemonsets':
-      result.ready = get(record, 'status.numberAvailable', 0)
+      result.ready = get(record, 'status.numberReady', 0)
       result.total = get(record, 'status.desiredNumberScheduled', 0)
       break
   }

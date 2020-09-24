@@ -1,0 +1,4 @@
+server:
+  apiServer:
+    url: http://51.15.220.51:30882
+    wsUrl: ws://51.15.220.51:30882

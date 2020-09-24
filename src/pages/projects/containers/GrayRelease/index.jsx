@@ -51,43 +51,16 @@ class GrayRelease extends React.Component {
     return this.props.rootStore.routing
   }
 
-  get canDeployComposingApp() {
-    const { namespace: project } = this.props.match.params
-
-    const canCreateDeployment = globals.app
-      .getActions({
-        module: 'deployments',
-        project,
-      })
-      .includes('create')
-
-    const canCreateService = globals.app
-      .getActions({
-        module: 'services',
-        project,
-      })
-      .includes('create')
-
-    const canCreateApp = globals.app
-      .getActions({
-        module: 'applications',
-        project,
-      })
-      .includes('edit')
-
-    return canCreateApp && canCreateDeployment && canCreateService
-  }
-
   hideDeployAppModal = () => {
     this.setState({ showDeployApp: false, sampleApp: '' })
   }
 
   handleDeployApp = data => {
-    const { namespace } = this.props.match.params
+    const { workspace, cluster, namespace } = this.props.match.params
     this.store.create(data).then(() => {
       this.hideDeployAppModal()
       this.routing.push(
-        `/projects/${namespace}/applications/composing/${get(
+        `/${workspace}/clusters/${cluster}/projects/${namespace}/applications/composing/${get(
           data,
           'application.metadata.name'
         )}`
@@ -105,7 +78,7 @@ class GrayRelease extends React.Component {
   render() {
     const { route } = this.props
     const { showDeployApp, sampleApp } = this.state
-    const { namespace } = this.props.match.params
+    const { cluster, namespace } = this.props.match.params
 
     return (
       <div>
@@ -122,6 +95,7 @@ class GrayRelease extends React.Component {
           store={this.store}
           visible={showDeployApp}
           namespace={namespace}
+          cluster={cluster}
           sampleApp={sampleApp}
           onOk={this.handleDeployApp}
           onCancel={this.hideDeployAppModal}

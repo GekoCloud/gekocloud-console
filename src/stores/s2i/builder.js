@@ -21,7 +21,7 @@ import { action, observable } from 'mobx'
 import Base from 'stores/base'
 import { generateId } from 'utils'
 import TEMPLATE from 'utils/form.templates'
-import { S2i_SUPPORTED_TYPES, B2I_SUPPORTED_TYPES } from 'utils/constants'
+import { S2I_SUPPORTED_TYPES, B2I_SUPPORTED_TYPES } from 'utils/constants'
 
 import S2IRunStore from './run'
 
@@ -36,10 +36,10 @@ export default class S2IBuilderStore extends Base {
 
   @observable detail = {}
 
-  getS2iSupportLanguage = async () => {
-    const result = await this.getBuilderTemplate()
+  getS2iSupportLanguage = async params => {
+    const result = await this.getBuilderTemplate(params)
     const supportS2iLanguage = {
-      s2i: [...S2i_SUPPORTED_TYPES],
+      s2i: [...S2I_SUPPORTED_TYPES],
       b2i: [...B2I_SUPPORTED_TYPES],
     }
     const b2iMap = {
@@ -67,14 +67,21 @@ export default class S2IBuilderStore extends Base {
     return supportS2iLanguage
   }
 
-  getBuilderTemplate = async () =>
-    await request.get('apis/devops.kubesphere.io/v1alpha1/s2ibuildertemplates')
+  getBuilderTemplate = async params =>
+    await request.get(
+      `apis/devops.kubesphere.io/v1alpha1${this.getPath(
+        params
+      )}/s2ibuildertemplates`
+    )
 
   @action
-  fetchDetail = async ({ namespace, name }) => {
+  fetchDetail = async ({ cluster, namespace, name }) => {
     this.isLoading = true
     const result = await request.get(
-      `apis/devops.kubesphere.io/v1alpha1/namespaces/${namespace}/s2ibuilders/${name}`,
+      `apis/devops.kubesphere.io/v1alpha1${this.getPath({
+        cluster,
+        namespace,
+      })}/s2ibuilders/${name}`,
       undefined,
       undefined,
       error => {
@@ -85,18 +92,20 @@ export default class S2IBuilderStore extends Base {
       }
     )
     this.detail = this.mapper(result)
+    this.detail.cluster = cluster
     this.isLoading = false
     return this.detail
   }
 
-  updateCreateData(data) {
-    if (!data.metadata.name) {
+  updateCreateData(data, isEditor = false) {
+    if (!isEditor) {
       const _name = `${get(data, 'spec.config.imageName', '').replace(
         /[_/:]/g,
         '-'
       )}-${get(data, 'spec.config.tag')}`
       data.metadata.name = `${_name.slice(0, 60)}-${generateId(3)}`
     }
+
     let repoUrl = get(data, 'metadata.annotations["kubesphere.io/repoUrl"]', '')
     repoUrl = repoUrl.replace(/^(http(s)?:\/\/)?(.*)$/, '$3')
 
@@ -108,6 +117,7 @@ export default class S2IBuilderStore extends Base {
         : `${repoUrl}/${imageName}`
       set(data, 'spec.config.imageName', totalImageName)
     }
+
     if (data.isUpdateWorkload === false) {
       set(
         data,
@@ -117,36 +127,29 @@ export default class S2IBuilderStore extends Base {
     } else {
       unset(data, 'metadata.annotations["devops.kubesphere.io/donotautoscale"]')
     }
+
     delete data.isUpdateWorkload
   }
 
-  creatBinary(name, namespace) {
+  creatBinary(name, namespace, cluster) {
     const data = TEMPLATE['b2iBuilders']({ name, namespace })
     return request.post(
-      `apis/devops.kubesphere.io/v1alpha1/namespaces/${namespace}/s2ibinaries/${name}`,
+      `apis/devops.kubesphere.io/v1alpha1/${this.getPath({
+        namespace,
+        cluster,
+      })}/s2ibinaries/${name}`,
       data
     )
   }
 
-  create(data, { namespace }) {
-    this.updateCreateData(data)
-    return request.post(this.getListUrl({ namespace }), data).then(() => {
-      const binaryUrl = get(data, 'metadata.annotations.sourceUrl')
-      this.createS2IRun({
-        namespace,
-        builderName: get(data, 'metadata.name'),
-        binaryUrl,
-      })
-    })
-  }
-
-  updateBuilder(data, { namespace, name }) {
-    this.updateCreateData(data)
+  create(data, { cluster, namespace }) {
+    this.updateCreateData(data, false)
     return request
-      .patch(this.getDetailUrl({ namespace, name }), data)
+      .post(this.getListUrl({ cluster, namespace }), data)
       .then(() => {
         const binaryUrl = get(data, 'metadata.annotations.sourceUrl')
         this.createS2IRun({
+          cluster,
           namespace,
           builderName: get(data, 'metadata.name'),
           binaryUrl,
@@ -154,18 +157,33 @@ export default class S2IBuilderStore extends Base {
       })
   }
 
-  createS2IRun({ namespace, builderName, binaryUrl }) {
+  updateBuilder(data, { cluster, namespace, name }) {
+    this.updateCreateData(data, true)
+    return request
+      .patch(this.getDetailUrl({ cluster, namespace, name }), data)
+      .then(() => {
+        const binaryUrl = get(data, 'metadata.annotations.sourceUrl')
+        this.createS2IRun({
+          cluster,
+          namespace,
+          builderName: get(data, 'metadata.name'),
+          binaryUrl,
+        })
+      })
+  }
+
+  createS2IRun({ cluster, namespace, builderName, binaryUrl }) {
     if (!builderName || !namespace) {
       return
     }
 
     const name = `${builderName.slice(0, 37)}-${generateId(3)}`
-
-    return this.runStore.create({
+    const data = {
       apiVersion: 'devops.kubesphere.io/v1alpha1',
       kind: 'S2iRun',
       metadata: {
         name,
+        cluster,
         namespace,
       },
       spec: {
@@ -173,11 +191,18 @@ export default class S2IBuilderStore extends Base {
         binaryUrl,
         ...(binaryUrl ? { isBinaryURL: true } : {}),
       },
-    })
+    }
+    return this.runStore.create(data, { cluster, namespace })
   }
 
   @action
-  rerun = async ({ name, namespace, isUpdateWorkload = true, ...rest }) => {
+  rerun = async ({
+    name,
+    cluster,
+    namespace,
+    isUpdateWorkload = true,
+    ...rest
+  }) => {
     const annotations = isUpdateWorkload
       ? {}
       : {

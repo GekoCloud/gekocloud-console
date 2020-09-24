@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import classnames from 'classnames'
 import { isEmpty, get } from 'lodash'
@@ -29,7 +28,7 @@ import PodMonitorStore from 'stores/monitoring/pod'
 import { Alert } from '@pitrix/lego-ui'
 import { MultiArea } from 'components/Charts'
 import { Controller as MonitoringController } from 'components/Cards/Monitoring'
-import { PodsMonitoring } from 'components/Modals/Monitoring/Multiple'
+import PodsMonitoring from 'projects/components/Modals/PodsMonitoring'
 
 import styles from './index.scss'
 
@@ -40,7 +39,15 @@ const MetricTypes = {
   net_received: 'pod_net_bytes_received',
 }
 
-class Monitorings extends React.Component {
+const MONITOR_MODULES = {
+  deployments: 'deployment',
+  statefulsets: 'statefulset',
+  daemonsets: 'daemonset',
+}
+
+@inject('detailStore')
+@observer
+export default class Monitorings extends React.Component {
   constructor(props) {
     super(props)
 
@@ -59,7 +66,7 @@ class Monitorings extends React.Component {
   }
 
   get monitoringModule() {
-    return 'deployment'
+    return MONITOR_MODULES[this.store.module]
   }
 
   get metrics() {
@@ -67,9 +74,10 @@ class Monitorings extends React.Component {
   }
 
   get resourceParams() {
-    const { namespace, name } = this.store.detail
+    const { cluster, namespace, name } = this.store.detail
 
     return {
+      cluster,
       namespace,
       workloadKind: this.monitoringModule,
       workloadName: name,
@@ -77,27 +85,22 @@ class Monitorings extends React.Component {
   }
 
   get isMore() {
-    const data =
-      get(
-        toJS(this.resourceStore.sort),
-        `data[${MetricTypes.cpu_usage}].data.result`
-      ) || []
-    return data.length > 5
+    const { podNums, status } = this.store.detail
+    return (podNums || status.numberAvailable) > 5
   }
 
   fetchData = (params = {}) => {
     const { pods } = this.state
-
     if (isEmpty(pods)) {
       this.resourceStore
         .fetchSortedMetrics({
           ...this.resourceParams,
           metrics: [MetricTypes.cpu_usage],
-          limit: 6,
+          limit: 5,
         })
         .then(data => {
           const result = get(data[MetricTypes.cpu_usage], 'data.result') || []
-          const _pods = result.map(item => get(item, 'metric.resource_name'))
+          const _pods = result.map(item => get(item, 'metric.pod'))
 
           this.setState({ pods: _pods }, () => {
             this.fetchMetrics({ resources: _pods, ...params })
@@ -132,13 +135,13 @@ class Monitorings extends React.Component {
     },
     {
       type: 'bandwidth',
-      title: 'Network Outbound',
+      title: 'Outbound Traffic',
       unitType: 'bandwidth',
       metricType: MetricTypes.net_transmitted,
     },
     {
       type: 'bandwidth',
-      title: 'Network Inbound',
+      title: 'Inbound Traffic',
       unitType: 'bandwidth',
       metricType: MetricTypes.net_received,
     },
@@ -186,7 +189,7 @@ class Monitorings extends React.Component {
         {configs.map(item => {
           item.data = get(this.metrics, `${item.metricType}.data.result`) || []
           item.legend = item.data.map((record, index) =>
-            get(record, 'metric.resource_name', `pod${index}`)
+            get(record, 'metric.pod', `pod${index}`)
           )
 
           const config = getAreaChartOps(item)
@@ -200,7 +203,7 @@ class Monitorings extends React.Component {
                   className={styles.more}
                   onClick={this.showMultipleModal(item)}
                 >
-                  {t('View all replicas')}
+                  {t('View All Replicas')}
                 </div>
               )}
               <MultiArea width="100%" {...config} />
@@ -213,7 +216,7 @@ class Monitorings extends React.Component {
 
   renderModal() {
     const { showMultipleModal, selectItem } = this.state
-    const { name, namespace } = this.store.detail
+    const { name, cluster, namespace } = this.store.detail
 
     return (
       <div>
@@ -221,6 +224,7 @@ class Monitorings extends React.Component {
           visible={showMultipleModal}
           module={this.monitoringModule}
           name={name}
+          cluster={cluster}
           namespace={namespace}
           config={selectItem}
           onCancel={this.hideMultipleModal}
@@ -238,6 +242,3 @@ class Monitorings extends React.Component {
     )
   }
 }
-
-export default inject('rootStore')(observer(Monitorings))
-export const Component = Monitorings

@@ -20,10 +20,8 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import classnames from 'classnames'
 import { observer } from 'mobx-react'
-import { Icon } from '@pitrix/lego-ui'
+import { Icon, Select } from '@pitrix/lego-ui'
 import moment from 'moment-mini'
-
-import { SearchSelect } from 'components/Base'
 
 import styles from './index.scss'
 
@@ -34,14 +32,12 @@ export default class VersionSelect extends Component {
     versionStore: PropTypes.object,
     selectVersion: PropTypes.string,
     handleChangeVersion: PropTypes.func,
-    fetchVersions: PropTypes.func,
   }
 
   static defaultProps = {
     versionStore: {},
     selectVersion: '',
     handleChangeVersion() {},
-    fetchVersions() {},
   }
 
   get versionOptions() {
@@ -72,27 +68,15 @@ export default class VersionSelect extends Component {
   )
 
   render() {
-    const {
-      className,
-      handleChangeVersion,
-      fetchVersions,
-      versionStore,
-      selectVersion,
-    } = this.props
-    const { page, total, isLoading, data } = versionStore.list
+    const { className, handleChangeVersion, selectVersion } = this.props
 
     return (
       <div className={classnames(styles.versionSelect, className)}>
         <h3>{t('Versions')}</h3>
-        <SearchSelect
+        <Select
           className={styles.select}
           value={selectVersion}
           options={this.versionOptions}
-          page={page}
-          total={total}
-          isLoading={isLoading}
-          currentLength={data.length}
-          onFetch={fetchVersions}
           onChange={handleChangeVersion}
           optionRenderer={this.versionOptionRender}
           valueRenderer={this.versionValueRender}

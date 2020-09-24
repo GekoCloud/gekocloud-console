@@ -20,16 +20,16 @@ import React from 'react'
 import moment from 'moment-mini'
 import classnames from 'classnames'
 import { observer } from 'mobx-react'
-import { get } from 'lodash'
 import { observable, computed, action } from 'mobx'
-import { Link } from 'react-router-dom'
 import stripAnsi from 'strip-ansi'
+import { get } from 'lodash'
+import { Icon, Select, Tooltip } from '@pitrix/lego-ui'
 
-import PodStore from 'stores/service'
+import PodStore from 'stores/pod'
+import ProjectStore from 'stores/project'
 import LogStore from 'stores/logging/query'
 
 import { ReactComponent as BackIcon } from 'src/assets/back.svg'
-import { Icon, Select, Tooltip } from '@pitrix/lego-ui'
 import DurationSelect from './DurationSelect'
 
 import styles from './index.scss'
@@ -40,36 +40,27 @@ export default class DetailModal extends React.Component {
     super(props)
 
     const { pod, container, namespace, log, time } = this.props.detailState
+
     const timestamp = new Date(time).getTime()
 
     this.logStore = new LogStore({
-      pathParams: {
-        namespaces: namespace,
-      },
       sort: 'desc',
       pods: pod,
+      namespaces: namespace,
       containers: container,
       size: 100,
-      log_query: log,
       startTime: timestamp - 1000,
       endTime: timestamp + 1000,
     })
 
     this.podStore = new PodStore()
-    this.podStore.pods.data = [
-      {
-        name: pod.name,
-        containers: [
-          {
-            name: container,
-          },
-        ],
-      },
-    ]
+
+    this.projectStore = new ProjectStore()
 
     this.state = {
       pollingFrequency: 5000,
       polling: false,
+      query: log,
     }
   }
 
@@ -84,31 +75,26 @@ export default class DetailModal extends React.Component {
   logs = []
 
   @computed
-  get namespaceLink() {
-    const { workspace } = this.logStore
-    const { namespace } = this.props.detailState
-    return workspace ? `/projects/${namespace}` : ''
-  }
-
-  @computed
   get podLink() {
-    const { namespaces } = this.logStore.pathParams
+    const { namespace } = this.props.detailState
+    const { cluster } = this.props.searchInputState
     const { pods } = this.logStore
-    return pods ? `/projects/${namespaces}/pods/${pods}` : this.namespaceLink
+    const { workspace } = this.projectStore.detail
+    return `/${workspace}/clusters/${cluster}/projects/${namespace}/pods/${pods}`
   }
 
   @computed
   get containerLink() {
-    const { namespaces } = this.logStore.pathParams
+    const { namespace } = this.props.detailState
+    const { cluster } = this.props.searchInputState
     const { pods, containers } = this.logStore
-    return pods && containers
-      ? `/projects/${namespaces}/pods/${pods}/containers/${containers}`
-      : this.namespaceLink
+    const { workspace } = this.projectStore.detail
+    return `/${workspace}/clusters/${cluster}/projects/${namespace}/pods/${pods}/containers/${containers}`
   }
 
   @computed
   get PodOpts() {
-    return this.podStore.pods.data.map(pod => ({
+    return this.podStore.list.data.map(pod => ({
       label: pod.name || t('All'),
       value: pod.name || '',
     }))
@@ -138,17 +124,16 @@ export default class DetailModal extends React.Component {
     this.refreshLogs()
   }
 
-  @action
   changeSearchLog = e => {
-    this.logStore.log_query = e.target.value
+    this.setState({ query: e.target.value })
   }
 
-  @action
-  queryLog = () => {
-    this.refreshLogs()
+  queryLog = e => {
+    if (e.keyCode === 13) {
+      this.refreshLogs()
+    }
   }
 
-  @action
   togglePolling = () => {
     const { polling } = this.state
     polling ? this.stopPolling() : this.startPolling()
@@ -181,12 +166,12 @@ export default class DetailModal extends React.Component {
     })
 
     this.logs.unshift(...logs)
-    this.scrollToTop()
+    this.scrollToBottom()
   }
 
-  scrollToTop() {
+  scrollToBottom() {
     const logWindow = this.logWindow.current
-    logWindow.scrollTop = 0
+    logWindow.scrollTop = logWindow.scrollHeight
   }
 
   stopPolling = () => {
@@ -210,14 +195,10 @@ export default class DetailModal extends React.Component {
     const nScrollTop = target.scrollTop
     const nDivHight = target.clientHeight
     if (nScrollTop + nDivHight >= nScrollHight) {
-      this.onScrollEnd()
-    }
-  }
-
-  onScrollEnd() {
-    const { from, size, total } = this.logStore
-    if (total > from + size) {
-      this.loadMoreLogs()
+      const { from, size, total } = this.logStore
+      if (total > from + size) {
+        this.loadMoreLogs()
+      }
     }
   }
 
@@ -231,7 +212,7 @@ export default class DetailModal extends React.Component {
 
   getPodContainers(podName) {
     const podDetail =
-      this.podStore.pods.data.find(pod => pod.name === podName) || {}
+      this.podStore.list.data.find(pod => pod.name === podName) || {}
     return get(podDetail, 'containers', [])
   }
 
@@ -239,24 +220,31 @@ export default class DetailModal extends React.Component {
     this.props.formStepState.pre()
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.fetchPods()
-    this.refreshLogs()
+    this.fetchProject()
+    this.initialFetch()
   }
 
   componentWillUnmount() {
     this.stopPolling()
   }
 
-  @action
   clearQuery = () => {
-    this.logStore.log_query = ''
-    this.refreshLogs()
+    this.setState({ query: '' }, () => {
+      this.refreshLogs()
+    })
+  }
+
+  @action
+  async initialFetch() {
+    this.logs = await this.fetchLogs()
   }
 
   @action
   async refreshLogs() {
     this.logStore.from = 0
+    this.logStore.log_query = this.state.query
     this.setState({
       polling: false,
     })
@@ -265,42 +253,24 @@ export default class DetailModal extends React.Component {
   }
 
   async fetchLogs(params = {}) {
-    await this.logStore.fetch(params)
+    const { cluster } = this.props.searchInputState
+    await this.logStore.fetch({ ...params, cluster })
     return this.logStore.records
   }
 
-  async fetchPods() {
+  fetchProject() {
     const { namespace } = this.props.detailState
-    await this.podStore.fetchPods({
+    this.projectStore.fetchDetail({ name: namespace, namespace })
+  }
+
+  fetchPods() {
+    const { namespace } = this.props.detailState
+    const { cluster } = this.props.searchInputState
+    this.podStore.fetchList({
+      cluster,
       namespace,
+      limit: -1,
     })
-    this.makeSureTargetResourceInStore()
-  }
-
-  makeSureTargetResourceInStore() {
-    const { pod, container } = this.props.detailState
-    const pods = this.podStore.pods.data
-    const targetPodInStore = pods.find(_pod => _pod.name === pod)
-    const virtualContainer = { name: container }
-    const virtualPod = [
-      {
-        name: pod,
-        container: [virtualContainer],
-      },
-    ]
-    if (targetPodInStore) {
-      const containers = targetPodInStore.containers || []
-      const targetContainerInStore = containers.find(
-        _container => _container.name === container
-      )
-      targetContainerInStore || containers.push(virtualContainer)
-    } else {
-      pods.push(virtualPod)
-    }
-  }
-
-  closeModal = () => {
-    this.props.close && this.props.close()
   }
 
   render() {
@@ -313,7 +283,7 @@ export default class DetailModal extends React.Component {
           </div>
         </div>
         <div className={styles.article}>
-          {this.renderSummery()}
+          {this.renderSummary()}
           {this.renderLog()}
         </div>
       </div>
@@ -374,13 +344,15 @@ export default class DetailModal extends React.Component {
       log_query,
       startTime: start_time,
       endTime: end_time,
-      pathParams,
+      namespaces,
     } = this.logStore
+    const { cluster } = this.props.searchInputState
 
     const link = this.logStore.exportLinkFactory({
-      namespace: pathParams.namespaces,
-      pod,
-      container,
+      cluster,
+      namespaces,
+      pods: pod,
+      containers: container,
       log_query,
       start_time,
       end_time,
@@ -415,15 +387,17 @@ export default class DetailModal extends React.Component {
         <input
           type="text"
           onKeyUp={this.queryLog}
-          value={this.logStore.log_query}
+          value={this.state.query}
           onChange={this.changeSearchLog}
         />
-        <Icon
-          className={styles.clearQuery}
-          name="close"
-          type="light"
-          onClick={this.clearQuery}
-        />
+        {this.state.query && (
+          <Icon
+            className={styles.clearQuery}
+            name="close"
+            type="light"
+            onClick={this.clearQuery}
+          />
+        )}
       </div>
     )
   }
@@ -431,7 +405,7 @@ export default class DetailModal extends React.Component {
   renderTerminal() {
     return (
       <div className={styles.logWindow}>
-        {this.logs.map(({ time, log }) => (
+        {this.logs.reverse().map(({ time, log }) => (
           <p key={`${time}${log}`}>
             <span className={styles.logTime}>
               {moment(time).format('YYYY-MM-DD HH:mm:ss')}:{' '}
@@ -444,8 +418,8 @@ export default class DetailModal extends React.Component {
   }
 
   renderHighLightLog(log) {
-    const { log_query } = this.logStore
-    const logQuery = log_query.trim()
+    const { query } = this.state
+    const logQuery = query.trim()
     const matchIndex = log.toUpperCase().indexOf(logQuery.toUpperCase())
     if (!logQuery || matchIndex === -1) {
       return <span className={styles.queryLog}>{stripAnsi(log)}</span>
@@ -469,35 +443,33 @@ export default class DetailModal extends React.Component {
 
   renderLink(link, children) {
     return link ? (
-      <Link to={link} onClick={this.closeModal}>
+      <a href={link} target="_blank" rel="noopener noreferrer">
         {children}
-      </Link>
+      </a>
     ) : (
-      <span className={styles.disableLink}>{children}</span>
+      children
     )
   }
 
-  renderSummery() {
+  renderSummary() {
     const { detailState } = this.props
     return (
       <div className={styles.summery}>
         <h3>{t('Region Data')}</h3>
         <div className={styles.dataList}>
-          <div onClick={this.toProjectPage}>
+          <div>
             <h4>{t('Project')}</h4>
             <p>
-              {this.renderLink(
-                this.namespaceLink,
-                <span>
-                  <Icon name="project" /> {detailState.namespace}
-                </span>
-              )}
+              <span>
+                <Icon name="project" /> {detailState.namespace}
+              </span>
             </p>
           </div>
           <div>
             <h4>{t('Pod')}</h4>
             <div className={styles.selectContainer}>
               <Select
+                prefixIcon={<Icon name="pod" />}
                 value={this.logStore.pods}
                 onChange={this.changePod}
                 options={this.PodOpts}
@@ -514,6 +486,7 @@ export default class DetailModal extends React.Component {
             <h4>{t('Container')}</h4>
             <div className={styles.selectContainer}>
               <Select
+                prefixIcon={<Icon name="docker" />}
                 value={this.logStore.containers}
                 options={this.ContainersOpts}
                 onChange={this.changeContainer}

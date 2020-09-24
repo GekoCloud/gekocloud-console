@@ -27,12 +27,10 @@ import style from './index.scss'
 class Markdown extends React.Component {
   static propTypes = {
     source: PropTypes.string,
-    hideLoading: PropTypes.bool,
     options: PropTypes.object,
   }
 
   static defaultProps = {
-    hideLoading: false,
     source: '',
     options: {},
   }
@@ -41,15 +39,9 @@ class Markdown extends React.Component {
     super(props)
 
     this.iframeLoaded = false
-    this.md = new MarkdownIt(props.options)
+    this.md = new MarkdownIt({ html: true, linkify: true, ...props.options })
     this.state = {
       loading: true,
-    }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.options !== this.props.options) {
-      this.md = new MarkdownIt(nextProps.options)
     }
   }
 
@@ -62,7 +54,10 @@ class Markdown extends React.Component {
     this.removeMediaListeners()
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
+    if (prevProps.options !== this.props.options) {
+      this.md = new MarkdownIt(this.props.options)
+    }
     this.updateMarkdown()
   }
 
@@ -117,24 +112,11 @@ class Markdown extends React.Component {
   }
 
   render() {
-    const { hideLoading, className } = this.props
-
-    if (hideLoading) {
-      return (
-        <iframe
-          className={classNames(style.markdown, className)}
-          ref={this.handleIFrameRef}
-          src="/blank_md"
-          name="frame_markdown"
-          width="100%"
-          frameBorder="0"
-          scrolling="no"
-        />
-      )
-    }
+    const { className } = this.props
 
     return (
-      <Loading spinning={this.state.loading}>
+      <div>
+        {this.state.loading && <Loading className="loading" />}
         <iframe
           className={classNames(style.markdown, className)}
           ref={this.handleIFrameRef}
@@ -144,7 +126,7 @@ class Markdown extends React.Component {
           frameBorder="0"
           scrolling="no"
         />
-      </Loading>
+      </div>
     )
   }
 }

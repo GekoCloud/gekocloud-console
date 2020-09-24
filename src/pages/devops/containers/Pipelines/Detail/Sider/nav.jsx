@@ -17,6 +17,8 @@
  */
 
 import React, { Component } from 'react'
+import { toJS } from 'mobx'
+import { isEmpty } from 'lodash'
 import { observer, inject } from 'mobx-react'
 import { NavLink } from 'react-router-dom'
 import { Columns, Column } from '@pitrix/lego-ui'
@@ -26,25 +28,25 @@ import { ReactComponent as ForkIcon } from 'src/assets/fork.svg'
 
 import styles from './nav.scss'
 
-@observer
 class Nav extends Component {
   static defaultProps = {
     module: '',
   }
 
   get enabledActions() {
-    const { project_id } = this.props.match.params
+    const { cluster, devops } = this.props.match.params
 
     return globals.app.getActions({
       module: 'pipelines',
-      project: project_id,
+      cluster,
+      devops,
     })
   }
 
   get isMutiBranch() {
     const { detailStore } = this.props
-
-    return Boolean(detailStore.detail.scmSource)
+    const scmSource = toJS(detailStore.detail.scmSource)
+    return !isEmpty(scmSource)
   }
 
   renderBaseInfo() {
@@ -73,7 +75,6 @@ class Nav extends Component {
   renderNavLink(item) {
     const { name, title } = item
     const { detailStore, sonarqubeStore } = this.props
-
     const showPipelineConfig = this.enabledActions.includes('edit')
 
     if (!name) return null

@@ -13,7 +13,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with KuGeko CloudbeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -77,7 +77,7 @@ export default class CustomRange extends React.Component {
     const interval = endTime - startTime
 
     if (interval > 0) {
-      const times = Math.floor(interval / (getMinutes(step) * 60))
+      const times = Math.floor(interval / (getMinutes(step) * 60)) || 1
       const data = { step, times, start: startTime, end: endTime, lastTime: '' }
       this.props.onSubmit(data)
     } else {
@@ -91,7 +91,7 @@ export default class CustomRange extends React.Component {
 
     return (
       <div className={classnames(styles.custom, className)}>
-        <div className={styles.title}>{t('Custom time range')}</div>
+        <div className={styles.title}>{t('Custom Time Range')}</div>
         <Form data={this.formData}>
           <Form.Item label={t('Start Time')}>
             <DatePicker

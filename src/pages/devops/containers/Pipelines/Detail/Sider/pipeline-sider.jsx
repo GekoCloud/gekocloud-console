@@ -17,23 +17,25 @@
  */
 
 import React from 'react'
+import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import moment from 'moment-mini'
-import { get } from 'lodash'
+import { get, isEmpty, has } from 'lodash'
 import { Loading } from '@pitrix/lego-ui'
 
 import { ICON_TYPES } from 'utils/constants'
 import { renderRoutes } from 'utils/router.config'
-import { updatePipelineParams } from 'utils/devops'
+import { updatePipelineParams, updatePipelineParamsInSpec } from 'utils/devops'
 import { getPipelineStatus } from 'utils/status'
 
 import Notify from 'components/Base/Notify'
 import Base from 'core/containers/Base/Detail'
 import BaseInfo from 'core/containers/Base/Detail/BaseInfo'
 import Status from 'devops/components/Status'
-import DeleteModal from 'components/Modals/Delete'
 import PipelineStore from 'stores/devops/pipelines'
+import DeleteModal from 'components/Modals/Delete'
 import CodeQualityStore from 'stores/devops/codeQuality'
+import DevopsStore from 'stores/devops'
 
 import ScanRepositoryLogs from '../../Modals/scanRepositoryLogsModal'
 import BaseInfoModal from '../../Modals/baseInfoModal'
@@ -41,13 +43,18 @@ import EditPipelineConfig from '../../Modals/editPipelineConfigModal'
 import Nav from './nav'
 import styles from './sider.scss'
 
-class PipelineDetail extends Base {
+@inject('rootStore')
+@observer
+export default class PipelineDetail extends Base {
   constructor(props) {
     super(props)
 
     this.store = new PipelineStore()
     this.sonarqubeStore = new CodeQualityStore()
-    this.store.project_id = get(props.match, 'params.project_id', '')
+    this.devopsStore = new DevopsStore()
+
+    const { devops } = this.props.match.params
+    this.store.setDevops(devops)
 
     this.state = {
       showEditConfig: false,
@@ -57,24 +64,12 @@ class PipelineDetail extends Base {
     }
   }
 
-  get listUrl() {
-    const { project_id } = this.props.match.params
-    return `/devops/${project_id}/pipelines`
-  }
-
   get name() {
     return 'cicds'
   }
 
   get routing() {
     return this.props.rootStore.routing
-  }
-
-  get application() {
-    const { detail } = this.store
-    return detail.labels && detail.labels.chart && detail.labels.release
-      ? `${detail.labels.release}/${detail.labels.chart}`
-      : '-'
   }
 
   get creator() {
@@ -87,19 +82,13 @@ class PipelineDetail extends Base {
     )
   }
 
-  get updateTime() {
-    const { activityList } = this.store
-    const updateTime = get(activityList, 'data.0.startTime', '')
-    if (!updateTime) {
-      return '-'
-    }
-    return moment(updateTime).format(`${t('MMMM Do YYYY')} HH:mm`)
-  }
-
   get enabledActions() {
+    const { cluster, devops } = this.props.match.params
+
     return globals.app.getActions({
       module: 'pipelines',
-      project: this.props.match.params.project_id,
+      cluster,
+      devops,
     })
   }
 
@@ -112,6 +101,19 @@ class PipelineDetail extends Base {
       }
     })
 
+    await Promise.all([
+      this.devopsStore.fetchDetail(params),
+      this.props.rootStore.getRules({
+        workspace: params.workspace,
+      }),
+    ])
+
+    await this.props.rootStore.getRules({
+      cluster: params.cluster,
+      workspace: params.workspace,
+      devops: params.devops,
+    })
+
     if (!result) {
       return
     }
@@ -122,6 +124,16 @@ class PipelineDetail extends Base {
     } else {
       this.sonarqubeStore.fetchDetail(params)
     }
+
+    this.getPipeLineConfig()
+  }
+
+  getPipeLineConfig = async () => {
+    const { params } = this.props.match
+    const pipeLineConfig = await this.store.getPipeLineConfig()
+    pipeLineConfig.devops = params.devops
+    pipeLineConfig.cluster = params.cluster
+    this.setState({ formTemplate: pipeLineConfig })
   }
 
   getSonarqube = () => {
@@ -146,36 +158,42 @@ class PipelineDetail extends Base {
     })
   }
 
-  getOperations = () => {
-    const { detail } = this.store
+  getUpTime = activityList => {
+    const updateTime = get(toJS(activityList.data), '[0].startTime', '')
+    return !updateTime
+      ? '-'
+      : moment(updateTime).format(`${t('MMMM Do YYYY')} HH:mm`)
+  }
 
-    return [
+  getOperations = () => {
+    const { detail } = toJS(this.store)
+    const list = [
       {
         key: 'edit',
         type: 'control',
         text: t('EDIT'),
         action: 'edit',
-        onClick: this.showEditModal,
+        onClick: () => this.showEditModal('showEditBaseInfo'),
       },
       {
         key: 'editConfig',
         type: 'control',
         text: t('Edit Config'),
         action: 'edit',
-        onClick: this.showEditConfigModal,
+        onClick: () => this.showEditModal('showEditConfig'),
       },
-      ...(detail.scmSource
+      ...(!isEmpty(detail.scmSource)
         ? [
             {
               key: 'scan',
               text: t('Scan Repository'),
-              action: 'trigger',
+              action: 'edit',
               onClick: this.handleScanRepository,
             },
             {
               key: 'scanLogs',
               text: t('Scan Reponsitory Logs'),
-              action: 'trigger',
+              action: 'edit',
               onClick: this.showScanLogsModal,
             },
           ]
@@ -187,51 +205,35 @@ class PipelineDetail extends Base {
         onClick: this.showDeleteModal,
       },
     ]
+    return list
   }
 
   getAttrs = () => {
     const { activityList } = this.store
-    const { params } = this.props.match
-
+    const { devopsName } = this.devopsStore
     return [
       {
         name: t('DevOps Project'),
-        value: params.project_id,
+        value: devopsName,
       },
       {
         name: t('Status'),
         value: (
-          <Status {...getPipelineStatus(get(activityList.data, '[0]', {}))} />
+          <Status
+            {...getPipelineStatus(get(toJS(activityList.data), '[0]', {}))}
+          />
         ),
       },
       {
         name: t('Updated Time'),
-        value: this.updateTime,
+        value: this.getUpTime(activityList),
       },
     ]
   }
 
-  showEditModal = async () => {
-    const { params } = this.props.match
-    const { detail } = this.store
-
-    const pipeLineConfig = await this.store.getPipeLineConfig(
-      detail.name,
-      params
-    )
-    pipeLineConfig.project_id = params.project_id
-    this.setState({ showEditBaseInfo: true, formTemplate: pipeLineConfig })
-  }
-
-  showEditConfigModal = async () => {
-    const { params } = this.props.match
-    const { detail } = this.store
-
-    const pipeLineConfig = await this.store.getPipeLineConfig(
-      detail.name,
-      params
-    )
-    this.setState({ showEditConfig: true, formTemplate: pipeLineConfig })
+  showEditModal = async type => {
+    this.getPipeLineConfig()
+    this.setState({ [type]: true })
   }
 
   hideEditModal = () => {
@@ -251,8 +253,9 @@ class PipelineDetail extends Base {
     const { detail } = this.store
 
     await this.store.scanRepository({
-      project_id: params.project_id,
+      devops: params.devops,
       name: detail.name,
+      cluster: params.cluster,
     })
     Notify.success({
       content: t('Scan repo success'),
@@ -265,11 +268,15 @@ class PipelineDetail extends Base {
   }
 
   handleEdit = async data => {
-    const { params } = this.props.match
-    updatePipelineParams(data)
-    await this.store.updatePipeline(data, params)
-    this.fetchData()
-    this.setState({ showEditBaseInfo: false, showEditConfig: false })
+    const { devops, cluster } = this.props.match.params
+    updatePipelineParams(data, true)
+    updatePipelineParamsInSpec(data, devops)
+
+    await this.store.updatePipeline({ data, devops, cluster })
+
+    this.setState({ showEditBaseInfo: false, showEditConfig: false }, () => {
+      this.fetchData()
+    })
   }
 
   showDeleteModal = () => {
@@ -281,12 +288,14 @@ class PipelineDetail extends Base {
   }
 
   handleDelete = () => {
-    const { project_id } = this.props.match.params
+    const { devops, cluster, workspace } = this.props.match.params
     const { detail } = this.store
     this.setState({ deleteLoading: true })
-    this.store.deletePipeline(detail.name, project_id).then(() => {
+    this.store.deletePipeline(detail.name, devops, cluster).then(() => {
       this.hideDeleteModal()
-      this.routing.push(`/devops/${project_id}/pipelines`)
+      this.routing.push(
+        `/${workspace}/clusters/${cluster}/devops/${devops}/pipelines`
+      )
     })
   }
 
@@ -302,11 +311,15 @@ class PipelineDetail extends Base {
   }
 
   renderSider() {
-    const { detail } = this.store
-
+    const { detail } = toJS(this.store)
+    const { formTemplate } = this.state
     const operations = this.getOperations().filter(item =>
       this.enabledActions.includes(item.action)
     )
+    const keyPath = has(formTemplate, 'pipeline')
+      ? 'pipeline.description'
+      : 'multi_branch_pipeline.description'
+    const desc = get(formTemplate, keyPath, '-')
 
     return (
       <BaseInfo
@@ -316,6 +329,7 @@ class PipelineDetail extends Base {
         operations={operations}
         labels={detail.labels}
         attrs={this.getAttrs()}
+        desc={desc}
       />
     )
   }
@@ -331,7 +345,6 @@ class PipelineDetail extends Base {
       showEditConfig,
       deleteLoading,
     } = this.state
-
     return (
       <div>
         <BaseInfoModal
@@ -346,7 +359,7 @@ class PipelineDetail extends Base {
           formTemplate={formTemplate}
           visible={showEditConfig}
           onOk={this.handleEdit}
-          project_id={params.project_id}
+          project_name={params.project_name}
           onCancel={this.hideEditConfig}
         />
         <DeleteModal
@@ -368,6 +381,3 @@ class PipelineDetail extends Base {
     )
   }
 }
-
-export default inject('rootStore')(observer(PipelineDetail))
-export const Component = PipelineDetail

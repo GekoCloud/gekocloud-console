@@ -15,15 +15,15 @@
     display: grid;
     grid-template-columns: 40px auto;
     grid-column-gap: 15px;
+
     .icon {
       display: inline-block;
       height: 40px;
       width: 40px;
       background-size: 40px;
       background-repeat: no-repeat;
-      color: #65a428;
-      fill: #d8da00;
     }
+
     .info {
       @include ellipsis;
 
@@ -32,9 +32,28 @@
         @include ellipsis;
         @include TypographyTitleH6;
       }
+
       .name {
         height: 20px;
         @include TypographyParagraph($dark-color01);
+      }
+    }
+  }
+
+  .downloadContent {
+    display: inline-block;
+    grid-template-columns: none;
+    grid-column-gap: initial;
+
+    a {
+      display: grid;
+      grid-template-columns: 40px auto;
+      grid-column-gap: 15px;
+
+      &:hover {
+        .info p {
+          color: $primary;
+        }
       }
     }
   }

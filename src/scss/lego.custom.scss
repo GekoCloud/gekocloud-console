@@ -12,9 +12,6 @@
   vertical-align: middle;
   svg {
     display: block;
-    color: #65a428;
-fill: #d8da00;
-
   }
 
   &.warn {
@@ -23,6 +20,13 @@ fill: #d8da00;
     .qicon {
       color: #fff;
       fill: #f5a623;
+    }
+  }
+
+  &.icon-clickable:hover {
+    .qicon-light {
+      color: #324558;
+      fill: #b6c2cd;
     }
   }
 }
@@ -92,16 +96,10 @@ fill: #d8da00;
 
   .icon {
     margin-right: 12px;
-    color: #65a428;
-fill: #d8da00;
-
   }
 
   .qicon {
     vertical-align: initial;
-    color: #65a428;
-fill: #d8da00;
-
   }
 }
 
@@ -390,8 +388,8 @@ label.checkbox {
 
     &-icon {
       .qicon-dark {
-        color: #65a428 !important;
-        fill: #d8da00 !important;
+        color: #fff;
+        fill: #fff;
       }
     }
   }
@@ -404,6 +402,10 @@ label.checkbox {
         background-color: $bg-color;
       }
     }
+  }
+
+  .select-option.is-disabled {
+    opacity: 1;
   }
 }
 
@@ -503,6 +505,13 @@ label.checkbox {
   table {
     padding: 0 12px 12px;
   }
+
+  .table-filter-dropdown {
+    .dropdown-content {
+      max-height: 310px;
+      overflow: auto;
+    }
+  }
 }
 
 .table table .table-thead > tr > th {
@@ -513,7 +522,7 @@ label.checkbox {
   font-family: $font-family-id;
 
   .qicon-dark {
-    color: #65a428 !important;
+    color: $second-text-color;
   }
 }
 
@@ -618,8 +627,8 @@ label.checkbox {
     }
 
     .qicon-dark {
-      color: #65a428 !important;
-      fill: #d8da00 !important;
+      color: #ffffff;
+      fill: #324558;
     }
   }
 }
@@ -911,6 +920,14 @@ label.checkbox:before {
 .lego-toggles {
   height: 16px;
   min-width: 32px;
+
+  &.checked {
+    box-shadow: 0 2px 4px 0 rgba(85, 188, 138, 0.2), inset 0 1px 3px 0 rgba(59, 116, 122, 0.2);
+
+    &::after {
+      box-shadow: 0 2px 4px 0 rgba(36, 46, 66, 0.2);
+    }
+  }
 
   & > span.text {
     line-height: 16px;

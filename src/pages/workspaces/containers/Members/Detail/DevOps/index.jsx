@@ -17,18 +17,49 @@
  */
 
 import React from 'react'
-import { toJS } from 'mobx'
-import { observer } from 'mobx-react'
+import { toJS, computed } from 'mobx'
+import { observer, inject } from 'mobx-react'
 import { getLocalTime, getDisplayName } from 'utils'
-import { Table } from '@pitrix/lego-ui'
-import { Avatar, Card } from 'components/Base'
+
+import Table from 'workspaces/components/ResourceTable'
+import { Card } from 'components/Base'
+
+import DevOpsStore from 'stores/devops'
 
 import styles from './index.scss'
 
+@inject('detailStore', 'workspaceStore')
 @observer
 export default class MemberDevOpsProjects extends React.Component {
+  devopsStore = new DevOpsStore()
+
   componentDidMount() {
-    this.props.detailStore.fetchDevOps(this.props.match.params)
+    this.workspaceStore
+      .fetchClusters({
+        workspace: this.workspace,
+        limit: -1,
+      })
+      .then(() => {
+        this.getData()
+      })
+  }
+
+  @computed
+  get clusters() {
+    return this.workspaceStore.clusters.data.map(item => ({
+      label: item.name,
+      value: item.name,
+      disabled: !item.isReady,
+      cluster: item,
+    }))
+  }
+
+  get workspaceStore() {
+    return this.props.workspaceStore
+  }
+
+  get workspace() {
+    return this.props.match.params.workspace
   }
 
   getColumns = () => [
@@ -36,13 +67,7 @@ export default class MemberDevOpsProjects extends React.Component {
       title: t('Name'),
       dataIndex: 'name',
       width: '33%',
-      render: (name, record) => (
-        <Avatar
-          to={`/devops/${record.project_id}`}
-          icon="project"
-          title={getDisplayName(record)}
-        />
-      ),
+      render: (name, record) => getDisplayName(record),
     },
     {
       title: t('Created Time'),
@@ -54,16 +79,43 @@ export default class MemberDevOpsProjects extends React.Component {
     },
   ]
 
-  render() {
-    const { data, isLoading } = toJS(this.props.detailStore.devops)
+  get clusterProps() {
+    return {
+      clusters: this.clusters,
+      cluster: this.workspaceStore.cluster,
+      onClusterChange: this.handleClusterChange,
+      showClusterSelect: globals.app.isMultiCluster,
+    }
+  }
 
+  getData = (params = {}) => {
+    this.devopsStore.fetchListByUser({
+      workspace: this.workspace,
+      cluster: this.workspaceStore.cluster,
+      username: this.props.detailStore.detail.name,
+      ...params,
+    })
+  }
+
+  handleClusterChange = cluster => {
+    this.workspaceStore.selectCluster(cluster)
+    this.getData()
+  }
+
+  render() {
+    const { data, isLoading } = toJS(this.devopsStore.list)
     return (
       <Card title={t('DevOps Projects')}>
         <Table
           className={styles.table}
-          dataSource={data}
+          data={data}
           columns={this.getColumns()}
-          loading={isLoading}
+          isLoading={isLoading}
+          onFetch={this.getData}
+          {...this.clusterProps}
+          name="DevOps"
+          hideSearch
+          hideCustom
         />
       </Card>
     )

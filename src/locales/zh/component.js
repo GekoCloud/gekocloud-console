@@ -21,12 +21,14 @@ export default {
   'All Components': '全部服务组件',
   components: '服务组件',
   Components: '服务组件',
+  'Installed Components': '已安装组件',
+  'Not Installed Components': '未安装组件',
   'Instance Count': '实例数量',
 
   'Service Details': '服务详情',
 
   SERVICE_COMPONENTS_DESC:
-    '服务组件提供 Geko Cloud、Kubernetes 和 OpenPitrix 集群内各项服务组件的健康状态监控，可以查看当前集群的健康状态和运行时间，能够帮助用户监测集群的状况和及时定位问题。',
+    '服务组件提供 KubeSphere、Kubernetes 和 OpenPitrix 集群内各项服务组件的健康状态监控，可以查看当前集群的健康状态和运行时间，能够帮助用户监测集群的状况和及时定位问题。',
 
   'KS-ACCOUNT_DESC': '提供用户、权限管理相关的 API',
   'KS-APIGATEWAY_DESC': '负责处理服务请求和处理 API 调用过程中的所有任务',
@@ -105,4 +107,33 @@ export default {
   'UC-JENKINS-UPDATE-CENTER_DESC':
     'Jenkins 更新中心，提供 Jenkins 插件的安装包',
   'WEBHOOK-SERVER-SERVICE_DESC': '为 S2I 提供默认值和验证 webhook',
+
+  ETCD_DESC: '一个可靠的分布式数据存储，能持久化存储集群配置',
+  MYSQL_DESC:
+    '一个开源的数据库管理系统，让用户能够管理关系型数据库。关系数据库将数据保存在不同的表中，而不是将所有数据放在一个大仓库内',
+  TOWER_DESC: '一个可以在集群间通过代理方式创建网络连接的工具',
+  'KUBE-SCHEDULER-SVC_DESC':
+    'Kubernetes 的调度器，将 Pod 调度到合适的 Node 节点上去',
+  'KUBE-CONTROLLER-MANAGER-SVC_DESC':
+    '由一系列的控制器组成，处理集群中常规任务的后台线程',
+
+  'S2IOPERATOR-METRICS-SERVICE_DESC': 'S2I 监控服务组件，提供基础监控数据',
+  MINIO_DESC: '一个高性能的开源对象存储服务器，适合存储大容量非结构化的数据',
+  'ALERTMANAGER-OPERATED_DESC':
+    'Alertmanager 服务，用于 Prometheus 等与 Alertmanager 集成',
+  'ALERTMANAGER-MAIN_DESC': 'Alertmanager Web UI 服务',
+  'NOTIFICATION-MANAGER-SVC_DESC':
+    'Notification Manager 服务，提供发送邮件、微信、Slack 等通知的接口',
+  'NOTIFICATION-MANAGER-CONTROLLER-METRICS_DESC':
+    '提供 Notification Manager Controller 内部监控数据的服务',
+  HYPERPITRIX_DESC:
+    '针对基于 Helm 的应用程序提供应用商店服务，管理应用生命周期',
+  'JAEGER-OPERATOR-METRICS_DESC': '提供 operator 的监控 metrics',
+  'LOGSIDECAR-INJECTOR-ADMISSION_DESC':
+    '为指定 Pod 自动注入落盘日志收集 Sidecar 容器',
+  'KS-EVENTS-ADMISSION_DESC': '为 Events 规则管理提供验证 webhook',
+  'KS-EVENTS-RULER_DESC': 'Events 规则引擎服务，提供 Events 过滤和告警功能',
+  'KS-CONTROLLER-MANAGER_DESC':
+    '实现业务逻辑，例如创建企业空间时，为其创建对应的权限；创建服务策略时，生成对应的 Istio 配置等',
+  'KUBE-AUDITING-WEBHOOK-SVC_DESC': '负责审计日志的收集、比对、持久化和告警',
 }

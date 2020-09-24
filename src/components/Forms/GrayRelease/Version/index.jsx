@@ -25,8 +25,6 @@ import { Form } from 'components/Base'
 import { ReplicasInput } from 'components/Inputs'
 import ContainerSettings from 'components/Forms/Workload/ContainerSettings'
 
-import ConfigMapStore from 'stores/configmap'
-import SecretStore from 'stores/secret'
 import WorkloadStore from 'stores/workload'
 
 import { mergeLabels } from 'utils'
@@ -40,21 +38,12 @@ import styles from './index.scss'
 export default class Version extends ContainerSettings {
   constructor(props) {
     super(props)
-
-    this.configMapStore = new ConfigMapStore()
-    this.secretStore = new SecretStore()
-
     this.module = get(
       props.formTemplate,
       'strategy.metadata.annotations["servicemesh.kubesphere.io/workloadType"]',
       'deployments'
     )
     this.workloadStore = new WorkloadStore(this.module)
-
-    this.state = {
-      configMaps: [],
-      secrets: [],
-    }
   }
 
   get formTemplate() {
@@ -63,20 +52,6 @@ export default class Version extends ContainerSettings {
 
   get namespace() {
     return get(this.formTemplate, 'metadata.namespace')
-  }
-
-  fetchData() {
-    const namespace = get(this.formTemplate, 'metadata.namespace')
-
-    Promise.all([
-      this.configMapStore.fetchByK8s({ namespace }),
-      this.secretStore.fetchByK8s({ namespace }),
-    ]).then(([configMaps, secrets]) => {
-      this.setState({
-        configMaps,
-        secrets,
-      })
-    })
   }
 
   versionValidator = (rule, value, callback) => {
@@ -91,6 +66,7 @@ export default class Version extends ContainerSettings {
       .checkName({
         name,
         namespace: this.namespace,
+        cluster: this.props.cluster,
       })
       .then(resp => {
         if (resp.exist) {
@@ -137,6 +113,7 @@ export default class Version extends ContainerSettings {
             name="metadata.labels.version"
             onChange={this.handleVersionChange}
             disabled={this.isEdit}
+            maxLength={16}
           />
         </Form.Item>
         <div className={styles.specify}>
@@ -149,12 +126,16 @@ export default class Version extends ContainerSettings {
   }
 
   renderContainerList() {
+    const specTemplate = get(this.formTemplate, `${this.prefix}spec`)
+
     return (
       <Column>
         <Form.Item rules={[{ validator: this.containersValidator }]}>
           <ContainerList
             name={`${this.prefix}spec.containers`}
             onShow={this.showContainer}
+            onDelete={this.handleDelete}
+            specTemplate={specTemplate}
             disabled={this.isEdit}
           />
         </Form.Item>

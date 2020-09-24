@@ -18,18 +18,17 @@
 
 import React from 'react'
 import { toJS } from 'mobx'
-import { observer } from 'mobx-react'
+import { observer, inject } from 'mobx-react'
 import { isEmpty, get, flatten, uniqBy } from 'lodash'
 
 import HpaStore from 'stores/workload/hpa'
-import ResourceStore from 'stores/workload/resource'
 
 import PodsCard from 'components/Cards/Pods'
-import VolumesCard from 'components/Cards/Volumes'
 import ContainerPortsCard from 'components/Cards/Containers/Ports'
 import HPACard from 'projects/components/Cards/HPA'
 import ReplicaCard from 'projects/components/Cards/Replica'
 import S2iBuilderCard from 'projects/components/Cards/S2iBuilder'
+import Placement from 'projects/components/Cards/Placement'
 
 import styles from './index.scss'
 
@@ -37,23 +36,28 @@ class ResourceStatus extends React.Component {
   constructor(props) {
     super(props)
 
-    this.resourceStore = props.resourceStore || new ResourceStore(this.module)
     this.hpaStore = props.hpaStore || new HpaStore()
 
     this.state = {}
   }
 
   get module() {
-    return this.props.module
+    return this.props.detailStore.module
   }
 
   get store() {
     return this.props.detailStore
   }
 
+  get prefix() {
+    const { workspace, cluster } = this.props.match.params
+    return `${workspace ? `/${workspace}` : ''}/clusters/${cluster}`
+  }
+
   get enabledActions() {
     return globals.app.getActions({
       module: this.module,
+      ...this.props.match.params,
       project: this.props.match.params.namespace,
     })
   }
@@ -64,7 +68,9 @@ class ResourceStatus extends React.Component {
 
   get enableScaleReplica() {
     return (
-      this.enabledActions.includes('edit') && !get(this.hpaStore.detail, 'name')
+      this.enabledActions.includes('edit') &&
+      !get(this.hpaStore.detail, 'name') &&
+      !this.store.detail.isFedManaged
     )
   }
 
@@ -73,11 +79,12 @@ class ResourceStatus extends React.Component {
   }
 
   fetchData = () => {
-    const { namespace, name } = this.store.detail
+    const { cluster, namespace, name } = this.store.detail
 
     if (this.module === 'deployments') {
       const { annotations = {} } = this.store.detail
       const params = {
+        cluster,
         namespace,
         name: annotations['kubesphere.io/relatedHPA'] || name,
       }
@@ -91,13 +98,8 @@ class ResourceStatus extends React.Component {
   }
 
   handleScale = newReplicas => {
-    const { namespace, name } = this.store.detail
-    this.store.scale({ name, namespace }, newReplicas)
-  }
-
-  handlePodUpdate = () => {
-    const { namespace, name } = this.store.detail
-    this.store.fetchDetail({ namespace, name, silent: true }, false)
+    const { cluster, namespace, name } = this.store.detail
+    this.store.scale({ cluster, namespace, name }, newReplicas)
   }
 
   handleDeleteHpa = () => {
@@ -114,17 +116,33 @@ class ResourceStatus extends React.Component {
       })
   }
 
-  renderS2IBuilder = () => {
-    const { namespace } = this.props.match.params
+  renderPlacement() {
+    const { name, namespace } = this.props.match.params
+    const { detail } = this.store
+    if (detail.isFedManaged) {
+      return (
+        <Placement
+          module={this.store.module}
+          name={name}
+          namespace={namespace}
+        />
+      )
+    }
+    return null
+  }
+
+  renderS2IBuilder() {
+    const { cluster, namespace } = this.props.match.params
     const { detail } = this.store
 
-    if (isEmpty(detail.builderNames)) {
+    if (isEmpty(toJS(detail.builderNames))) {
       return null
     }
 
     return (
       <S2iBuilderCard
-        builderNames={detail.builderNames}
+        builderNames={toJS(detail.builderNames)}
+        cluster={cluster}
         namespace={namespace}
         className={styles.deployment_codeResource}
       />
@@ -160,6 +178,12 @@ class ResourceStatus extends React.Component {
   }
 
   renderContainerPorts() {
+    const { noPorts } = this.props
+
+    if (noPorts) {
+      return null
+    }
+
     const { isLoading } = this.store
     const { containers = [] } = toJS(this.store.detail)
     const ports = uniqBy(
@@ -177,45 +201,18 @@ class ResourceStatus extends React.Component {
   }
 
   renderPods() {
-    const { params = {} } = this.props.match
-    const { namespace, name } = params
-
-    return (
-      <PodsCard
-        prefix={`/projects/${namespace}/${this.module}/${name}`}
-        detail={this.store.detail}
-        onUpdate={this.handlePodUpdate}
-      />
-    )
-  }
-
-  renderVolumes() {
-    const { isLoading } = this.store
-    const { volumes, containers } = toJS(this.store.detail)
-    const { namespace } = this.props.match.params
-
-    if (isEmpty(volumes)) return null
-
-    return (
-      <VolumesCard
-        title={this.volumesTitle}
-        volumes={volumes}
-        containers={containers}
-        loading={isLoading}
-        prefix={`/projects/${namespace}`}
-      />
-    )
+    return <PodsCard prefix={this.prefix} detail={this.store.detail} />
   }
 
   renderContent() {
     return (
       <div>
+        {this.renderPlacement()}
         {this.renderReplicaInfo()}
         {this.renderHpaConfig()}
         {this.renderContainerPorts()}
         {this.renderS2IBuilder()}
         {this.renderPods()}
-        {this.renderVolumes()}
       </div>
     )
   }
@@ -225,5 +222,5 @@ class ResourceStatus extends React.Component {
   }
 }
 
-export default observer(ResourceStatus)
+export default inject('detailStore', 'hpaStore')(observer(ResourceStatus))
 export const Component = ResourceStatus

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import { action } from 'mobx'
+import { action, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { isEmpty, get } from 'lodash'
 import { Input } from '@pitrix/lego-ui'
@@ -29,6 +29,10 @@ import styles from './index.scss'
 
 @observer
 export default class BitBucketForm extends GitHubForm {
+  state = {
+    isLoading: false,
+  }
+
   get scmType() {
     return 'bitbucket_server'
   }
@@ -42,11 +46,14 @@ export default class BitBucketForm extends GitHubForm {
 
   @action
   handlePasswordConfirm = async () => {
-    const data = this.tokenFormRef.current._formData
+    const { cluster, devops } = this.props
+    const data = this.tokenFormRef.current.getData()
     this.setState({ isLoading: true })
-    this.props.store.creatBitBucketServers(data).finally(() => {
-      this.setState({ isLoading: false })
-    })
+    await this.props.store
+      .creatBitBucketServers({ cluster, devops, ...data })
+      .finally(() => {
+        this.setState({ isLoading: false })
+      })
   }
 
   handleSubmit = e => {
@@ -83,7 +90,7 @@ export default class BitBucketForm extends GitHubForm {
       tokenFormData,
       creatBitBucketServersError: errors = {},
     } = this.props.store
-
+    const errorsBody = toJS(errors)
     return (
       <div className={styles.card}>
         <Form
@@ -92,16 +99,18 @@ export default class BitBucketForm extends GitHubForm {
           onSubmit={this.handlePasswordConfirm}
           ref={this.tokenFormRef}
         >
-          <Form.Item label="Bitbucket Server" error={errors['apiUrl']}>
+          <Form.Item label="Bitbucket Server" error={errorsBody['apiUrl']}>
             <Input name="apiUrl" />
           </Form.Item>
-          <Form.Item label={t('Username')} error={errors['username']}>
+          <Form.Item label={t('Username')} error={errorsBody['username']}>
             <Input name="username" />
           </Form.Item>
-          <Form.Item label={t('Password')} error={errors['password']}>
+          <Form.Item label={t('Password')} error={errorsBody['password']}>
             <Input name="password" type="password" />
           </Form.Item>
-          {errors.all ? <p className={styles.error}>{errors.all}</p> : null}
+          {errorsBody.all ? (
+            <p className={styles.error}>{errorsBody.all}</p>
+          ) : null}
           <Button
             className={styles.confirmButton}
             onClick={this.handlePasswordConfirm}

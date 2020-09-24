@@ -21,9 +21,7 @@ import classnames from 'classnames'
 
 import { Input } from '@pitrix/lego-ui'
 import { Form } from 'components/Base'
-import { UrlInput, InputPassword } from 'components/Inputs'
-
-import { PATTERN_ES_USER_NAME, PATTERN_ES_PASSWORD } from 'utils/constants'
+import { UrlInput } from 'components/Inputs'
 
 import fromStyles from 'src/components/Base/Form/index.scss'
 
@@ -36,35 +34,19 @@ export default class BaseInfo extends React.Component {
         <div className={classnames(styles.path, fromStyles.item)}>
           <label className={fromStyles.label}>{t('Service Address')}:</label>
           <div className={styles.columns}>
-            <UrlInput />
+            <UrlInput hostName={'host'} portName={'port'} />
           </div>
           <div className={classnames(fromStyles.desc, styles.desc)}>
             {t('LOG_COLLECTION_ES_URL_TIPS')}
           </div>
         </div>
+
         <Form.Item
-          desc={t('LOG_COLLECTION_ES_USER_TIPS')}
-          label={`${t('User Name')} (${t('optional')})`}
-          rules={[
-            { pattern: PATTERN_ES_USER_NAME, message: t('Invalid name') },
-          ]}
+          label={t('Index Prefix')}
+          desc={t('LOG_COLLECTION_ES_INDEX_TIPS')}
+          rules={[{ required: true, message: t('Please input value') }]}
         >
-          <Input name="HTTP_User" autoComplete="nope" />
-        </Form.Item>
-        <Form.Item
-          label={`${t('Password')} (${t('optional')})`}
-          rules={[
-            {
-              pattern: PATTERN_ES_PASSWORD,
-              message: t('Passwords must be at least 6 characters long'),
-            },
-          ]}
-        >
-          <InputPassword
-            name="HTTP_Password"
-            placeholder={t('Please input password')}
-            autoComplete="new-password"
-          />
+          <Input name="logstashPrefix" defaultValue="ks-logstash-log" />
         </Form.Item>
       </div>
     )

@@ -17,9 +17,8 @@
  */
 
 import React from 'react'
-import { toJS } from 'mobx'
 import { Input, Select } from '@pitrix/lego-ui'
-import { Form } from 'components/Base'
+import { Form, SearchSelect, Tag } from 'components/Base'
 import { observer } from 'mobx-react'
 
 import styles from './index.scss'
@@ -34,6 +33,30 @@ export default class SvnForm extends React.Component {
   handleTypeChange = value => {
     this.setState({ type: value })
   }
+
+  getCredentialsListData = params => {
+    const { devops, cluster } = this.props
+    return this.props.store.getCredentials({ devops, cluster, ...params })
+  }
+
+  getCredentialsList = () => {
+    return [
+      ...this.props.store.credentials.data.map(credential => ({
+        label: credential.name,
+        value: credential.name,
+        type: credential.type,
+      })),
+    ]
+  }
+
+  optionRender = ({ label, type, disabled }) => (
+    <span style={{ display: 'flex', alignItem: 'center' }}>
+      {label}&nbsp;&nbsp;
+      <Tag type={disabled ? '' : 'warning'}>
+        {type === 'ssh' ? 'SSH' : t(type)}
+      </Tag>
+    </span>
+  )
 
   render() {
     const { formData, credentials } = this.props.store
@@ -55,13 +78,13 @@ export default class SvnForm extends React.Component {
             />
           </Form.Item>
           <Form.Item
-            label={t('remote url')}
+            label={t('Remote Repository URL')}
             rules={[{ required: true, message: t('This param is required') }]}
           >
             <Input name="svn_source.remote" />
           </Form.Item>
           <Form.Item
-            label={t('Certificate')}
+            label={t('Credential')}
             desc={
               <p>
                 {t('ADD_NEW_CREDENTIAL_DESC')}
@@ -75,21 +98,27 @@ export default class SvnForm extends React.Component {
             }
             rules={[{ required: true, message: t('This param is required') }]}
           >
-            <Select
-              loading={credentials.isLoading}
+            <SearchSelect
               name="svn_source.credential_id"
-              options={toJS(credentials.data)}
+              options={this.getCredentialsList()}
+              page={credentials.page}
+              total={credentials.total}
+              currentLength={credentials.data.length}
+              isLoading={credentials.isLoading}
+              onFetch={this.getCredentialsListData}
+              optionRenderer={this.optionRender}
+              valueRenderer={this.optionRender}
             />
           </Form.Item>
           {this.state.type !== 'single_svn' ? (
             <React.Fragment>
-              <Form.Item label={t('includes branch')}>
+              <Form.Item label={t('Branch Included')}>
                 <Input
                   name="svn_source.includes"
                   defaultValue="trunk,branches/*,tags/*,sandbox/*"
                 />
               </Form.Item>
-              <Form.Item label={t('excludes branch')}>
+              <Form.Item label={t('Branch Excluded')}>
                 <Input name="svn_source.excludes" />
               </Form.Item>
             </React.Fragment>

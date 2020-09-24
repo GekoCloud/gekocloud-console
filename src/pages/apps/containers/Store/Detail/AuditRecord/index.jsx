@@ -43,6 +43,7 @@ export default class AuditRecord extends Base {
     return {
       ...Base.prototype.getTableProps.call(this),
       selectActions: [],
+      searchType: 'keyword',
     }
   }
 
@@ -67,7 +68,7 @@ export default class AuditRecord extends Base {
       width: '15%',
     },
     {
-      title: t('Apply No / Reject Reason'),
+      title: t('Application Number / Rejection Reason'),
       dataIndex: 'review_id',
       isHideable: true,
       width: '40%',

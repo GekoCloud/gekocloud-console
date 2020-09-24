@@ -106,8 +106,6 @@
   .icon {
     position: relative;
     margin-right: 12px;
-    color: #65a428;
-fill: #d8da00;
 
     .indicator {
       position: absolute;
@@ -232,6 +230,11 @@ fill: #d8da00;
   justify-content: center;
   align-items: center;
   height: 56px;
+}
+
+.cluster {
+  width: 260px;
+  margin-right: 12px;
 }
 
 @keyframes slideInUp {

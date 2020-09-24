@@ -16,41 +16,43 @@
  * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get, set, debounce, isEmpty } from 'lodash'
+import { get, set } from 'lodash'
 import React from 'react'
 import { observer } from 'mobx-react'
-import { Columns, Column, Input, Select, TextArea } from '@pitrix/lego-ui'
-import { Form } from 'components/Base'
-import ToggleView from 'components/ToggleView'
-import { updateLabels, generateId } from 'utils'
+import { Columns, Column, Input } from '@pitrix/lego-ui'
+import { Form, TextArea } from 'components/Base'
+import { updateLabels } from 'utils'
+import { ProjectSelect } from 'components/Inputs'
 
 import {
   PATTERN_SERVICE_NAME,
-  PATTERN_LENGTH_63,
+  PATTERN_SERVICE_VERSION,
   MODULE_KIND_MAP,
 } from 'utils/constants'
 
 import ServiceStore from 'stores/service'
-import ApplicationStore from 'stores/application/crd'
+import WorkloadStore from 'stores/workload'
+import FederatedStore from 'stores/federated'
 
 @observer
 export default class ServiceBaseInfo extends React.Component {
-  store = new ServiceStore()
+  constructor(props) {
+    super(props)
 
-  appStore = new ApplicationStore()
+    this.state = {
+      showServiceMesh: false,
+      selectApp: {},
+    }
 
-  state = {
-    showServiceMesh: false,
-    selectApp: {},
+    this.store = new ServiceStore()
+    this.workloadStore = new WorkloadStore(props.module)
+    if (props.isFederated) {
+      this.store = new FederatedStore(this.store)
+      this.workloadStore = new FederatedStore(this.workloadStore)
+    }
   }
 
-  componentDidMount() {
-    this.appStore.fetchList({ namespace: this.namespace, limit: Infinity })
-  }
-
-  get formTemplate() {
-    return this.props.formTemplate.Service
-  }
+  formTemplate = this.props.formTemplate.Service
 
   get workloadKind() {
     const { module, noWorkload } = this.props
@@ -72,79 +74,63 @@ export default class ServiceBaseInfo extends React.Component {
     ]
   }
 
-  get applications() {
-    return [
-      {
-        label: t('Not Join'),
-        value: '',
-      },
-      ...this.appStore.list.data.map(app => ({
-        app,
-        label: app.name,
-        value: app.name,
-      })),
-    ]
+  handleNameChange = value => {
+    const { isFederated, noWorkload } = this.props
+
+    const labels = get(this.formTemplate, 'metadata.labels', {})
+    labels.app = value.slice(0, 63)
+
+    updateLabels(
+      isFederated ? get(this.formTemplate, 'spec.template') : this.formTemplate,
+      'services',
+      labels
+    )
+
+    if (isFederated) {
+      set(this.formTemplate, 'metadata.labels.app', value.slice(0, 63))
+    }
+
+    if (!noWorkload) {
+      this.updateWorkload(value)
+    }
   }
 
-  handleNameChange = debounce(value => {
-    const { module, formTemplate, noWorkload } = this.props
-
-    const aliasName = get(
-      this.formTemplate,
-      'metadata.annotations["kubesphere.io/alias-name"]'
-    )
+  updateWorkload(value) {
+    const { module, formTemplate, isFederated } = this.props
     const labels = get(this.formTemplate, 'metadata.labels', {})
-    labels.app = value
+    const namespace = get(this.formTemplate, 'metadata.namespace')
+    const workloadName = `${value}-${labels.version}`
+    set(formTemplate[this.workloadKind], 'metadata.name', workloadName)
+    set(formTemplate[this.workloadKind], 'metadata.namespace', namespace)
+    set(formTemplate[this.workloadKind], 'metadata.labels.app', value)
+    updateLabels(
+      isFederated
+        ? get(formTemplate[this.workloadKind], 'spec.template')
+        : formTemplate[this.workloadKind],
+      module,
+      labels
+    )
 
-    if (!noWorkload) {
+    if (this.workloadKind === 'StatefulSet') {
       set(
         formTemplate[this.workloadKind],
-        'metadata.name',
-        `${value}-${generateId()}`
-      )
-      set(
-        formTemplate[this.workloadKind],
-        'metadata.annotations["kubesphere.io/alias-name"]',
-        aliasName || value
-      )
-      if (this.workloadKind === 'StatefulSet') {
-        set(formTemplate[this.workloadKind], 'spec.serviceName', value)
-      }
-    }
-
-    updateLabels(formTemplate, module, labels)
-  }, 200)
-
-  handleAliasNameChange = debounce(value => {
-    const { formTemplate, noWorkload } = this.props
-
-    const name = get(this.formTemplate, 'metadata.name')
-
-    if (!noWorkload) {
-      set(
-        formTemplate[this.workloadKind],
-        'metadata.annotations["kubesphere.io/alias-name"]',
-        value || name
-      )
-    }
-  }, 200)
-
-  handleServiceMeshChange = value => {
-    const { formTemplate, noWorkload } = this.props
-
-    !noWorkload &&
-      set(
-        formTemplate[this.workloadKind],
-        'metadata.annotations["servicemesh.kubesphere.io/enabled"]',
+        isFederated ? 'spec.template.spec.serviceName' : 'spec.serviceName',
         value
       )
-  }
+    }
 
-  handleAppChange = (value, option) => {
-    this.setState({
-      showServiceMesh: !!value,
-      selectApp: (option.find(item => item.value === value) || {}).app || {},
-    })
+    if (isFederated) {
+      set(
+        formTemplate.Service,
+        'metadata.annotations["kubesphere.io/workloadName"]',
+        workloadName
+      )
+      set(
+        formTemplate.Service,
+        'metadata.annotations["kubesphere.io/workloadModule"]',
+        module
+      )
+    }
   }
 
   nameValidator = (rule, value, callback) => {
@@ -153,7 +139,11 @@ export default class ServiceBaseInfo extends React.Component {
     }
 
     this.store
-      .checkName({ name: value, namespace: this.namespace })
+      .checkName({
+        name: value,
+        namespace: this.namespace,
+        cluster: this.props.cluster,
+      })
       .then(resp => {
         if (resp.exist) {
           return callback({ message: t('Name exists'), field: rule.field })
@@ -162,9 +152,50 @@ export default class ServiceBaseInfo extends React.Component {
       })
   }
 
+  versionValidator = (rule, value, callback) => {
+    if (!value) {
+      return callback()
+    }
+
+    const serviceName = get(this.formTemplate, 'metadata.name')
+    const name = `${serviceName}-${value}`
+    this.workloadStore
+      .checkName({
+        name,
+        namespace: this.namespace,
+        cluster: this.props.cluster,
+      })
+      .then(resp => {
+        if (resp.exist) {
+          return callback({
+            message: t(
+              `${t(this.workloadKind)} ${name} ${t('exists')}, ${t(
+                'version number is invalid'
+              )}`
+            ),
+            field: rule.field,
+          })
+        }
+        callback()
+      })
+  }
+
+  handleVersionChange = value => {
+    const serviceName = get(this.formTemplate, 'metadata.name')
+    const workloadName = `${serviceName}-${value}`
+    const { formTemplate, isFederated } = this.props
+    set(formTemplate[this.workloadKind], 'metadata.name', workloadName)
+    if (isFederated) {
+      set(
+        formTemplate.Service,
+        'metadata.annotations["kubesphere.io/workloadName"]',
+        workloadName
+      )
+    }
+  }
+
   render() {
-    const { formRef, noWorkload } = this.props
-    const { showServiceMesh, selectApp } = this.state
+    const { formRef, noWorkload, cluster, namespace } = this.props
 
     return (
       <Form data={this.formTemplate} ref={formRef}>
@@ -179,7 +210,6 @@ export default class ServiceBaseInfo extends React.Component {
                   pattern: PATTERN_SERVICE_NAME,
                   message: `${t('Invalid name')}, ${t('SERVICE_NAME_DESC')}`,
                 },
-                { pattern: PATTERN_LENGTH_63, message: t('NAME_TOO_LONG') },
                 { validator: this.nameValidator },
               ]}
             >
@@ -187,6 +217,7 @@ export default class ServiceBaseInfo extends React.Component {
                 name="metadata.name"
                 onChange={this.handleNameChange}
                 autoFocus={true}
+                maxLength={63}
               />
             </Form.Item>
           </Column>
@@ -194,71 +225,61 @@ export default class ServiceBaseInfo extends React.Component {
             <Form.Item label={t('Alias')} desc={t('ALIAS_DESC')}>
               <Input
                 name="metadata.annotations['kubesphere.io/alias-name']"
-                onChange={this.handleAliasNameChange}
+                maxLength={63}
               />
             </Form.Item>
           </Column>
         </Columns>
         <Columns>
+          {!namespace && (
+            <Column>
+              <Form.Item
+                label={t('Project')}
+                desc={t('PROJECT_DESC')}
+                rules={[
+                  { required: true, message: t('Please select a project') },
+                ]}
+              >
+                <ProjectSelect
+                  name="metadata.namespace"
+                  cluster={cluster}
+                  defaultValue={this.namespace}
+                />
+              </Form.Item>
+            </Column>
+          )}
+          {!noWorkload && (
+            <Column>
+              <Form.Item
+                label={t('Version')}
+                desc={t('COMPONENT_VERSION_DESC')}
+                rules={[
+                  { required: true, message: t('COMPONENT_VERSION_DESC') },
+                  {
+                    pattern: PATTERN_SERVICE_VERSION,
+                    message: t('COMPONENT_VERSION_DESC'),
+                  },
+                  { validator: this.versionValidator },
+                ]}
+              >
+                <Input
+                  name="metadata.labels.version"
+                  defaultValue="v1"
+                  maxLength={16}
+                  onChange={this.handleVersionChange}
+                />
+              </Form.Item>
+            </Column>
+          )}
           <Column>
-            <Form.Item label={t('Description')}>
-              <TextArea name="metadata.annotations['kubesphere.io/description']" />
+            <Form.Item label={t('Description')} desc={t('DESCRIPTION_DESC')}>
+              <TextArea
+                name="metadata.annotations['kubesphere.io/description']"
+                maxLength={256}
+              />
             </Form.Item>
           </Column>
-          <Column />
         </Columns>
-        <ToggleView>
-          <div className="margin-t8">
-            <Columns>
-              <Column>
-                <Form.Item
-                  label={t('Join Application')}
-                  desc={t('SERVICE_NAME_DESC')}
-                >
-                  <Select
-                    name="metadata.labels['app.kubernetes.io/name']"
-                    onChange={this.handleAppChange}
-                    options={this.applications}
-                    loading={this.appStore.list.isLoading}
-                    defaultValue=""
-                  />
-                </Form.Item>
-              </Column>
-              {!isEmpty(selectApp) && (
-                <Column>
-                  <Form.Item label={t('Version')}>
-                    <Input name="metadata.labels.version" defaultValue="v1" />
-                  </Form.Item>
-                </Column>
-              )}
-            </Columns>
-            {!noWorkload && showServiceMesh && (
-              <Columns>
-                <Column>
-                  <Form.Item
-                    label={t('Service Mesh')}
-                    desc={
-                      !selectApp.serviceMeshEnable
-                        ? t('Application governance is not enabled')
-                        : ''
-                    }
-                  >
-                    <Select
-                      name="metadata.annotations['servicemesh.kubesphere.io/enabled']"
-                      options={this.serviceMeshOptions}
-                      onChange={this.handleServiceMeshChange}
-                      defaultValue={
-                        selectApp.serviceMeshEnable ? 'true' : 'false'
-                      }
-                      disabled={!selectApp.serviceMeshEnable}
-                    />
-                  </Form.Item>
-                </Column>
-                <Column />
-              </Columns>
-            )}
-          </div>
-        </ToggleView>
       </Form>
     )
   }

@@ -111,7 +111,7 @@ export default class AddTemporary extends React.Component {
 
     const { currentName, checkVolumeNameExist } = this.props
     if (checkVolumeNameExist(value) && currentName !== value) {
-      callback({ message: t('volume name exist'), field: rule.field })
+      callback({ message: t('The volume name exists'), field: rule.field })
     } else {
       callback()
     }
@@ -141,7 +141,7 @@ export default class AddTemporary extends React.Component {
               { validator: this.nameValidator },
             ]}
           >
-            <Input name="name" autoFocus={true} />
+            <Input name="name" autoFocus={true} maxLength={63} />
           </Form.Item>
           <Form.Item
             rules={[

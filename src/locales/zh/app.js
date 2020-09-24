@@ -17,29 +17,32 @@
  */
 
 export default {
-  APP_TEMPLATE_DESCRIPTION:
-    'Geko Cloud 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
+  APP_TEMPLATE_DESC:
+    'KubeSphere 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
+  APP_TEMPLATE_CREATE_DESC:
+    'KubeSphere 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
   DEVELOP_APP_TITLE: '开发应用模板',
   DEVELOP_APP_DESC:
     '您可以上传 Helm Chart 或者使用 Geko Cloud 提供的资源编排工具进行应用模板的开发',
   HOW_PUBLISH_APP_TITLE: '如何发布已有应用',
   HOW_PUBLISH_APP_DESC:
-    'Geko Cloud 目前支持将已有应用的 Helm Chart 上传至企业空间的应用模板，提交审核后，可以将应用发布在应用商店中。',
+    'KubeSphere 目前支持将已有应用的 Helm Chart 上传至企业空间的应用模板，提交审核后，可以将应用发布在应用商店中。',
   HOW_APP_DEPLOY_TITLE: '如何部署和测试应用',
   'Upload Template': '上传模板',
   APPS_CREATE_DESC:
-    'Geko Cloud 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
+    'KubeSphere 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
 
   'Apps Management': '应用管理',
+  'App Store Management': '应用商店管理',
   'Certified Provider': '已认证服务商',
 
   'App Info': '应用信息',
   'Base Info': '基本信息',
   'App Details': '应用详情',
+  'App Config': '应用配置',
   Introduction: '使用说明',
   'Terms of service': '服务条款',
   'Config File': '配置文件',
-  'Chart File': '配置文件',
   'Chart Files': '配置文件',
   'Update Log': '更新日志',
   'No update log': '暂无更新日志',
@@ -47,15 +50,17 @@ export default {
   APP_NAME_DESC: '应用的重要标识',
   'Select file': '选择文件',
   'Application Name': '应用名称',
-  'App Abstraction': '应用简介',
+  'Application Version': '应用版本',
+  'App Description': '应用简介',
   APP_ABSTRACTION_DESC: '对应用的概括性介绍',
   APP_DETAIL_DESC: '在用户搜索应用时会非常有帮助',
   'Upload Icon': '上传图标',
-  APP_ICON_NOTE: '200px*200px以内JPG或者PNG',
-  APP_ICON_FORMAT: '格式: png 背景透明最佳',
-  APP_ICON_SIZE: '图形大小: 96px*96*px',
+  APP_ICON_NOTE: '96px*96px 以内 JPG 或者 PNG',
+  APP_ICON_FORMAT: '格式: PNG 背景透明最佳',
+  APP_ICON_SIZE: '图形大小: 96px*96px',
   'Start edit': '开始编辑',
   File: '文件',
+  'Platform App Store Management': '平台级应用商店管理',
 
   'App Store': '应用商店',
   APP_STORE_DESC: '对已上架、已下架的应用进行管理',
@@ -65,13 +70,15 @@ export default {
   'Release / Suspended Time': '上架(下架)时间',
 
   'App Review': '应用审核',
+  'App Reviews': '应用审核',
   APP_REVIEW_DESC: '对服务商的认证及应用上架提供审核功能',
+  APP_REVIEWS_CREATE_DESC: '对服务商的认证及应用上架提供审核功能',
   Unprocessed: '待处理',
   Processed: '已处理',
   'Review Object': '审核对象',
   'Request for Approval': '应用上架',
   Operator: '操作者',
-  'Apply No / Reject Reason': '申请编号 / 拒绝原因',
+  'Application Number / Rejection Reason': '申请编号 / 拒绝原因',
   'Review Status': '审核状态',
   'Updated Time': '更新时间',
   Submitter: '提交者',
@@ -103,13 +110,11 @@ export default {
   'Adjust Successfully': '调整成功',
 
   APP_TEMPLATES_DESC:
-    'Geko Cloud 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
+    'KubeSphere 提供全生命周期的应用管理，可以上传或者创建新的应用模板，并且快速部署它们，也可以通过应用商店进行发布应用。',
   UPLOAD_HELM_TITLE: '上传 Helm 配置文件',
   UPLOAD_HELM_DESC: '上传已有的 Helm  Chart ',
-  'Edit App Informatio': '编辑应用信息',
   EDIT_APP_DESC: '对应用的基本信息进行设置',
   'App Number': '应用编号',
-  Category: '分类',
   'App Version Types': '交付类型',
   'App Provider': '应用服务商',
   'Create Time': '创建时间',
@@ -135,7 +140,7 @@ export default {
     '轻量级、可移植、自包含的软件打包技术，使应用可以在几乎任何地方以相同的方式运行。',
   RESOURCE_TOOL_TITLE: '通过资源编排工具创建',
   RESOURCE_TOOL_DESCRIPTION:
-    'Geko Cloud 提供了可视化的资源编排工具，您可以通过资源预编辑来创建应用模板，部署测试',
+    'KubeSphere 提供了可视化的资源编排工具，您可以通过资源预编辑来创建应用模板，部署测试',
   UPLOAD_HELM_DESCRIPTION: '上传已有的 Helm Chart. 文件格式支持 tar.gz 和 tgz',
   START_UPLOAD: '开始上传',
   'Start Create': '开始创建',
@@ -151,6 +156,7 @@ export default {
   FILE_FORMAT_SCREENSHOTS: '截图格式支持 png 和 jpg',
   FILE_MAX_PACKAGE: '配置包大小不能超过 2M',
   FILE_MAX_ICON: '图标大小不能超过 20KB',
+  FILE_MAX_SIZE_ICON: '图标尺寸大小不能超过 96px',
   FILE_MAX_SCREENSHOTS: '截图大小不能超过 2M',
   UPLOAD_PACKAGE_OK_NOTE: '请上传配置包或上传的配置包不正确',
   'Delete picture': '删除图片',
@@ -168,9 +174,10 @@ export default {
   'Category Name': '分类名称',
   CATEGORY_NAME_DESC: '建议不超过8个字符，最多能输入20个字符',
   'Please input category name': '请输入分类名称',
+  'Please input version number': '请输入版本号',
   ICON_DESC: '请选择一个图标来标识分类',
   'Please select icon': '请选择图标',
-  'Website format is error': '输入的网站格式错误',
+  'Wrong website format': '输入的网站格式错误',
 
   Screenshot: '截图',
   'Version No': '版本号',
@@ -192,7 +199,7 @@ export default {
   'Format png/svg background transparency is the best':
     '格式: png/svg 背景透明最佳',
   CHOOSE_APP_CATEGORY_DESC: '选择适合的应用分类，便于用户更快发现你的应用',
-  'Service provider website': '服务商网站',
+  'Service Provider Website': '服务商网站',
   "Service provider's official website address": '服务商的官方网站地址',
   MODIFY_VERSION_TIPS: '每次修改的内容都将跟随下一次版本上架而真正生效。',
   UNDER_REVIEW_TIPS: '当前应用有版本正在审核中，以下信息暂时不可更改',
@@ -209,4 +216,14 @@ export default {
   APP_CATE_UNCATEGORIZED: '未分类',
 
   MISS_FILE_NOTE: '文件{file}没有找到',
+
+  'Please select a project to deploy': '请选择项目部署',
+  'Please select a workspace': '请选择企业空间',
+  'Please select a cluster': '请选择集群',
+  'Please select a project': '请选择项目',
+
+  HELM_APP_SCHEMA_FORM_TIP:
+    '此应用支持表单模式，可选择通过表单或 YAML 编辑器来修改默认应用配置。注意：不同模式之间数据独立。',
+
+  DELETE_APP_TEMPLATE_TIP: '删除应用模板前，需要先删除所有版本。',
 }

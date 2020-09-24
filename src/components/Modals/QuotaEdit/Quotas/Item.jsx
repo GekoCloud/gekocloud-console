@@ -22,7 +22,10 @@ import { Input, Select } from '@pitrix/lego-ui'
 import { Button } from 'components/Base'
 import { QUOTAS_MAP } from 'utils/constants'
 
-import { RESERVED_MODULES } from './constants'
+import {
+  RESERVED_MODULES,
+  FEDERATED_PROJECT_UNSOPPORT_QUOTA,
+} from './constants'
 
 import styles from './index.scss'
 
@@ -34,7 +37,13 @@ export default class QuotaItem extends React.Component {
       ...RESERVED_MODULES,
     ]
     return Object.keys(QUOTAS_MAP)
-      .filter(key => !filteredModules.includes(key))
+      .filter(
+        key =>
+          !filteredModules.includes(key) &&
+          (this.props.isFederated
+            ? !FEDERATED_PROJECT_UNSOPPORT_QUOTA.includes(key)
+            : true)
+      )
       .map(key => ({
         label: t(key),
         value: key,
@@ -66,7 +75,7 @@ export default class QuotaItem extends React.Component {
           className="margin-l12"
           value={value}
           placeholder={t(
-            'You can limit the number of resources, empty is no limit.'
+            'You can limit the number of resources. Blank means no limit.'
           )}
           onChange={onChange}
         />

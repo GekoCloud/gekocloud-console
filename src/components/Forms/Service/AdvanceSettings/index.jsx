@@ -17,19 +17,23 @@
  */
 
 import React from 'react'
-import { get, set } from 'lodash'
+import { get, set, omit, unset } from 'lodash'
 import { MODULE_KIND_MAP } from 'utils/constants'
 
 import { Form } from 'components/Base'
+import { NumberInput } from 'components/Inputs'
 
 import Metadata from './Metadata'
 import NodeSchedule from './NodeSchedule'
 import InternetAccess from './InternetAccess'
-import SessionAffinity from './SessionAffinity'
 
 export default class AdvancedSettings extends React.Component {
   get namespace() {
-    return get(this.formTemplate, 'Service.metadata.namespace')
+    return get(this.props.formTemplate, 'Service.metadata.namespace')
+  }
+
+  get fedPrefix() {
+    return this.props.isFederated ? 'spec.template.' : ''
   }
 
   get kind() {
@@ -40,24 +44,48 @@ export default class AdvancedSettings extends React.Component {
   handleLabelsChange = labels => {
     const { formTemplate, noWorkload } = this.props
     if (!noWorkload) {
-      set(formTemplate, 'Service.spec.selector', labels)
-      set(formTemplate, 'Service.metadata.labels', labels)
+      set(
+        formTemplate,
+        `Service.${this.fedPrefix}spec.selector`,
+        omit(labels, 'version')
+      )
+      set(formTemplate, `Service.${this.fedPrefix}metadata.labels`, labels)
+      set(formTemplate, `Service.metadata.labels`, labels)
     }
   }
 
   handleSessionAffinityChange = value => {
-    const { formTemplate, noWorkload } = this.props
-    if (!noWorkload) {
+    const { formTemplate } = this.props
+
+    set(
+      formTemplate,
+      `Service.${this.fedPrefix}spec.sessionAffinity`,
+      value ? 'ClientIP' : 'None'
+    )
+
+    if (value) {
       set(
         formTemplate,
-        'Service.spec.sessionAffinity',
-        value ? 'clusterIP' : 'None'
+        `Service.${
+          this.fedPrefix
+        }spec.sessionAffinityConfig.clientIP.timeoutSeconds`,
+        10800
       )
+    } else {
+      unset(formTemplate, `Service.${this.fedPrefix}spec.sessionAffinityConfig`)
     }
   }
 
   render() {
-    const { formRef, formTemplate, module, store, noWorkload } = this.props
+    const {
+      formRef,
+      formTemplate,
+      cluster,
+      module,
+      store,
+      noWorkload,
+      isFederated,
+    } = this.props
     return (
       <Form data={formTemplate} ref={formRef}>
         {(noWorkload || module !== 'statefulsets') && (
@@ -66,34 +94,49 @@ export default class AdvancedSettings extends React.Component {
             desc={t('SERVICES_INTERNET_ACCESS_DESC')}
             checkable
           >
-            <InternetAccess formTemplate={formTemplate} />
+            <InternetAccess
+              formTemplate={formTemplate}
+              isFederated={isFederated}
+            />
           </Form.Group>
         )}
         <Form.Group
-          label={t('Open Session Sticky')}
-          desc={t('the maximum session sticky time is 10800s(3 hours)')}
+          label={t('Enable Sticky Session')}
+          desc={t('The maximum session sticky time is 10800s (3 hours).')}
+          onChange={this.handleSessionAffinityChange}
           checkable
         >
-          <SessionAffinity formTemplate={formTemplate} />
+          <Form.Item
+            label={t('Maximum Session Sticky Time (s)')}
+            desc={t('SERVICE_SESSION_STICKY_DESC')}
+          >
+            <NumberInput
+              name={`Service.${
+                this.fedPrefix
+              }spec.sessionAffinityConfig.clientIP.timeoutSeconds`}
+              min={0}
+              max={86400}
+            />
+          </Form.Item>
         </Form.Group>
         {!noWorkload && (
           <Form.Group
-            label={t('Setting node schedule policy')}
-            desc={t('Running pods on the specified nodes')}
-            keepDataWhenUnCheck
+            label={t('Set Node Scheduling Policy')}
+            desc={t('You can allow Pod replicas to run on specified nodes.')}
             checkable
           >
             <NodeSchedule
               kind={this.kind}
               namespace={this.namespace}
               formTemplate={formTemplate}
+              isFederated={isFederated}
             />
           </Form.Group>
         )}
         <Form.Group
-          label={t('Add metadata')}
+          label={t('Add Metadata')}
           desc={t(
-            'Additional metadata settings for resources such as Label and Annotation'
+            'Additional metadata settings for resources such as Labels and Annotations.'
           )}
           keepDataWhenUnCheck
           checkable
@@ -103,8 +146,11 @@ export default class AdvancedSettings extends React.Component {
             module={module}
             kind={this.kind}
             namespace={this.namespace}
+            cluster={cluster}
             formTemplate={formTemplate}
             onLabelsChange={this.handleLabelsChange}
+            isFederated={isFederated}
+            noWorkload={noWorkload}
           />
         </Form.Group>
       </Form>

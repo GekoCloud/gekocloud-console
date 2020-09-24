@@ -1,55 +1,67 @@
 /*
- * This file is part of KubeSphere Console.
- * Copyright (C) 2019 The KubeSphere Console Authors.
+ * This file is part of Geko Cloud Console.
+ * Copyright (C) 2019 The Geko Cloud Console Authors.
  *
- * KubeSphere Console is free software: you can redistribute it and/or modify
+ * Geko Cloud Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * KubeSphere Console is distributed in the hope that it will be useful,
+ * Geko Cloud Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with KubeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
-import { observer, inject } from 'mobx-react'
-import { Avatar, Notify } from 'components/Base'
-import Base from 'core/containers/Base/List'
-import CreateModal from 'components/Modals/ProjectCreate'
-import DeleteModal from 'components/Modals/Delete'
-import EditModal from 'components/Modals/DevOpsEdit'
-import { getLocalTime } from 'utils'
+import { computed } from 'mobx'
+
+import { Avatar, Status } from 'components/Base'
 import Banner from 'components/Cards/Banner'
+import Table from 'workspaces/components/ResourceTable'
+import withList, { ListPage } from 'components/HOCs/withList'
+
+import { getLocalTime, getDisplayName } from 'utils'
 
 import DevOpsStore from 'stores/devops'
 
-import styles from './index.scss'
+@withList({
+  store: new DevOpsStore(),
+  name: 'DevOps Project',
+  module: 'devops',
+  rowKey: 'namespace',
+  injectStores: ['rootStore', 'workspaceStore'],
+})
+export default class DevOps extends React.Component {
+  workspaceStore = this.props.workspaceStore
 
-@inject('rootStore')
-@observer
-export default class DevOps extends Base {
-  init() {
-    this.store = new DevOpsStore()
-  }
-
-  get name() {
-    return 'DevOps Project'
-  }
-  get module() {
-    return 'devops'
-  }
-
-  get authKey() {
-    return 'devops'
-  }
-
-  get formTemplate() {
-    return {}
+  get itemActions() {
+    const { trigger } = this.props
+    return [
+      {
+        key: 'edit',
+        icon: 'pen',
+        text: t('Edit'),
+        action: 'edit',
+        onClick: item => trigger('devops.edit', { detail: item }),
+      },
+      {
+        key: 'delete',
+        icon: 'trash',
+        text: t('Delete'),
+        action: 'delete',
+        onClick: item => {
+          trigger('resource.delete', {
+            type: t('DevOps Project'),
+            resource: item.name,
+            detail: item,
+          })
+        },
+      },
+    ]
   }
 
   get tips() {
@@ -65,142 +77,167 @@ export default class DevOps extends Base {
     ]
   }
 
-  get rowKey() {
-    return 'project_id'
+  get workspace() {
+    return this.props.match.params.workspace
   }
 
-  getEmptyProps() {
+  @computed
+  get clusters() {
+    return this.workspaceStore.clusters.data.map(item => ({
+      label: item.name,
+      value: item.name,
+      disabled: !item.isReady,
+      cluster: item,
+    }))
+  }
+
+  get clusterProps() {
     return {
-      createText: t('Create DevOps Project'),
+      clusters: this.clusters,
+      cluster: this.workspaceStore.cluster,
+      onClusterChange: this.handleClusterChange,
+      showClusterSelect: globals.app.isMultiCluster,
     }
   }
 
-  getTableProps() {
+  get tableActions() {
+    const { tableProps, trigger } = this.props
     return {
-      ...Base.prototype.getTableProps.call(this),
-      searchType: 'keyword',
+      ...tableProps.tableActions,
+      selectActions: [
+        {
+          key: 'delete',
+          type: 'danger',
+          text: t('Delete'),
+          action: 'delete',
+          onClick: () => {
+            trigger('devops.batch.delete', {
+              type: t(tableProps.name),
+              rowKey: tableProps.rowKey,
+            })
+          },
+        },
+      ],
     }
+  }
+
+  handleClusterChange = cluster => {
+    this.workspaceStore.selectCluster(cluster)
+    this.getData()
+  }
+
+  getData = async ({ silent, ...params } = {}) => {
+    const { store } = this.props
+
+    silent && (store.list.silent = true)
+    const { cluster } = this.workspaceStore
+    if (cluster) {
+      await store.fetchList({
+        cluster,
+        ...this.props.match.params,
+        ...params,
+      })
+    }
+    store.list.silent = false
   }
 
   getColumns = () => [
     {
       title: t('Name'),
       dataIndex: 'name',
-      width: '40%',
-      render: (name, record) => (
-        <Avatar
-          icon="strategy-group"
-          iconSize={40}
-          to={`/devops/${record.project_id}`}
-          desc={record.description || '-'}
-          title={name}
-        />
-      ),
+      render: (name, record) => {
+        const isTerminating = record.status === 'Terminating'
+        return (
+          <>
+            <Avatar
+              icon="strategy-group"
+              iconSize={40}
+              to={
+                record.namespace && record.cluster && !isTerminating
+                  ? `/${this.workspace}/clusters/${record.cluster}/devops/${
+                      record.namespace
+                    }`
+                  : null
+              }
+              desc={record.description || '-'}
+              title={getDisplayName(record)}
+            />
+          </>
+        )
+      },
+    },
+    {
+      title: t('ID'),
+      dataIndex: 'namespace',
+      isHideable: true,
+    },
+    {
+      title: t('Status'),
+      dataIndex: 'status',
+      isHideable: true,
+      render: status => <Status type={status} name={t(status)} flicker />,
     },
     {
       title: t('Creator'),
       dataIndex: 'creator',
       isHideable: true,
-      width: '28%',
       render: creator => creator || '-',
     },
     {
       title: t('Created Time'),
-      dataIndex: 'create_time',
+      dataIndex: 'createTime',
       isHideable: true,
-      width: '28%',
+      sorter: true,
       render: time => getLocalTime(time).format('YYYY-MM-DD HH:mm:ss'),
-    },
-    {
-      key: 'more',
-      render: this.renderMore,
     },
   ]
 
-  handleSelectRowKeys = params => {
-    this.store.setSelectRowKeys('list', params)
-  }
-
-  handleEdit = newObject => {
-    const { selectItem } = this.state
-
-    this.store.update(selectItem.project_id, newObject).then(() => {
-      this.hideModal('editModal')()
-      Notify.success({ content: `${t('Updated Successfully')}!` })
-      this.routing.query()
+  showCreate = () =>
+    this.props.trigger('devops.create', {
+      ...this.props.match.params,
+      cluster: this.workspaceStore.cluster,
+      success: cluster => {
+        if (cluster) {
+          this.workspaceStore.selectCluster(cluster)
+        }
+        this.getData({ silent: true })
+      },
     })
-  }
 
-  renderHeader() {
-    return (
-      <Banner
-        title={t('DevOps Projects')}
-        icon="strategy-group"
-        description={t('DEVOPS_DESCRIPTION')}
-        className={styles.header}
-        module={this.module}
-        tips={this.tips}
-      />
-    )
-  }
+  getCheckboxProps = record => ({
+    disabled: record.status === 'Terminating',
+    name: record.name,
+  })
 
-  renderModals() {
-    const formTemplate = { devops: this.formTemplate }
-    const {
-      createModal,
-      editModal,
-      deleteModal,
-      batchDeleteModal,
-      selectItem = {},
-    } = this.state
-
-    const selectedNames = this.list.data
-      .filter(item => this.list.selectedRowKeys.includes(item[this.rowKey]))
-      .map(item => item.name)
-      .join(', ')
+  render() {
+    const { bannerProps, tableProps, match } = this.props
+    const matchParams = {
+      ...match,
+      params: {
+        ...match.params,
+        cluster: this.workspaceStore.cluster,
+      },
+    }
 
     return (
-      <div>
-        <DeleteModal
-          type={t(this.name)}
-          resource={selectItem.name}
-          desc={t.html('DELETE_DEVOPS_TIP', {
-            resource: selectItem.name,
-          })}
-          visible={deleteModal}
-          onOk={this.handleDelete}
-          onCancel={this.hideModal('deleteModal')}
-          isSubmitting={this.store.isSubmitting}
+      <ListPage {...this.props} getData={this.getData} match={matchParams}>
+        <Banner
+          {...bannerProps}
+          description={t('DEVOPS_DESCRIPTION')}
+          tips={this.tips}
         />
-        {this.list.selectedRowKeys && (
-          <DeleteModal
-            type={t(this.name)}
-            resource={selectedNames}
-            visible={batchDeleteModal}
-            desc={t.html('DELETE_DEVOPS_TIP', {
-              resource: selectedNames,
-            })}
-            onOk={this.handleBatchDelete}
-            onCancel={this.hideModal('batchDeleteModal')}
-            isSubmitting={this.store.isSubmitting}
-          />
-        )}
-        <CreateModal
-          type="devops"
-          formTemplate={formTemplate}
-          visible={createModal}
-          isSubmitting={this.store.isSubmitting}
-          onOk={this.handleCreate}
-          onCancel={this.hideModal('createModal')}
+        <Table
+          {...tableProps}
+          itemActions={this.itemActions}
+          tableActions={this.tableActions}
+          columns={this.getColumns()}
+          onCreate={this.showCreate}
+          searchType="name"
+          isLoading={tableProps.isLoading}
+          {...this.clusterProps}
+          getCheckboxProps={this.getCheckboxProps}
         />
-        <EditModal
-          detail={selectItem}
-          visible={editModal}
-          isSubmitting={this.store.isSubmitting}
-          onOk={this.handleEdit}
-          onCancel={this.hideModal('editModal')}
-        />
-      </div>
+      </ListPage>
     )
   }
 }

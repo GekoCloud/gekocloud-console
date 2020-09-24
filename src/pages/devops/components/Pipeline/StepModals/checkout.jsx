@@ -19,10 +19,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { observable } from 'mobx'
 import { observer } from 'mobx-react'
-import { Form, Modal } from 'components/Base'
-import { Input, Select } from '@pitrix/lego-ui'
+import { Form, Modal, SearchSelect, Tag } from 'components/Base'
+import { Input } from '@pitrix/lego-ui'
 import { groovyToJS } from 'utils/devops'
 
 import styles from './index.scss'
@@ -42,11 +41,12 @@ export default class Checkout extends React.Component {
   constructor(props) {
     super(props)
     this.formRef = React.createRef()
+    this.state = { formData: {} }
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.edittingData.type === 'checkout') {
-      this.formData = nextProps.edittingData.data.reduce((prev, arg) => {
+  static getDerivedStateFromProps(props) {
+    if (props.edittingData.type === 'checkout') {
+      const formData = props.edittingData.data.reduce((prev, arg) => {
         if (arg.key === 'scm') {
           const str = arg.value.value
           if (str) {
@@ -56,11 +56,10 @@ export default class Checkout extends React.Component {
         prev[arg.key] = arg.value.value
         return prev
       }, {})
+      return { formData }
     }
+    return null
   }
-
-  @observable
-  formData = {}
 
   handleOk = () => {
     this.formRef.current.validate(() => {
@@ -72,11 +71,11 @@ export default class Checkout extends React.Component {
             value: {
               isLiteral: false,
               value: `[$class: 'SubversionSCM', locations: [[cancelProcessOnExternalsFail: true,  ${
-                this.formData.credentialsId
-                  ? `credentialsId: '${this.formData.credentialsId}',`
+                this.state.formData.credentialsId
+                  ? `credentialsId: '${this.state.formData.credentialsId}',`
                   : ''
               } depthOption: 'infinity', ignoreExternalsOption: true, local: '.', remote: '${
-                this.formData.remote
+                this.state.formData.remote
               }']], quietOperation: true, workspaceUpdater: [$class: 'UpdateUpdater']]`,
             },
           },
@@ -92,9 +91,33 @@ export default class Checkout extends React.Component {
     })
   }
 
+  getCredentialsListData = params => {
+    return this.props.store.getCredentials(params)
+  }
+
+  getCredentialsList = () => {
+    return [
+      ...this.props.store.credentialsList.data.map(credential => ({
+        label: credential.name,
+        value: credential.name,
+        type: credential.type,
+        disabled: !this.props.store.isPassWordCredentials(credential.type),
+      })),
+    ]
+  }
+
+  optionRender = ({ label, type, disabled }) => (
+    <span style={{ display: 'flex', alignItem: 'center' }}>
+      {label}&nbsp;&nbsp;
+      <Tag type={disabled ? '' : 'warning'}>
+        {type === 'ssh' ? 'SSH' : t(type)}
+      </Tag>
+    </span>
+  )
+
   render() {
     const { visible, onCancel } = this.props
-    const { passWordCredentials } = this.props.store
+    const { credentialsList } = this.props.store
 
     return (
       <Modal
@@ -106,7 +129,7 @@ export default class Checkout extends React.Component {
         closable={false}
         title={t('checkout (svn)')}
       >
-        <Form data={this.formData} ref={this.formRef}>
+        <Form data={this.state.formData} ref={this.formRef}>
           <Form.Item
             label={t('Credential ID')}
             desc={
@@ -121,10 +144,20 @@ export default class Checkout extends React.Component {
               </p>
             }
           >
-            <Select name="credentialsId" options={passWordCredentials} />
+            <SearchSelect
+              name="credentialsId"
+              options={this.getCredentialsList()}
+              page={credentialsList.page}
+              total={credentialsList.total}
+              currentLength={credentialsList.data.length}
+              isLoading={credentialsList.isLoading}
+              onFetch={this.getCredentialsListData}
+              optionRenderer={this.optionRender}
+              valueRenderer={this.optionRender}
+            />
           </Form.Item>
           <Form.Item
-            label={t('remote url')}
+            label={t('Remote Repository URL')}
             rules={[{ required: true, message: t('This param is required') }]}
           >
             <Input name="remote" />

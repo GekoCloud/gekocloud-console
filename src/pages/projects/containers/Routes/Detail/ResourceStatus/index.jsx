@@ -16,41 +16,54 @@
  * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { omit, isEmpty } from 'lodash'
+import { isEmpty } from 'lodash'
 import React from 'react'
 import { toJS } from 'mobx'
-import { observer } from 'mobx-react'
+import { observer, inject } from 'mobx-react'
 import { Card } from 'components/Base'
-import Annotations from 'projects/components/Cards/Annotations'
+import Placement from 'projects/components/Cards/Placement'
 
 import Rule from './Rule'
 
 import styles from './index.scss'
 
+@inject('detailStore')
 @observer
 class ResourceStatus extends React.Component {
   constructor(props) {
     super(props)
 
     this.store = props.detailStore
-    this.module = props.module
+    this.module = this.store.module
   }
 
   componentDidMount() {
     const detail = toJS(this.store.detail)
-    this.store.getGateway({ namespace: detail.namespace })
+    this.store.getGateway(detail)
+  }
+
+  renderPlacement() {
+    const { name, namespace } = this.props.match.params
+    const { detail } = this.store
+    if (detail.isFedManaged) {
+      return (
+        <Placement module={this.module} name={name} namespace={namespace} />
+      )
+    }
+    return null
   }
 
   renderRules() {
     const detail = toJS(this.store.detail)
     const gateway = toJS(this.store.gateway.data)
+
     const tls = detail.tls[0] || {}
 
     if (isEmpty(detail.rules)) {
       return null
     }
 
-    const { namespace } = this.props.match.params
+    const { workspace, cluster, namespace } = this.props.match.params
 
     return (
       <Card title={t('Rules')}>
@@ -60,28 +73,20 @@ class ResourceStatus extends React.Component {
             tls={tls}
             rule={rule}
             gateway={gateway}
-            prefix={`/projects/${namespace}`}
+            prefix={`${
+              workspace ? `/${workspace}` : ''
+            }/clusters/${cluster}/projects/${namespace}`}
           />
         ))}
       </Card>
     )
   }
 
-  renderAnnotations() {
-    const detail = toJS(this.store.detail)
-
-    return (
-      <Annotations
-        data={omit(detail.annotations, ['displayName', 'desc', 'creator'])}
-      />
-    )
-  }
-
   renderContent() {
     return (
       <div>
+        {this.renderPlacement()}
         {this.renderRules()}
-        {this.renderAnnotations()}
       </div>
     )
   }

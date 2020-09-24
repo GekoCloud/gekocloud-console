@@ -17,8 +17,10 @@
  */
 
 const fetch = require('node-fetch').default
-const isEmpty = require('lodash/isEmpty')
 const merge = require('lodash/merge')
+const isEmpty = require('lodash/isEmpty')
+const qs = require('qs')
+const { get } = require('lodash')
 
 const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
@@ -47,7 +49,7 @@ module.exports = methods.reduce(
  * @param config
  */
 function buildRequest(method, url, params = {}, options) {
-  let requestURL = createURL(url)
+  let requestURL = url
   const request = merge(
     {
       method,
@@ -60,27 +62,22 @@ function buildRequest(method, url, params = {}, options) {
     options
   )
 
+  const isForm =
+    get(options, 'headers[content-type]', '').indexOf(
+      'application/x-www-form-urlencoded'
+    ) !== -1
+
   if (method === 'GET') {
-    requestURL += !isEmpty(params) ? toQueryString(omitNil(params)) : ''
+    if (!isEmpty(params)) {
+      requestURL += `?${qs.stringify(params)}`
+    }
+  } else if (isForm) {
+    request.body = qs.stringify(params)
   } else {
     request.body = JSON.stringify(params)
   }
 
   return fetch(requestURL, request).then(handleResponse)
-}
-/**
- * Prepend host of API server
- * @param path
- * @returns {String}
- * @private
- */
-function createURL(path) {
-  if (path.startsWith('http')) {
-    return path
-  } else if (process.env.BROWSER) {
-    return `/${path.trimLeft('/')}`
-  }
-  return `http://${global.HOSTNAME}:${global.PORT}/${path.trimLeft('/')}`
 }
 
 /**
@@ -94,6 +91,10 @@ function handleResponse(response) {
   if (redirect) {
     window.location.replace(response.url)
     return Promise.reject()
+  }
+
+  if (response.status === 302) {
+    return response
   }
 
   const contentType = response.headers.get('content-type')
@@ -127,34 +128,4 @@ function handleResponse(response) {
       message: text,
     })
   )
-}
-
-/**
- * Transform an JSON object to a query string
- * @param params
- * @returns {string}
- */
-function toQueryString(params) {
-  return `?${Object.keys(params)
-    .map(k => {
-      const name = encodeURIComponent(k)
-      if (Array.isArray(params[k])) {
-        return params[k]
-          .map(val => `${name}=${encodeURIComponent(val)}`)
-          .join('&')
-      }
-      if (k === 'q') {
-        return `${name}=${params[k]}`
-      }
-      return `${name}=${encodeURIComponent(params[k])}`
-    })
-    .join('&')}`
-}
-
-function omitNil(obj) {
-  if (typeof obj !== 'object') return obj
-  return Object.keys(obj).reduce((acc, v) => {
-    if (obj[v] !== undefined) acc[v] = obj[v]
-    return acc
-  }, {})
 }

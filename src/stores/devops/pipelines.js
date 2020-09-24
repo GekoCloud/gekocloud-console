@@ -16,32 +16,30 @@
  * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { omit, isArray, get, set, isEmpty } from 'lodash'
+import { omit, isArray, get, set, isEmpty, cloneDeep } from 'lodash'
 import { saveAs } from 'file-saver'
 import { action, observable, toJS } from 'mobx'
 import BaseStore from './base'
 
-const URL_PREFIX = 'kapis/devops.kubesphere.io/v1alpha2/devops/'
-
 const TABLE_LIMIT = 10
 
-const FORM_HEADR = {
+const FORM_HEAR = {
   headers: {
     'content-type': 'application/x-www-form-urlencoded',
   },
 }
-
-const getPipelineName = configData =>
-  get(configData, 'pipeline.name', '') ||
-  get(configData, 'multi_branch_pipeline.name', '')
 
 export default class PipelineStore extends BaseStore {
   constructor(props) {
     super(props)
     this.pipelineConfig = {}
   }
+
+  module = 'pipelines'
+
   @observable
-  project_id = ''
+  originalList = []
+
   @observable
   list = {
     data: [],
@@ -70,7 +68,7 @@ export default class PipelineStore extends BaseStore {
   activityList = {
     data: [],
     page: 1,
-    limit: 30,
+    limit: 10,
     total: 0,
     order: '',
     reverse: false,
@@ -100,8 +98,10 @@ export default class PipelineStore extends BaseStore {
 
   @observable
   detail = {}
+
   @observable
   isLoading = true
+
   @observable
   notFound = false
 
@@ -120,53 +120,83 @@ export default class PipelineStore extends BaseStore {
   @observable
   jenkinsfile = ''
 
+  @observable
+  devops = ''
+
+  @observable
+  devopsName = ''
+
   @action
-  async fetchList({ project_id, workspace, ...filters } = {}) {
+  async fetchList({ devops, workspace, devopsName, cluster, ...filters } = {}) {
     this.list.isLoading = true
-    const { page, keyword, filter } = filters
 
-    const searchWord = keyword ? `*${encodeURIComponent(keyword)}*` : ''
+    const { page, limit, name, filter } = filters
 
+    const searchWord = name ? `*${encodeURIComponent(name)}*` : ''
+
+    const url = `${this.getBaseUrlV2({ cluster })}search`
     const result = await this.request.get(
-      'kapis/devops.kubesphere.io/v1alpha2/search',
+      url,
       {
-        q: `type:pipeline;organization:jenkins;pipeline:${project_id}%2F${searchWord ||
-          '*'};excludedFromFlattening:jenkins.branch.MultiBranchProject,hudson.matrix.MatrixProject&filter=${filter ||
-          'no-folders'}`,
         start: (page - 1) * TABLE_LIMIT || 0,
         limit: TABLE_LIMIT,
-      }
+        q: `type:pipeline;organization:jenkins;pipeline:${devops}/${searchWord ||
+          '*'};excludedFromFlattening:jenkins.branch.MultiBranchProject,hudson.matrix.MatrixProject&filter=${filter ||
+          'no-folders'}`,
+      },
+      { params: { ...filters } }
     )
+
+    this.setDevops(devops)
+    this.devopsName = devopsName
 
     this.list = {
       data: result.items || [],
       total: result.total_count,
-      limit: 10,
+      limit: parseInt(limit, 10) || 10,
       page: parseInt(page, 10) || 1,
-      filters: omit(filters, 'project_id'),
+      filters: omit(filters, 'devops'),
+      selectedRowKeys: [],
       isLoading: false,
     }
   }
 
   @action
-  async fetchDetail({ name, project_id, isSilent }) {
+  async fetchDetail({ cluster, name, isSilent, devops }) {
     if (!isSilent) {
       this.isLoading = true
     }
 
     const result = await this.request.get(
-      `${URL_PREFIX}${project_id}/pipelines/${decodeURIComponent(name)}/`
+      `${this.getDevopsUrlV2({
+        cluster,
+      })}${devops || this.devops}/pipelines/${decodeURIComponent(name)}/`
     )
 
+    const resultKub = await this.request.get(
+      `${this.getDevOpsDetailUrl({ devops, cluster })}/${this.module}/${name}`
+    )
+
+    this.setPipelineConfig(resultKub)
     this.detail = result
     this.isLoading = false
     return result
   }
 
   @action
-  async checkPipelineName({ name, project_id }) {
+  setPipelineConfig = detail => {
+    this.pipelineConfig = detail
+  }
+
+  @action
+  setSelectRowKeys = keys => {
+    this.list.selectedRowKeys.replace(keys)
+  }
+
+  @action
+  async checkPipelineName({ name, cluster, devops }) {
     return await this.request.get(
-      `${URL_PREFIX}${project_id}/pipelines/${name}/`,
+      `${this.getDevOpsUrl({ cluster })}/${devops}/pipelines/${name}`,
       {},
       {
         headers: { 'x-check-exist': true },
@@ -175,20 +205,20 @@ export default class PipelineStore extends BaseStore {
   }
 
   @action
-  async getJenkinsFile({ name, project_id }) {
+  async getJenkinsFile({ cluster, name, devops }) {
     this.pipelineJsonData.isLoading = true
-    name = decodeURIComponent(name)
+    const decodeName = decodeURIComponent(name)
+
     if (isEmpty(this.detail)) {
-      await this.fetchDetail({ name, project_id })
+      await this.fetchDetail({ cluster, name: decodeName, devops })
     }
-    const result = await this.request.get(
-      `kapis/devops.kubesphere.io/v1alpha2/devops/${project_id}/pipelines/${
-        this.detail.name
-      }/config`
+
+    this.jenkinsfile = get(this.pipelineConfig, 'spec.pipeline.jenkinsfile', '')
+    const json = await this.convertJenkinsFileToJson(
+      toJS(this.jenkinsfile),
+      cluster
     )
-    this.jenkinsfile = get(result, 'pipeline.jenkinsfile', '')
-    this.pipelineConfig = result
-    const json = await this.convertJenkinsFileToJson(toJS(this.jenkinsfile))
+
     this.pipelineJsonData = {
       pipelineJson: json,
       isLoading: false,
@@ -196,28 +226,30 @@ export default class PipelineStore extends BaseStore {
   }
 
   @action
-  async convertJenkinsFileToJson(jenkinsfile) {
+  async convertJenkinsFileToJson(jenkinsfile, cluster) {
     if (jenkinsfile) {
       const result = await this.request.post(
-        `kapis/devops.kubesphere.io/v1alpha2/tojson`,
-        { jenkinsfile: toJS(this.jenkinsfile) },
-        FORM_HEADR
+        `${this.getBaseUrlV2({ cluster })}tojson`,
+        { jenkinsfile },
+        FORM_HEAR
       )
       return result.data
     }
   }
 
   @action
-  async getPullRequest({ name, project_id, workspace, ...filters }) {
-    name = decodeURIComponent(name)
+  async getPullRequest({ name, devops, workspace, cluster, ...filters }) {
+    const decodeName = decodeURIComponent(name)
 
     const { page } = filters
 
     if (isEmpty(this.detail)) {
-      await this.fetchDetail({ name, project_id })
+      await this.fetchDetail({ name: decodeName, devops })
     }
     const result = await this.request.get(
-      `${URL_PREFIX}${project_id}/pipelines/${name}/branches/`,
+      `${this.getDevopsUrlV2({
+        cluster,
+      })}${devops}/pipelines/${name}/branches/`,
       {
         filter: 'pull-requests',
         start: (page - 1) * TABLE_LIMIT || 0,
@@ -229,24 +261,25 @@ export default class PipelineStore extends BaseStore {
       total: this.detail.totalNumberOfPullRequests,
       limit: TABLE_LIMIT,
       page: parseInt(page, 10) || 1,
-      filters: omit(filters, 'project_id'),
+      filters: omit(filters, 'devops'),
       isLoading: false,
       selectedRowKeys: [],
     }
   }
 
   @action
-  async getBranches({ project_id, name, branch, workspace, ...filters }) {
-    name = decodeURIComponent(name)
+  async getBranches({ cluster, devops, name, branch, ...filters }) {
+    const decodeName = decodeURIComponent(name)
 
     const { page } = filters
-
     if (isEmpty(this.detail)) {
-      await this.fetchDetail({ name, project_id })
+      await this.fetchDetail({ cluster, name: decodeName, devops })
     }
 
     const result = await this.request.get(
-      `${URL_PREFIX}${project_id}/pipelines/${name}/branches/`,
+      `${this.getDevopsUrlV2({
+        cluster,
+      })}${devops}/pipelines/${name}/branches/`,
       {
         filter: 'origin',
         start: (page - 1) * TABLE_LIMIT || 0,
@@ -260,24 +293,26 @@ export default class PipelineStore extends BaseStore {
       limit: TABLE_LIMIT,
       total: this.detail.totalNumberOfBranches,
       page: parseInt(page, 10) || 1,
-      filters: omit(filters, 'project_id'),
+      filters: omit(filters, 'devops'),
       isLoading: false,
       selectedRowKeys: [],
     }
   }
 
   @action
-  async getActivities({ name, branch, project_id, workspace, ...filters }) {
+  async getActivities({ name, branch, devops, cluster, ...filters }) {
     name = decodeURIComponent(name)
 
     const { page } = filters
     const { limit = 10 } = this.activityList
 
     if (isEmpty(this.detail)) {
-      await this.fetchDetail({ name, project_id })
+      await this.fetchDetail({ cluster, name, devops })
     }
     let result = await this.request.get(
-      `${URL_PREFIX}${project_id}/pipelines/${name}/runs/`,
+      `${this.getDevopsUrlV2({
+        cluster,
+      })}${devops}/pipelines/${name}/runs/`,
       {
         start: (page - 1) * limit || 0,
         limit,
@@ -287,12 +322,13 @@ export default class PipelineStore extends BaseStore {
     if (isArray(result)) {
       result = result.filter(activity => activity._links)
     }
+
     this.activityList = {
       limit,
       data: result.items || [],
-      total: result.total_count,
+      total: result.totalItems,
       page: parseInt(page, 10) || 1,
-      filters: omit(filters, 'project_id'),
+      filters: omit(filters, 'devops'),
       isLoading: false,
       selectedRowKeys: [],
     }
@@ -300,63 +336,73 @@ export default class PipelineStore extends BaseStore {
 
   @action
   async getBranchDetail(params) {
-    const { project_id, name, branch } = params
-
-    return await this.request
-      .get(
-        `${URL_PREFIX}${project_id}/pipelines/${name}/branches/${encodeURIComponent(
-          branch
-        )}/`
+    const { devops, cluster, name, branch } = params
+    try {
+      const result = await this.request.get(
+        `${this.getDevopsUrlV2({
+          cluster,
+        })}${devops}/pipelines/${name}/branches/${encodeURIComponent(branch)}/`
       )
-      .then(result => {
-        if (result.name) {
-          this.branchDetail = result
-        }
-        return result
-      })
+
+      if (result.name) {
+        this.branchDetail = result
+      }
+      return result
+    } catch (err) {
+      return []
+    }
   }
 
   async replay(params, _runid) {
-    const { project_id, name, branch, runid } = params
+    const { devops, name, branch, runid, cluster } = params
     return await this.request.post(
-      `${URL_PREFIX}${project_id}/pipelines/${decodeURIComponent(name)}${
+      `${this.getDevopsUrlV2({
+        cluster,
+      })}${devops}/pipelines/${decodeURIComponent(name)}${
         branch ? `/branches/${encodeURIComponent(branch)}` : ''
       }/runs/${_runid || runid}/replay`
     )
   }
 
   async stop(params, _runid) {
-    const { project_id, name, branch, runid } = params
+    const { devops, name, branch, runid, cluster } = params
     return await this.request.post(
-      `${URL_PREFIX}${project_id}/pipelines/${name}${
+      `${this.getDevopsUrlV2({ cluster })}${devops}/pipelines/${name}${
         branch ? `/branches/${encodeURIComponent(branch)}` : ''
       }/runs/${_runid || runid}/replay/`
     )
   }
 
-  async handleActivityReplay(href) {
+  async handleActivityReplay({ url, cluster }) {
     return await this.request.post(
-      `kapis/devops.kubesphere.io/v1alpha2/${href}/replay/`
+      `${this.getBaseUrlV2({ cluster })}${url}/replay/`
     )
   }
 
-  async handleActivityStop(href) {
+  async handleActivityStop({ url, cluster }) {
     return await this.request.post(
-      `kapis/devops.kubesphere.io/v1alpha2/${href}/stop/?blocking=true&timeOutInSecs=10`
+      `${this.getBaseUrlV2({
+        cluster,
+      })}${url}/stop/?blocking=true&timeOutInSecs=10`
     )
   }
 
-  async runBranch({ project_id, name, branch, parameters }) {
-    const href_temp = `${URL_PREFIX}${project_id}/pipelines/${name}${
+  async runBranch({ cluster, devops, name, branch, parameters }) {
+    const href_temp = `${this.getDevopsUrlV2({
+      cluster,
+    })}${devops}/pipelines/${name}${
       branch ? `/branches/${encodeURIComponent(branch)}` : ''
     }/runs`
+
+    const params = !isEmpty(parameters) ? { parameters } : { parameters: [] }
+
     return await this.request
-      .post(href_temp, !isEmpty(parameters) ? { parameters } : {})
+      .post(href_temp, params)
       // TODO: backend return updated parameters info in run api will be better way
       .then(() => {
         // pipeline parameters not updated immediately
         setTimeout(() => {
-          this.fetchDetail({ project_id, name, isSilent: true })
+          this.fetchDetail({ cluster, devops, name, isSilent: true })
         }, 1000)
       })
   }
@@ -367,48 +413,75 @@ export default class PipelineStore extends BaseStore {
   }
 
   @action
-  async getPipeLineConfig(pipeline_id, { project_id }) {
-    return await this.request.get(
-      `kapis/devops.kubesphere.io/v1alpha2/devops/${project_id}/pipelines/${pipeline_id}/config`
-    )
+  getPipeLineConfig() {
+    let detail = cloneDeep(this.pipelineConfig)
+    detail = { ...toJS(detail.spec), ...toJS(detail) }
+
+    delete detail.spec
+    delete detail.kind
+    delete detail.apiVersion
+
+    return detail
   }
 
   @action
-  async createPipeline(data) {
-    this.pipelineConfig = data
-    return await this.request.post(
-      `kapis/devops.kubesphere.io/v1alpha2/devops/${data.project_id}/pipelines`,
-      data
-    )
+  setDevops(devops) {
+    this.devops = devops
   }
 
   @action
-  async updatePipeline(data, { project_id }) {
-    return await this.request.put(
-      `kapis/devops.kubesphere.io/v1alpha2/devops/${project_id}/pipelines/${getPipelineName(
-        data
-      )}`,
-      data
-    )
+  async createPipeline({ data, devops, cluster }) {
+    data.kind = 'Pipeline'
+    data.apiVersion = 'devops.kubesphere.io/v1alpha3'
+
+    const url = `${this.getDevOpsDetailUrl({
+      devops,
+      cluster,
+    })}/pipelines`
+
+    return await this.request.post(url, data)
+  }
+
+  @action
+  async updatePipeline({ cluster, data, devops }) {
+    data.kind = 'Pipeline'
+    data.apiVersion = 'devops.kubesphere.io/v1alpha3'
+    const url = `${this.getDevOpsDetailUrl({
+      devops,
+      cluster,
+    })}/pipelines/${data.metadata.name}`
+
+    const result = await this.request.put(url, data)
+    this.setPipelineConfig(result)
+    return result
   }
 
   @action
   updateJenkinsFile(jenkinsFile, params) {
-    set(this.pipelineConfig, 'pipeline.jenkinsfile', jenkinsFile)
-    return this.updatePipeline(this.pipelineConfig, params)
+    const data = JSON.parse(JSON.stringify(this.pipelineConfig))
+    set(data, 'spec.pipeline.jenkinsfile', jenkinsFile)
+
+    return this.updatePipeline({
+      data,
+      devops: params.devops,
+      cluster: params.cluster,
+    })
   }
 
   @action
-  async deletePipeline(pipelineId, project_id) {
-    return await this.request.delete(
-      `kapis/devops.kubesphere.io/v1alpha2/devops/${project_id}/pipelines/${pipelineId}`
-    )
+  async deletePipeline(name, devops, cluster) {
+    const url = `${this.getDevOpsDetailUrl({
+      devops,
+      cluster,
+    })}/pipelines/${name}`
+
+    return await this.request.delete(url)
   }
 
   @action
-  async scanRepository({ project_id, name }) {
+  async scanRepository({ devops, name, cluster }) {
     if (globals.user.crumb === undefined) {
-      await this.getCrumb()
+      await this.getCrumb({ cluster })
     }
     const options = {}
     if (globals.user.crumb) {
@@ -417,8 +490,8 @@ export default class PipelineStore extends BaseStore {
 
     return await this.request.defaults({
       method: 'POST',
-      url: `kapis/devops.kubesphere.io/v1alpha2/devops/${project_id ||
-        this.project_id}/pipelines/${name || this.detail.name}/scan`,
+      url: `${this.getDevopsUrlV2({ cluster })}${devops ||
+        this.devops}/pipelines/${name || this.detail.name}/scan`,
       options,
       handler: resp =>
         resp.text().then(() => {
@@ -429,37 +502,45 @@ export default class PipelineStore extends BaseStore {
     })
   }
 
-  async getRepoScanLogs({ project_id, name }) {
+  async getRepoScanLogs({ devops, name, cluster }) {
     const logs = await this.request.get(
-      `kapis/devops.kubesphere.io/v1alpha2/devops/${project_id}/pipelines/${name}/consolelog`
+      `${this.getDevopsUrlV2({
+        cluster,
+      })}${devops}/pipelines/${name}/consolelog`
     )
     this.reponsitorylog = logs
   }
 
   async checkCron(value) {
-    return await this.request.get(`${URL_PREFIX}check/cron?value=${value}`)
-  }
-
-  async checkScriptCompile({ project_id, pipeline, value }) {
-    return await this.request.post(
-      `${URL_PREFIX}/${project_id}/pipelines/${pipeline}/checkScriptCompile`,
-      {
-        value,
-      },
-      FORM_HEADR
+    return await this.request.get(
+      `${this.getDevopsUrlV2()}check/cron?value=${value}`
     )
   }
 
-  async getBranchLists({ project_id, name, workspace, ...filters }) {
-    name = decodeURIComponent(name)
+  async checkScriptCompile({ devops, pipeline, value, cluster }) {
+    return await this.request.post(
+      `${this.getDevopsUrlV2({
+        cluster,
+      })}${devops}/pipelines/${pipeline}/checkScriptCompile`,
+      {
+        value,
+      },
+      FORM_HEAR
+    )
+  }
+
+  async getBranchLists({ devops, name, workspace, cluster, ...filters }) {
+    const decodeName = decodeURIComponent(name)
     const { page } = filters
 
     return await this.request.get(
-      `${URL_PREFIX}${project_id}/pipelines/${name}/branches/`,
+      `${this.getDevopsUrlV2({
+        cluster,
+      })}${devops}/pipelines/${decodeName}/branches/`,
       {
         filter: 'origin',
-        start: (page - 1) * 100 || 0,
-        limit: 100,
+        start: (page - 1) * TABLE_LIMIT || 0,
+        limit: TABLE_LIMIT,
       }
     )
   }

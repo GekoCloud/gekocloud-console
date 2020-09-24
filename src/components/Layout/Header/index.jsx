@@ -43,9 +43,26 @@ class Header extends React.Component {
     this.props.jumpTo(link)
   }
 
+  handleDocumentLinkClick = (e, key) => {
+    window.open(key)
+  }
+
+  renderDocumentList() {
+    return (
+      <Menu onClick={this.handleDocumentLinkClick} data-test="header-docs">
+        <Menu.MenuItem key={globals.config.documents.url}>
+          <Icon name="hammer" /> {t('User Manual')}
+        </Menu.MenuItem>
+        <Menu.MenuItem key={globals.config.documents.api}>
+          <Icon name="api" /> {t('API Documents')}
+        </Menu.MenuItem>
+      </Menu>
+    )
+  }
+
   render() {
     const { className, innerRef, location } = this.props
-    const logo = globals.config.logo || '/assets/geko_logo_cloud_negativo.svg'
+    const logo = globals.config.logo || '/assets/logo.svg'
 
     return (
       <div
@@ -58,10 +75,10 @@ class Header extends React.Component {
           className
         )}
       >
-        <Link to="/">
+        <Link to={isAppsPage() && !globals.user ? '/apps' : '/'}>
           <img
             className={styles.logo}
-            src={isAppsPage() ? `/assets/geko_logo_cloud_negativo.svg` : logo}
+            src={isAppsPage() ? `/assets/login-logo.svg` : logo}
             alt=""
           />
         </Link>
@@ -102,6 +119,11 @@ class Header extends React.Component {
           </div>
         )}
         <div className={styles.right}>
+          {this.isLoggedIn && (
+            <Dropdown content={this.renderDocumentList()}>
+              <Button type="flat" icon="documentation" />
+            </Dropdown>
+          )}
           <LoginInfo className={styles.loginInfo} isAppsPage={isAppsPage()} />
         </div>
       </div>

@@ -16,26 +16,13 @@
  * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get, set, has, isEmpty } from 'lodash'
+import { get, set, isEmpty, has } from 'lodash'
 import { action, observable } from 'mobx'
 import { withDryRun } from 'utils'
 import ObjectMapper from 'utils/object.mapper'
 import Base from './base'
 import S2iBuilderStore from './s2i/builder'
-
-const processDeployment = data => {
-  const hasPVC = get(data, 'spec.template.spec.volumes', []).some(
-    volume => !isEmpty(volume.persistentVolumeClaim)
-  )
-  const maxUnavailable = get(
-    data,
-    'spec.strategy.rollingUpdate.maxUnavailable',
-    null
-  )
-  if (hasPVC && !maxUnavailable) {
-    set(data, 'spec.strategy.rollingUpdate.maxUnavailable', 1)
-  }
-}
+import WorkloadStore from './workload'
 
 const updateS2iServiceParams = data => {
   const s2iType = get(
@@ -100,19 +87,13 @@ export default class ServiceStore extends Base {
   }
 
   @observable
+  workload = {}
+
+  @observable
   workloads = {
     data: [],
     isLoading: false,
   }
-
-  @observable
-  pods = {
-    data: [],
-    isLoading: false,
-  }
-
-  @observable
-  serviceQuota = {}
 
   constructor() {
     super()
@@ -120,23 +101,15 @@ export default class ServiceStore extends Base {
     this.S2iBuilderStore = new S2iBuilderStore()
   }
 
-  get apiVersion() {
-    return 'api/v1'
-  }
-
-  getWorkloadUrl({ namespace, module }) {
-    return `apis/apps/v1/namespaces/${namespace}/${module}`
-  }
-
   @action
-  async fetchEndpoints({ name, namespace }) {
+  async fetchEndpoints({ name, cluster, namespace }) {
     this.endpoints.isLoading = true
     this.endpoints.data.clear()
 
     let endpoints = []
     try {
       const result = await request.get(
-        `api/v1/namespaces/${namespace}/endpoints/${name}`,
+        `api/v1${this.getPath({ cluster, namespace })}/endpoints/${name}`,
         null,
         null,
         () => {
@@ -151,80 +124,33 @@ export default class ServiceStore extends Base {
   }
 
   @action
-  async fetchPods({ namespace, ...params }) {
-    this.pods.isLoading = true
-
-    const result = await request.get(
-      `api/v1/namespaces/${namespace}/pods`,
-      params
-    )
-
-    this.pods = {
-      data: result.items.map(ObjectMapper.pods),
-      isLoading: false,
-    }
-  }
-
-  @action
-  async fetchWorkloads({ namespace, ...params }) {
-    this.workloads.isLoading = true
-    this.workloads.data.clear()
-
-    const workloadTypes = ['deployments', 'daemonsets', 'statefulsets']
-
-    const [deployments, daemonsets, statefulsets] = await Promise.all(
-      workloadTypes.map(type =>
-        request.get(`apis/apps/v1/namespaces/${namespace}/${type}`, params)
-      )
-    )
-
-    const workloads = { deployments, daemonsets, statefulsets }
-
-    workloadTypes.forEach(type => {
-      if (workloads[type] && !isEmpty(workloads[type].items)) {
-        const items = workloads[type].items.map(item => ({
-          ...ObjectMapper[type](item),
-          type,
-        }))
-        this.workloads.data = [...this.workloads.data, ...items]
-      }
-    })
-
-    this.workloads.isLoading = false
-  }
-
-  @action
-  create(data, { namespace }) {
+  create(data, params) {
     const requests = []
 
     if (has(data, 'metadata')) {
-      requests.push({ url: this.getListUrl({ namespace }), data })
+      requests.push({ url: this.getListUrl(params), data })
     } else {
       if (data.S2i) {
         updateS2iServiceParams(data)
-        this.S2iBuilderStore.create(data.S2i, { namespace })
+        this.S2iBuilderStore.create(data.S2i, params)
       }
 
+      const workloadStore = new WorkloadStore()
+
       if (data.Service) {
-        requests.push({
-          url: this.getListUrl({ namespace }),
-          data: data.Service,
-        })
+        requests.push(workloadStore.getServiceRequest(data.Service, params))
       }
 
       if (data.Deployment) {
-        processDeployment(data.Deployment)
-        requests.push({
-          url: this.getWorkloadUrl({ namespace, module: 'deployments' }),
-          data: data.Deployment,
-        })
+        workloadStore.setModule('deployments')
+        requests.push(workloadStore.getWorkloadRequest(data.Deployment, params))
       }
 
       if (data.StatefulSet) {
-        requests.push({
-          url: this.getWorkloadUrl({ namespace, module: 'statefulsets' }),
-          data: data.StatefulSet,
-        })
+        workloadStore.setModule('statefulsets')
+        requests.push(
+          workloadStore.getWorkloadRequest(data.StatefulSet, params)
+        )
       }
     }
 
@@ -232,13 +158,34 @@ export default class ServiceStore extends Base {
   }
 
   @action
-  update({ name, namespace, resourceVersion }, newObject) {
-    if (!has(newObject, 'metadata.resourceVersion')) {
-      set(newObject, 'metadata.resourceVersion', resourceVersion)
-    }
+  async fetchWorkloads({ cluster, namespace, ...params }) {
+    this.workloads.isLoading = true
+    this.workloads.data.clear()
 
-    return this.submitting(
-      request.put(this.getDetailUrl({ name, namespace }), newObject)
+    const workloadTypes = ['deployments', 'statefulsets']
+
+    const [deployments, statefulsets] = await Promise.all(
+      workloadTypes.map(type =>
+        request.get(
+          `apis/apps/v1${this.getPath({ cluster, namespace })}/${type}`,
+          params
+        )
+      )
     )
+
+    const workloads = { deployments, statefulsets }
+
+    workloadTypes.forEach(type => {
+      if (workloads[type] && !isEmpty(workloads[type].items)) {
+        const items = workloads[type].items.map(item => ({
+          ...ObjectMapper[type](item),
+          cluster,
+          type,
+        }))
+        this.workloads.data = [...this.workloads.data, ...items]
+      }
+    })
+
+    this.workloads.isLoading = false
   }
 }

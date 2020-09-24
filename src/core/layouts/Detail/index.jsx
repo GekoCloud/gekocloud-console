@@ -16,7 +16,6 @@
  * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get } from 'lodash'
 import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react'
 import PropTypes from 'prop-types'
@@ -38,7 +37,7 @@ const { LayoutHeader } = Layout
 class DetailLayout extends Component {
   static propTypes = {
     module: PropTypes.string,
-    component: PropTypes.func.isRequired,
+    component: PropTypes.any.isRequired,
   }
 
   static defaultProps = {
@@ -58,40 +57,7 @@ class DetailLayout extends Component {
     this.init(this.props.match.params)
   }
 
-  async init(params = {}) {
-    const rootStore = this.props.rootStore
-
-    if (params.namespace && rootStore.project) {
-      const projectRule = get(globals.user, `rules[${params.namespace}]`)
-
-      await rootStore.project.fetchDetail(params)
-      if (projectRule === undefined) {
-        await rootStore.project.fetchRules({
-          namespace: params.namespace,
-          workspace: rootStore.project.data.workspace,
-        })
-      }
-    }
-
-    if (params.project_id && rootStore.devops) {
-      const devopsRule = get(globals.user, `rules[${params.project_id}]`)
-
-      if (devopsRule === undefined) {
-        await rootStore.devops.fetchRules(params)
-      }
-    }
-
-    if (params.workspace && rootStore.workspace) {
-      const workspaceRule = get(
-        globals.user,
-        `workspace_rules[${params.workspace}]`
-      )
-
-      if (workspaceRule === undefined) {
-        await rootStore.workspace.fetchRules(params)
-      }
-    }
-
+  async init() {
     this.setState({ initializing: false })
   }
 
@@ -103,7 +69,7 @@ class DetailLayout extends Component {
       rootStore.register('project', projectStore)
     }
 
-    if (params.project_id && !rootStore.devops) {
+    if (params.devops && !rootStore.devops) {
       const devopsStore = new DevOpsStore()
       rootStore.register('devops', devopsStore)
     }
@@ -112,18 +78,6 @@ class DetailLayout extends Component {
       const workspaceStore = new WorkspaceStore()
       rootStore.register('workspace', workspaceStore)
     }
-  }
-
-  goBack = () => {
-    const routing = this.props.rootStore.routing
-
-    const listUrl = get(this.detailRef, 'current.wrappedInstance.listUrl')
-
-    if (listUrl) {
-      return routing.push(listUrl)
-    }
-
-    return routing.go(-1)
   }
 
   render() {
@@ -147,7 +101,6 @@ class DetailLayout extends Component {
             pathname={rest.location.pathname}
             breadcrumbs={breadcrumbs}
             routes={rest.route.routes}
-            goBack={this.goBack}
           />
         </LayoutHeader>
         <DetailComponent {...commonProps} ref={this.detailRef} />

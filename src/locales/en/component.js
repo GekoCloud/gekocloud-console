@@ -17,15 +17,24 @@
  */
 
 export default {
+  'All Components': 'All Components',
+  components: 'components',
+  Components: 'Components',
+  'Installed Components': 'Installed Components',
+  'Instance Count': 'Instance Count',
+  'Not Installed Components': 'Not Installed Components',
+  'Running Status': 'Running Status',
+  'Service Details': 'Service Details',
+
   SERVICE_COMPONENTS_DESC:
-    'This module provides health status monitoring of various service components in Geko Cloud, Kubernetes, OpenPitrix and so on. It shows the health status and running time of the current cluster, and helps users monitor the status of the cluster and locates problems in time.',
+    'This module monitors the health status of various service components in KubeSphere, Kubernetes, OpenPitrix and so on. It shows the health status and running time of the current cluster, and helps users monitor the status of the cluster and locate problems in time.',
 
   'KS-ACCOUNT_DESC': 'Provides users and authorizations management API',
   'KS-APIGATEWAY_DESC':
     'Responsible for processing service requests and handling all tasks in the API call process',
   'KS-APISERVER_DESC':
     'Serves the REST API endpoints and provides the frontend to the cluster’s shared state through which all other components interact, as well as cluster security control',
-  'KS-CONSOLE_DESC': 'Provides console services for Geko Cloud',
+  'KS-CONSOLE_DESC': 'Provides console services for KubeSphere',
   OPENLDAP_DESC:
     'Responsible for centralized storage and management of user account information',
   REDIS_DESC:
@@ -35,7 +44,7 @@ export default {
   'KUBE-CONTROLLER-MANAGER_DESC':
     'A daemon that embeds the core control loops shipped with Kubernetes',
   'KUBE-SCHEDULER_DESC':
-    'The scheduler of Kubernetes that attaches the Pod to the appropriate node',
+    'The scheduler of Kubernetes that attaches the Pod to an appropriate node',
   'METRICS-SERVER_DESC':
     'Collect metrics from the Summary API, exposed by Kubelet on each node',
   'TILLER-DEPLOY_DESC':
@@ -94,7 +103,7 @@ export default {
   'PROMETHEUS-K8S_DESC':
     'Provides monitoring data for nodes, workloads, and API objects',
   'PROMETHEUS-K8S-SYSTEM_DESC':
-    'Provides monitoring data for Kubernetes components such as etcd, coredns, kube-apiserver, kube-scheduler, kube-controller-manager',
+    'Provides monitoring data for Kubernetes components such as etcd, coredns, kube-apiserver, kube-scheduler and kube-controller-manager',
   'PROMETHEUS-OPERATED_DESC':
     'The service for all Prometheus instances only for internal use by Prometheus Operator',
   'PROMETHEUS-OPERATOR_DESC': 'Operator for managing Prometheus instances',
@@ -104,7 +113,8 @@ export default {
   'ELASTICSEARCH-LOGGING-DISCOVERY_DESC':
     'Provides Elasticsearch cluster management services',
 
-  'LOGSIDECAR-INJECTOR_DESC': '为指定 Pod 自动注入落盘日志收集 Sidecar 容器',
+  'LOGSIDECAR-INJECTOR_DESC':
+    'Injects a sidecar container in a Pod for disk log collection',
 
   'CONTROLLER-MANAGER-METRICS-SERVICE_DESC':
     'Provides monitoring data for the s2i controller',
@@ -120,4 +130,40 @@ export default {
     'Jenkins update center that provides installation packages for Jenkins plugins',
   'WEBHOOK-SERVER-SERVICE_DESC':
     'Provides default values and validate webhook for s2i',
+
+  MYSQL_DESC:
+    'An open-source database management system that allows users to manage relational databases. Data in these databases are structured or organized in the form of tables or columns, instead of being stored in one big storeroom',
+  ETCD_DESC:
+    'A reliable distributed data store that persistently stores the cluster configuration',
+  TOWER_DESC: 'A tool for network connection between clusters through an agent',
+  'KUBE-SCHEDULER-SVC_DESC':
+    'The scheduler of Kubernetes that attaches the Pod to an appropriate node',
+  'KUBE-CONTROLLER-MANAGER-SVC_DESC':
+    'A daemon that embeds the core control loops shipped with Kubernetes',
+
+  'S2IOPERATOR-METRICS-SERVICE_DESC':
+    'The s2i monitoring service component that provides basic monitoring data',
+  MINIO_DESC:
+    'An open source high performance object storage server, which is useful to store massive unstructured data',
+  'ALERTMANAGER-OPERATED_DESC':
+    'The Alertmanager service that provides Alertmanager integrations, such as Prometheus',
+  'ALERTMANAGER-MAIN_DESC': 'The Alertmanager Web UI service',
+  'NOTIFICATION-MANAGER-SVC_DESC':
+    'The Notification Manager service that provides the interface to send notifications, such as emails, WeChat and Slack messages',
+  'NOTIFICATION-MANAGER-CONTROLLER-METRICS_DESC':
+    'A component that provides internal monitoring data services of Notification Manager Controller',
+  HYPERPITRIX_DESC:
+    'A component that provides the App Store service for Helm-based applications and lifecycle management of apps',
+  'JAEGER-OPERATOR-METRICS_DESC':
+    'A component that provides the monitoring metrics of Operator',
+  'LOGSIDECAR-INJECTOR-ADMISSION_DESC':
+    'A component that automatically injects sidecar containers for a specific pod for disk log collection',
+  'KS-EVENTS-ADMISSION_DESC':
+    'A component that provides webhook authentication for Events rule management',
+  'KS-EVENTS-RULER_DESC':
+    'The Events rule engine service that provides filtering and alerting features',
+  'KS-CONTROLLER-MANAGER_DESC':
+    'A backend component that implements business logic. For example, it creates authorizations when a workspace is created and generates istio configurations for service strategies',
+  'KUBE-AUDITING-WEBHOOK-SVC_DESC':
+    'A component used for auditing logs in terms of collection, comparison, persistence and alert',
 }

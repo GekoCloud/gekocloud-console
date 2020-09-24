@@ -227,10 +227,11 @@ class LogCollectionDetailContainers extends Component {
       : this.state
 
     const { containers: container, pods: pod } = this.store
-    const { namespaces: namespace } = this.store.pathParams
+    const { cluster, namespaces: namespace } = this.store.pathParams
 
     const link = this.store.exportLinkFactory({
       pod,
+      cluster,
       namespace,
       container,
       start_time,
@@ -283,7 +284,7 @@ class LogCollectionDetailContainers extends Component {
   renderRecentOpts() {
     return (
       <div className={styles.recentOpts}>
-        <h3>{t('Select time range')}</h3>
+        <h3>{t('Select Time Range')}</h3>
         <ul>
           {this.recentOpts.map(recent => (
             <li
@@ -308,7 +309,7 @@ class LogCollectionDetailContainers extends Component {
         <Icon className={styles.icon} type="light" name="magnifier" />
         <input
           className={styles.input}
-          placeholder={t('Please input a keyword to find')}
+          placeholder={t('Search by keyword')}
           onChange={this.onKeyWordChange}
           value={this.store.log_query}
           type="text"

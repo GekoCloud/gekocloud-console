@@ -44,8 +44,8 @@ export default {
   'Mount Info': '挂载信息',
   Mounted: '已挂载',
   'Not Mounted': '未挂载',
-  Scalable: '可扩展性',
-  'Reclaim Policy': '回收机制',
+  Scalable: '可扩容性',
+  'Reclaiming Policy': '回收机制',
   DELETE_STORAGE_TIP: '如果存储卷正在被挂载时，待工作负载被删除时一同删除。',
   SRORAGE_SETTING_DESC:
     'ReadWriteOnce：单个节点读写。<br/>ReadOnlyMany：多节点只读。<br/>ReadWriteMany：多节点读写。<br/>挂载时只能使用一种模式。',
@@ -59,7 +59,7 @@ export default {
   Idle: '闲置',
   'In Use': '已使用',
 
-  'volume name exist': '存储卷名称已使用',
+  'The volume name exists': '存储卷名称已使用',
 
   'Used Capacity': '已分配存储',
   'Avail Capacity': '剩余存储',
@@ -67,16 +67,18 @@ export default {
   PersistentVolumes: '持久化存储卷',
 
   'Set as default storage class': '设为默认存储类型',
-  'storage class name': '存储类型名称',
+  'Storage Class Name': '存储类型名称',
   Default: '默认',
   StorageClasses: '存储类型',
   'Storage System': '存储系统',
 
-  'Supported Access Modes': '支持的访问模式',
+  'Supported Access Mode': '支持的访问模式',
 
   'Custom Provisioner': '自定义供应者',
   Parameters: '参数',
-  'Effect immediately': '立即生效',
+  'Apply immediately': '立即生效',
+
+  'The volume size must be greater than zero': '存储卷容量必须大于 0',
 
   STORAGECLASSES_BASEINFO_DESC:
     '存储类型记录管理员所提供的某类存储的配置信息，创建特定类型的存储卷之前必须已配置相应的存储类型。',
@@ -89,7 +91,9 @@ export default {
     '存储卷供用户创建的工作负载使用，是将工作负载数据持久化的一种资源对象。',
   VOLUME_CREATE_DESC:
     '存储卷供用户创建的工作负载使用，是将工作负载数据持久化的一种资源对象。',
-  'STORAGE CLASS_DESC':
+  STORAGE_CLASS_DESC:
+    '存储类型 (StorageClass) 是由集群管理员配置存储服务端参数，并按类型提供存储给集群用户使用。',
+  STORAGE_CLASS_CREATE_DESC:
     '存储类型 (StorageClass) 是由集群管理员配置存储服务端参数，并按类型提供存储给集群用户使用。',
   'STORAGE-CLASSES_BASEINFO_DESC':
     '存储类型记录管理员所提供的某类存储的配置信息，创建特定类型的存储卷之前必须已配置相应的存储类型。',
@@ -156,4 +160,33 @@ export default {
 
   DEPENDENT_STORAGE_CLASS_DELETE_TIPS:
     '请确认是否有资源依赖该存储类型。若存在依赖，请先将依赖的资源关闭，以免影响资源功能',
+
+  CREATE_VOLUME_WITH_SNAPSHOT: '基于快照创建存储卷',
+
+  'Create Snapshot': '创建快照',
+  'Volume Clone': '存储卷克隆',
+  'Support Volume Snapshot': '支持存储卷快照',
+
+  VOLUME_SNAPSHOT_STATUS_CREATING: '创建中',
+  VOLUME_SNAPSHOT_STATUS_READY: '创建成功',
+  VOLUME_SNAPSHOT_STATUS_FAILED: '创建失败',
+
+  'Snapshot Message': '快照信息',
+  'Snapshots Message': '快照信息',
+
+  VolumeSnapshots: '存储卷快照',
+  VOLUMESNAPSHOT_DESC:
+    '存储卷快照表示存储卷的时间点副本。快照可用于配置新卷（预先填充快照数据）或将现有存储卷还原到先前状态（由快照表示）',
+  VOLUMESNAPSHOT_CREATE_DESC:
+    '存储卷快照表示存储卷的时间点副本。快照可用于配置新卷（预先填充快照数据）或将现有存储卷还原到先前状态（由快照表示）',
+  WHAT_IS_VOLUME_SNAPSHOTS: '什么是存储卷快照',
+
+  CREATE_VOLUME_BY_STORAGECLASS: '通过存储类型',
+  CREATE_VOLUME_BY_SNAPSHOT: '通过存储卷快照创建',
+  SELECT_SNAPSHOT_TO_CREATE_VOLUME: '选择已有的存储卷快照进行创建',
+
+  CLUSTER_VOLUME_DIFF_DESC: '可针对不同集群，选择不同的存储类型',
+
+  VOLUME_MONITORING_TIP:
+    'Kubernetes 采集的是存储卷的设备用量数据，未挂载的存储卷暂时采集不到，并且对于如 OpenEBS/Local PV、NFS 等路径型存储卷通常与实际用量有一定出入。详见<a href="https://github.com/kubesphere/kubesphere/issues/2921" target="_blank">存储卷监控数据分析</a>。',
 }

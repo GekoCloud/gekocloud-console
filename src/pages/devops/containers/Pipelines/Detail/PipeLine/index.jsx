@@ -47,16 +47,19 @@ export default class Pipeline extends React.Component {
   }
 
   get enabledActions() {
-    const { project_id } = this.props.match.params
+    const { cluster, devops } = this.props.match.params
 
     return globals.app.getActions({
       module: 'pipelines',
-      project: project_id,
+      cluster,
+      devops,
     })
   }
 
   get isMutiBranch() {
-    return Boolean(get(this.props.detailStore.detail, 'scmSource'))
+    const { detailStore } = this.props
+    const scmSource = toJS(detailStore.detail.scmSource)
+    return !isEmpty(scmSource)
   }
 
   get sourceBranch() {
@@ -132,8 +135,8 @@ export default class Pipeline extends React.Component {
     this.setState({ showEditPipeline: false }, () => {
       this.handleFresh()
     })
-    const { project_id, name } = params
-    localStorage.removeItem(`${globals.user.username}-${project_id}-${name}`)
+    const { devops, name } = params
+    localStorage.removeItem(`${globals.user.username}-${devops}-${name}`)
   }
 
   handleRun = debounce(() => {
@@ -149,12 +152,13 @@ export default class Pipeline extends React.Component {
 
   handleRunOk = async (parameters, branch) => {
     const { detail } = this.props.detailStore
-    const { project_id } = this.props.match.params
+    const { devops, cluster } = this.props.match.params
     await this.props.detailStore.runBranch({
-      project_id,
       name: detail.name,
       branch,
       parameters,
+      cluster,
+      devops,
     })
     this.props.rootStore.routing.push('./activity')
   }
@@ -178,7 +182,6 @@ export default class Pipeline extends React.Component {
 
   renderBtnGroup() {
     const editable = this.enabledActions.includes('edit')
-    const runnable = this.enabledActions.includes('trigger')
 
     return (
       <div className={style.pipelineCard__btnGroup}>
@@ -190,7 +193,7 @@ export default class Pipeline extends React.Component {
         {editable && (
           <Button onClick={this.showEditPipeline}>{t('Edit Pipeline')}</Button>
         )}
-        {runnable && (
+        {editable && (
           <Button type="control" onClick={this.handleRun}>
             {t('Run')}
           </Button>
@@ -203,7 +206,6 @@ export default class Pipeline extends React.Component {
     const { pipelineJson, isLoading } = this.props.detailStore.pipelineJsonData
 
     const editable = this.enabledActions.includes('edit')
-    const runnable = this.enabledActions.includes('trigger')
 
     if (isLoading) {
       return (
@@ -238,7 +240,7 @@ export default class Pipeline extends React.Component {
               {t('Edit Jenkinsfile')}
             </Button>
           )}
-          {runnable && (
+          {editable && (
             <Button type="control" onClick={this.handleRun}>
               {t('Run')}
             </Button>
@@ -262,7 +264,7 @@ export default class Pipeline extends React.Component {
   render() {
     const { showEditPipeline, isSubmitting } = this.state
     const { params } = this.props.match
-    const { pipelineJsonData, detail, jenkinsfile } = this.props.detailStore
+    const { pipelineJsonData, jenkinsfile, detail } = this.props.detailStore
 
     return (
       <React.Fragment>

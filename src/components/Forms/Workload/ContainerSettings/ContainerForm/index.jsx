@@ -16,7 +16,7 @@
  * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { isEmpty } from 'lodash'
+import { isEmpty, cloneDeep } from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
@@ -31,6 +31,7 @@ import ImagePullPolicy from './ImagePullPolicy'
 import HealthChecker from './HealthChecker'
 import ContainerSetting from './ContainerSetting'
 import SecurityContext from './SecurityContext'
+import SyncTimeZone from './SyncTimeZone'
 
 import styles from './index.scss'
 
@@ -85,6 +86,7 @@ export default class ContaineForm extends React.Component {
 
     this.state = {
       containerType: props.data.type || 'worker',
+      formData: cloneDeep(props.data),
     }
   }
 
@@ -116,7 +118,7 @@ export default class ContaineForm extends React.Component {
   }
 
   handleSubmit = callback => {
-    const { onSave } = this.props
+    const { onSave, withService } = this.props
     const form = this.formRef.current
 
     form &&
@@ -137,8 +139,16 @@ export default class ContaineForm extends React.Component {
 
         if (data.ports) {
           data.ports = data.ports.filter(
-            item => !(!item.name && !item.containerPort && !item.hostPort)
+            item => item.name && item.containerPort
           )
+        }
+
+        if (!withService && data.ports) {
+          data.ports.forEach(item => {
+            if (item.servicePort !== undefined) {
+              delete item.servicePort
+            }
+          })
         }
 
         onSave(data)
@@ -153,13 +163,14 @@ export default class ContaineForm extends React.Component {
   render() {
     const {
       className,
-      data,
       configMaps,
       secrets,
+      limitRange,
+      imageRegistries,
       namespace,
       withService,
     } = this.props
-    const { containerType } = this.state
+    const { containerType, formData } = this.state
 
     return (
       <div className={classNames(styles.wrapper, className)}>
@@ -169,10 +180,12 @@ export default class ContaineForm extends React.Component {
           </a>
           {this.title}
         </div>
-        <Form ref={this.formRef} data={data}>
+        <Form ref={this.formRef} data={formData}>
           <ContainerSetting
-            data={data}
+            data={formData}
             namespace={namespace}
+            limitRange={limitRange}
+            imageRegistries={imageRegistries}
             defaultContainerType={containerType}
             onContainerTypeChange={this.handleContainerTypeChange}
           />
@@ -182,6 +195,7 @@ export default class ContaineForm extends React.Component {
           <Commands />
           <Environments configMaps={configMaps} secrets={secrets} />
           <SecurityContext />
+          <SyncTimeZone data={formData} />
         </Form>
       </div>
     )

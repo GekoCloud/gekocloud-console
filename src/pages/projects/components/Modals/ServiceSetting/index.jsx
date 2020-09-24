@@ -53,10 +53,12 @@ export default class ServiceSettingModal extends React.Component {
     this.state = { formTemplate: props.detail }
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.detail !== this.state.formTemplate) {
+  componentDidUpdate(prevProps) {
+    const { detail } = this.props
+
+    if (detail !== prevProps.detail) {
       this.setState({
-        formTemplate: nextProps.detail,
+        formTemplate: detail,
       })
     }
   }
@@ -78,11 +80,13 @@ export default class ServiceSettingModal extends React.Component {
   }
 
   renderServiceSettings() {
+    const { cluster } = this.props
     return (
       <ServiceSettings
         formRef={this.formRef}
         formTemplate={this.state.formTemplate}
         onCancel={this.resetState}
+        cluster={cluster}
       />
     )
   }

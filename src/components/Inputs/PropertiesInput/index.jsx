@@ -19,7 +19,6 @@
 import { isEmpty, has } from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
-import isEqual from 'react-fast-compare'
 import classnames from 'classnames'
 import { Button } from 'components/Base'
 
@@ -31,19 +30,19 @@ export default class PropertiesInput extends React.Component {
   static propTypes = {
     name: PropTypes.string,
     value: PropTypes.object,
-    valueType: PropTypes.string,
     hiddenKeys: PropTypes.arrayOf(PropTypes.string),
     readOnlyKeys: PropTypes.arrayOf(PropTypes.string),
+    controlled: PropTypes.bool,
     onChange: PropTypes.func,
     onError: PropTypes.func,
   }
 
   static defaultProps = {
     name: '',
-    valueType: 'text',
     value: {},
     hiddenKeys: [],
     readOnlyKeys: [],
+    controlled: false,
     onChange() {},
   }
 
@@ -52,25 +51,22 @@ export default class PropertiesInput extends React.Component {
 
     this.state = {
       existedKey: false,
-      ...this.getValues(props),
+      propsValue: props.value,
+      ...PropertiesInput.getValues(props),
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    const { arrayValues, hiddenValues, readOnlyValues } = this.getValues(
-      nextProps
-    )
-
-    if (
-      nextProps.controlledValue &&
-      !isEqual(arrayValues, this.state.arrayValues)
-    ) {
-      this.setState({ arrayValues, hiddenValues, readOnlyValues })
+  componentDidUpdate(prevProps) {
+    if (this.props.controlled && this.props.value !== prevProps.value) {
+      this.setState({
+        propsValue: this.props.value,
+        ...PropertiesInput.getValues(this.props),
+      })
     }
   }
 
-  getValues(props) {
-    const propsValue = props.controlledValue || props.value || {}
+  static getValues(props) {
+    const propsValue = props.value || {}
     const hiddenValues = []
     const readOnlyValues = []
     const arrayValues = []
@@ -151,7 +147,7 @@ export default class PropertiesInput extends React.Component {
     // some key is empty, throw error
     const hasEmptyKey = Object.keys(value).some(key => isEmpty(key))
     if (hasEmptyKey) {
-      this.props.onError({ message: t('No empty keys') })
+      this.props.onError({ message: t('Empty keys') })
     }
 
     // has duplicate keys, throw error
@@ -182,13 +178,18 @@ export default class PropertiesInput extends React.Component {
   }
 
   render() {
-    const { className, addText } = this.props
+    const { className, addText, itemProps } = this.props
     const { readOnlyValues, arrayValues } = this.state
 
     return (
       <div className={classnames(styles.wrapper, className)}>
         {readOnlyValues.map(item => (
-          <Item key={`readonly-${item.key}`} value={item} readOnly />
+          <Item
+            key={`readonly-${item.key}`}
+            value={item}
+            readOnly
+            {...itemProps}
+          />
         ))}
         {arrayValues.map((item, index) => (
           <Item
@@ -197,6 +198,7 @@ export default class PropertiesInput extends React.Component {
             value={item || {}}
             onChange={this.handleItemChange}
             onDelete={this.handleItemDelete}
+            {...itemProps}
           />
         ))}
         <div className="text-right">

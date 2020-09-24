@@ -45,18 +45,15 @@ export const getMinuteValue = (timeStr = '60s', hasUnit = true) => {
 
 export const getTimeRange = ({ step = '600s', times = 20 } = {}) => {
   const interval = parseFloat(step) * times
-  const end = Date.now() / 1000
-  const start = end - interval
+  const end = Math.floor(Date.now() / 1000)
+  const start = Math.floor(end - interval)
 
-  return {
-    start,
-    end,
-  }
+  return { start, end }
 }
 
 export default class BaseMonitoringStore {
   @observable
-  isLoading = true
+  isLoading = false
 
   @observable
   isRefreshing = false
@@ -71,12 +68,17 @@ export default class BaseMonitoringStore {
 
   data = {}
 
-  constructor(module) {
-    this.module = module
+  resourceName = 'resource_name'
+
+  constructor(filters = {}) {
+    Object.keys(filters).forEach(key => set(this, key, filters[key]))
   }
 
   get apiVersion() {
-    return 'kapis/monitoring.kubesphere.io/v1alpha2'
+    if (globals.app.isMultiCluster && this.cluster) {
+      return `kapis/clusters/${this.cluster}/monitoring.kubesphere.io/v1alpha3`
+    }
+    return 'kapis/monitoring.kubesphere.io/v1alpha3'
   }
 
   getApi = () => `${this.apiVersion}/cluster`
@@ -108,6 +110,14 @@ export default class BaseMonitoringStore {
         params.start = timeRange.start
         params.end = timeRange.end
       }
+    }
+
+    if (params.start) {
+      params.start = Math.floor(params.start)
+    }
+
+    if (params.end) {
+      params.end = Math.floor(params.end)
     }
 
     if (!isEmpty(resources)) {
@@ -160,12 +170,13 @@ export default class BaseMonitoringStore {
     const newResult = [...originResult]
 
     currentResult.forEach((record, index) => {
-      const resourceName = get(record, 'metric.resource_name')
+      const resourceName = get(record, `metric.${this.resourceName}`)
       let recordData = null
 
       if (resourceName) {
         const originRecord = newResult.find(
-          _record => get(_record, 'metric.resource_name') === resourceName
+          _record =>
+            get(_record, `metric.${this.resourceName}`) === resourceName
         )
 
         if (isEmpty(originRecord)) {
@@ -251,6 +262,10 @@ export default class BaseMonitoringStore {
       this.isLoading = true
     }
 
+    if (filters.cluster) {
+      this.cluster = filters.cluster
+    }
+
     const params = this.getParams(filters)
     const api = this.getApi(filters)
     const response = await to(request.get(api, params))
@@ -272,18 +287,16 @@ export default class BaseMonitoringStore {
 
   @action
   checkEtcd = async () => {
-    if (this.isConfirmSupportETCD) {
-      return
-    }
-
-    const api =
-      './apis/monitoring.coreos.com/v1/namespaces/kubesphere-monitoring-system/servicemonitors/etcd'
+    const api = `apis${
+      this.cluster && globals.app.isMultiCluster
+        ? `/clusters/${this.cluster}`
+        : ''
+    }/monitoring.coreos.com/v1/namespaces/kubesphere-monitoring-system/servicemonitors/etcd`
     this.etcdChecking = true
 
     try {
       const response = await request.get(api, {}, {}, () => {})
       this.supportETCD = response.code !== '404'
-      this.isConfirmSupportETCD = true
     } catch (e) {
       this.supportETCD = false
     } finally {

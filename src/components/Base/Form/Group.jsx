@@ -20,7 +20,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import { Checkbox } from '@pitrix/lego-ui'
-import { get, unset, isUndefined } from 'lodash'
+import { get, unset, isEmpty, isUndefined } from 'lodash'
 
 import styles from './index.scss'
 
@@ -35,6 +35,7 @@ export default class Group extends React.Component {
 
   static contextTypes = {
     formData: PropTypes.object,
+    validateResults: PropTypes.array,
   }
 
   static childContextTypes = {
@@ -69,6 +70,17 @@ export default class Group extends React.Component {
     }
   }
 
+  componentDidUpdate() {
+    const { validateResults } = this.context
+    if (
+      !isEmpty(validateResults) &&
+      validateResults.some(vr => this.items.has(vr.field)) &&
+      !this.state.isCheck
+    ) {
+      this.setState({ isCheck: true })
+    }
+  }
+
   registerGroup = name => {
     this.items.add(name)
   }
@@ -77,20 +89,32 @@ export default class Group extends React.Component {
     this.items.delete(name)
   }
 
+  showGroup = () => {
+    this.setState({ isCheck: true })
+  }
+
   handleCheck = (e, check) => {
-    const { keepDataWhenUnCheck } = this.props
-    this.setState({ isCheck: check }, () => {
-      if (!keepDataWhenUnCheck && !check) {
-        const { formData } = this.context
-        if (formData && this.items.size > 0) {
-          this.items.forEach(item => unset(formData, item))
-        }
+    const { keepDataWhenUnCheck, onChange } = this.props
+    if (!keepDataWhenUnCheck && !check) {
+      const { formData } = this.context
+      if (formData && this.items.size > 0) {
+        this.items.forEach(item => unset(formData, item))
       }
-    })
+    }
+
+    onChange && onChange(check)
+    this.setState({ isCheck: check })
   }
 
   render() {
-    const { children, checkable, label, desc, noWrapper } = this.props
+    const {
+      children,
+      checkable,
+      label,
+      desc,
+      noWrapper,
+      className,
+    } = this.props
     const { isCheck } = this.state
 
     if (!children) {
@@ -101,9 +125,13 @@ export default class Group extends React.Component {
 
     return (
       <div
-        className={classNames(styles.group, { [styles.checkable]: checkable })}
+        className={classNames(
+          styles.group,
+          { [styles.checkable]: checkable },
+          className
+        )}
       >
-        <div>
+        <div className="form-group-header">
           <div className={styles.groupTitle}>
             {checkable ? (
               <Checkbox checked={isCheck} onChange={this.handleCheck}>
@@ -115,23 +143,14 @@ export default class Group extends React.Component {
           </div>
           {desc && <div className={styles.groupDesc}>{desc}</div>}
         </div>
-        {noWrapper ? (
-          <div
-            className={classNames({
-              [styles.hideGroup]: hideChildren,
-            })}
-          >
-            {children}
-          </div>
-        ) : (
-          <div
-            className={classNames(styles.groupContent, {
-              [styles.hideGroup]: hideChildren,
-            })}
-          >
-            {children}
-          </div>
-        )}
+        <div
+          className={classNames({
+            [styles.groupContent]: !noWrapper,
+            [styles.hideGroup]: hideChildren,
+          })}
+        >
+          {children}
+        </div>
       </div>
     )
   }

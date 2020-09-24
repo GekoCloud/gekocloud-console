@@ -16,13 +16,11 @@
  * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-require('whatwg-fetch')
-const isEmpty = require('lodash/isEmpty')
-const get = require('lodash/get')
-const set = require('lodash/set')
-const merge = require('lodash/merge')
-const qs = require('qs')
-const cookie = require('./cookie').default
+import 'whatwg-fetch'
+import qs from 'qs'
+import { isObject, get, set, merge, isEmpty } from 'lodash'
+import { getClusterUrl, safeParseJSON } from './index'
+import cookie from './cookie'
 
 const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
@@ -44,7 +42,6 @@ module.exports = methods.reduce(
   {
     defaults: buildRequest,
     watch: watchResource,
-    toQueryString,
   }
 )
 
@@ -85,7 +82,9 @@ function buildRequest({
     ) !== -1
 
   if (method === 'GET') {
-    requestURL += !isEmpty(params) ? toQueryString(omitNil(params)) : ''
+    if (!isEmpty(params)) {
+      requestURL += `?${qs.stringify(params)}`
+    }
   } else if (isForm) {
     request.body = qs.stringify(params)
   } else {
@@ -114,13 +113,15 @@ function buildRequest({
     return
   }
 
-  return fetch(requestURL, request).then(resp => responseHandler(resp, reject))
+  return fetch(getClusterUrl(requestURL), request).then(resp =>
+    responseHandler(resp, reject)
+  )
 }
 
 function watchResource(url, params = {}, callback) {
   const xhr = new XMLHttpRequest()
 
-  xhr.open('GET', `${url}${toQueryString(params)}`, true)
+  xhr.open('GET', getClusterUrl(`/${url}?${qs.stringify(params)}`), true)
 
   xhr.onreadystatechange = () => {
     if (xhr.readyState >= 3 && xhr.status === 200) {
@@ -161,7 +162,6 @@ function handleResponse(response, reject) {
   }
 
   const contentType = response.headers.get('content-type')
-
   if (contentType && contentType.includes('json')) {
     return response.json().then(data => {
       if (response.status === 401) {
@@ -176,7 +176,8 @@ function handleResponse(response, reject) {
 
       if (typeof reject === 'function') {
         return reject(error, response)
-      } else if (window.onunhandledrejection) {
+      }
+      if (window.onunhandledrejection) {
         window.onunhandledrejection(error)
       }
 
@@ -189,50 +190,18 @@ function handleResponse(response, reject) {
   }
 
   return response.text().then(text => {
-    const error = {
-      status: response.status,
-      reason: response.statusText,
-      message: text,
-    }
+    const error = formatTextError(response, text)
 
     if (typeof reject === 'function') {
       return reject(response, error)
-    } else if (window.onunhandledrejection) {
+    }
+
+    if (window.onunhandledrejection) {
       window.onunhandledrejection(error)
     }
 
     return Promise.reject(error)
   })
-}
-
-/**
- * Transform an JSON object to a query string
- * @param params
- * @returns {string}
- */
-function toQueryString(params) {
-  return `?${Object.keys(params)
-    .map(k => {
-      const name = encodeURIComponent(k)
-      if (Array.isArray(params[k])) {
-        return params[k]
-          .map(val => `${name}=${encodeURIComponent(val)}`)
-          .join('&')
-      }
-      if (k === 'q') {
-        return `${name}=${params[k]}`
-      }
-      return `${name}=${encodeURIComponent(params[k])}`
-    })
-    .join('&')}`
-}
-
-function omitNil(obj) {
-  if (typeof obj !== 'object') return obj
-  return Object.keys(obj).reduce((acc, v) => {
-    if (obj[v] !== undefined) acc[v] = obj[v]
-    return acc
-  }, {})
 }
 
 function formatError(response, data) {
@@ -260,4 +229,25 @@ function formatError(response, data) {
   result.message = data.message || data.Error || JSON.stringify(data.details)
 
   return result
+}
+
+function formatTextError(response, text) {
+  let error = {
+    status: response.status,
+    reason: response.statusText,
+    message: text,
+  }
+
+  const errorBody = safeParseJSON(text)
+
+  if (isObject(errorBody) && !isEmpty(errorBody)) {
+    error = {
+      ...error,
+      code: errorBody.code,
+      message: errorBody.message,
+      errors: errorBody.errors,
+    }
+  }
+
+  return error
 }

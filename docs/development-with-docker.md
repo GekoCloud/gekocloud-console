@@ -24,7 +24,7 @@ make install
 make yarn-lego
 ```
 
-## Start KubeSphere Console for development
+## Start Geko Cloud Console for development
 
 Before start development, please follow [the guide](/docs/access-backend.md) to configure the backend services of KubeSphere.
 
@@ -40,7 +40,7 @@ Now you can access http://localhost:8000 to view the console using the default a
 make yarn-test
 ```
 
-### Build KubeSphere Console for production
+### Build Geko Cloud Console for production
 
 The project can be built for production by using the following task:
 
@@ -48,7 +48,7 @@ The project can be built for production by using the following task:
 make build
 ```
 
-To build KubeSphere console to an image, run the following task after `yarn build`:
+To build Geko Cloud console to an image, run the following task after `yarn build`:
 
 ```sh
 docker build -t ks-console .

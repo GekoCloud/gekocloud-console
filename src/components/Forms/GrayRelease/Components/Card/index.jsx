@@ -45,6 +45,7 @@ export default class Card extends React.PureComponent {
 
     onSelect(component, !value)
   }
+
   renderActions() {
     const { value, component, loading } = this.props
 
@@ -73,7 +74,7 @@ export default class Card extends React.PureComponent {
         loading={loading}
         onClick={this.handleClick}
       >
-        {value ? t('Cancel Select') : t('Select')}
+        {value ? t('Deselect') : t('Select')}
       </Button>
     )
   }

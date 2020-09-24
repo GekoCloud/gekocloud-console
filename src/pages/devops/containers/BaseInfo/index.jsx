@@ -18,18 +18,23 @@
 
 import { isEmpty } from 'lodash'
 import React from 'react'
+import { Link } from 'react-router-dom'
+import classNames from 'classnames'
 import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { Icon, Dropdown, Menu } from '@pitrix/lego-ui'
-import { Card, Button } from 'components/Base'
+import { Panel, Button, Notify } from 'components/Base'
 import DeleteModal from 'components/Modals/Delete'
-import Info from 'components/Cards/Info'
 import Banner from 'components/Cards/Banner'
 import EditModal from 'devops/components/Modals/DevOpsEdit'
 
+import { getDisplayName, getLocalTime } from 'utils'
+
+import UserStore from 'stores/user'
+import RoleStore from 'stores/role'
 import styles from './index.scss'
 
-@inject('rootStore')
+@inject('rootStore', 'devopsStore')
 @observer
 class BaseInfo extends React.Component {
   state = {
@@ -37,51 +42,72 @@ class BaseInfo extends React.Component {
     showDelete: false,
   }
 
-  componentDidMount() {
-    this.store.fetchRoles(this.props.match.params)
-    this.store.fetchMembers(this.props.match.params)
-  }
+  roleStore = new RoleStore()
 
-  get store() {
-    return this.props.rootStore.devops
+  memberStore = new UserStore()
+
+  componentDidMount() {
+    if (this.canViewMembers && this.canViewRoles) {
+      this.memberStore.fetchList({
+        devops: this.devops,
+        cluster: this.cluster,
+      })
+
+      this.roleStore.fetchList({
+        devops: this.devops,
+        cluster: this.cluster,
+      })
+    }
   }
 
   get routing() {
     return this.props.rootStore.routing
   }
 
-  get workspace() {
-    return this.store.data.workspace
+  get store() {
+    return this.props.devopsStore
   }
 
-  get project_id() {
-    return this.props.match.params.project_id
+  get devops() {
+    return this.props.match.params.devops
+  }
+
+  get devopsName() {
+    return this.store.devopsName
+  }
+
+  get workspace() {
+    return this.props.match.params.workspace
+  }
+
+  get cluster() {
+    return this.props.match.params.cluster
   }
 
   get enabledActions() {
     return globals.app.getActions({
-      module: 'devops',
-      workspace: this.workspace,
-      project:
-        this.props.match.params.devops || this.props.match.params.project_id,
+      module: 'devops-settings',
+      cluster: this.cluster,
+      devops: this.devops,
     })
   }
 
-  getWorkspaceUrl() {
-    const workspace = this.workspace
+  get canViewRoles() {
+    return globals.app.hasPermission({
+      module: 'roles',
+      action: 'view',
+      cluster: this.cluster,
+      devops: this.devops,
+    })
+  }
 
-    if (
-      globals.app.hasPermission({ module: 'workspaces', action: 'manage' }) ||
-      globals.app.hasPermission({
-        module: 'workspaces',
-        action: 'view',
-        workspace,
-      })
-    ) {
-      return `/workspaces/${workspace}/overview`
-    }
-
-    return '/'
+  get canViewMembers() {
+    return globals.app.hasPermission({
+      module: 'members',
+      action: 'view',
+      cluster: this.cluster,
+      devops: this.devops,
+    })
   }
 
   get itemActions() {
@@ -113,11 +139,21 @@ class BaseInfo extends React.Component {
     })
   }
 
-  handleEdit = ({ project_id, ...data }) => {
-    this.store.update(project_id, data).then(() => {
-      this.hideEdit()
-      this.store.fetchDetail(this.props.match.params)
-    })
+  handleEdit = ({ devops, ...data }) => {
+    this.store
+      .update(
+        { devops, cluster: this.cluster, workspace: this.workspace },
+        data,
+        true
+      )
+      .then(() => {
+        this.hideEdit()
+        Notify.success({ content: `${t('Updated Successfully')}!` })
+        this.store.fetchDetail({
+          workspace: this.workspace,
+          ...this.props.match.params,
+        })
+      })
   }
 
   hideDelete = () => {
@@ -127,9 +163,12 @@ class BaseInfo extends React.Component {
   }
 
   handleDelete = () => {
-    const { project_id } = this.props.match.params
     this.store
-      .delete({ project_id }, { workspace: this.workspace })
+      .delete({
+        devops: this.devops,
+        cluster: this.cluster,
+        workspace: this.workspace,
+      })
       .then(() => {
         this.routing.push('/')
       })
@@ -160,51 +199,67 @@ class BaseInfo extends React.Component {
     )
   }
 
-  renderOperations() {
-    if (isEmpty(this.enabledItemActions)) {
-      return null
-    }
-
-    return (
-      <Dropdown
-        content={this.renderMoreMenu()}
-        trigger="click"
-        placement="bottomRight"
-      >
-        <Button icon="more" type="flat" />
-      </Dropdown>
-    )
-  }
-
   renderBaseInfo() {
+    const detail = this.store.data
+    const roleCount = this.roleStore.list.total
+    const memberCount = this.memberStore.list.total
+
     return (
-      <div className="margin-t12">
-        <Card title={t('Basic Info')} operations={this.renderOperations()}>
-          <div className={styles.baseInfo}>
-            <Info
-              className={styles.info}
-              image="/assets/default-workspace.svg"
-              title={this.workspace}
-              desc={t('Workspace')}
-              url={this.getWorkspaceUrl()}
-            />
-            <Info
-              className={styles.info}
-              icon="group"
-              title={this.store.members.total}
-              desc={t('Members')}
-              url={`/devops/${this.project_id}/members`}
-            />
-            <Info
-              className={styles.info}
-              icon="role"
-              title={this.store.roles.total}
-              desc={t('Project Roles')}
-              url={`/devops/${this.project_id}/roles`}
-            />
+      <Panel className={styles.wrapper} title={t('Basic Info')}>
+        <div className={styles.header}>
+          <Icon name="strategy-group" size={40} />
+          <div className={styles.item}>
+            <div>{getDisplayName(detail)}</div>
+            <p>{t('DevOps Project')}</p>
           </div>
-        </Card>
-      </div>
+          <div className={styles.item}>
+            <div>
+              <Link to={`/workspaces/${this.workspace}`}>{this.workspace}</Link>
+            </div>
+            <p>{t('Workspace')}</p>
+          </div>
+          <div className={styles.item}>
+            <div>{detail.creator || '-'}</div>
+            <p>{t('Creator')}</p>
+          </div>
+          <div className={styles.item}>
+            <div>
+              {getLocalTime(detail.createTime).format(`YYYY-MM-DD HH:mm:ss`)}
+            </div>
+            <p>{t('Created Time')}</p>
+          </div>
+          {!isEmpty(this.enabledItemActions) && (
+            <div className={classNames(styles.item, 'text-right')}>
+              <Dropdown
+                className="dropdown-default"
+                content={this.renderMoreMenu()}
+                trigger="click"
+                placement="bottomRight"
+              >
+                <Button>{t('DEVOPS_PROJECT_MANAGEMENT')}</Button>
+              </Dropdown>
+            </div>
+          )}
+        </div>
+        {this.canViewRoles && this.canViewMembers && (
+          <div className={styles.content}>
+            <div className={styles.contentItem}>
+              <Icon name="role" size={40} />
+              <div className={styles.item}>
+                <div>{roleCount}</div>
+                <p>{t('DEVOPS_PROJECT_ROLES')}</p>
+              </div>
+            </div>
+            <div className={styles.contentItem}>
+              <Icon name="group" size={40} />
+              <div className={styles.item}>
+                <div>{memberCount}</div>
+                <p>{t('DEVOPS_PROJECT_MEMBERS')}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Panel>
     )
   }
 
@@ -214,7 +269,7 @@ class BaseInfo extends React.Component {
     return (
       <div>
         <Banner
-          title={t('DevOps BaseInfo')}
+          title={t('DevOps Basic Info')}
           icon="cdn"
           description={t('DEVOPS_DESCRIPTION')}
           module={this.module}
@@ -223,7 +278,6 @@ class BaseInfo extends React.Component {
         <EditModal
           detail={data}
           workspace={this.workspace}
-          members={toJS(this.store.members.data)}
           visible={this.state.showEdit}
           onOk={this.handleEdit}
           onCancel={this.hideEdit}
@@ -234,6 +288,7 @@ class BaseInfo extends React.Component {
           desc={t.html('DELETE_DEVOPS_TIP', {
             resource: data.name,
           })}
+          resource={data.name}
           visible={this.state.showDelete}
           onOk={this.handleDelete}
           onCancel={this.hideDelete}

@@ -24,6 +24,7 @@ import { get } from 'lodash'
 import Store from 'stores/rank/project'
 
 import {
+  Select,
   Pagination,
   Level,
   LevelLeft,
@@ -32,12 +33,13 @@ import {
   Loading,
 } from '@pitrix/lego-ui'
 import { Button } from 'components/Base'
-import SortMetricSelect from 'clusters/components/Cards/Monitoring/UsageRank/select'
-import Table from 'clusters/containers/MonitoringCenter/Monitoring/Resource/Ranking/Project/Table'
+import EmptyList from 'components/Cards/EmptyList'
+import Table from 'clusters/containers/Monitor/Resource/Ranking/Project/Table'
+import StatusReason from 'clusters/components/StatusReason'
 
 import styles from './index.scss'
 
-@inject('rootStore')
+@inject('rootStore', 'workspaceStore')
 @observer
 class Ranking extends React.Component {
   constructor(props) {
@@ -48,26 +50,78 @@ class Ranking extends React.Component {
       limit: 10,
       sort_type: 'desc',
     })
+    this.workspaceStore = this.props.workspaceStore
   }
 
   get workspace() {
     return get(this.props, 'match.params.workspace')
   }
 
+  get clusters() {
+    return this.workspaceStore.clusters.data.map(cluster => ({
+      label: cluster.name,
+      value: cluster.name,
+      disabled: !cluster.isReady,
+      cluster,
+    }))
+  }
+
+  get options() {
+    return this.store.sort_metric_options.map(option => ({
+      value: option,
+      label: t(`Sort By ${option}`),
+    }))
+  }
+
+  valueRenderer = option => `${t('Cluster')}: ${option.value}`
+
+  optionRenderer = option => (
+    <div>
+      <div>{option.value}</div>
+      {!option.cluster.isReady && (
+        <div>
+          <StatusReason data={option.cluster} noTip />
+        </div>
+      )}
+    </div>
+  )
+
   export = () => {
     this.store.download('project.usage.rank.json')
   }
 
+  fetchMetrics = () => {
+    if (this.workspaceStore.cluster) {
+      this.store.cluster = this.workspaceStore.cluster
+      this.store.fetchAll()
+    }
+  }
+
   componentDidMount() {
-    this.store.fetchAll()
+    this.fetchMetrics()
+  }
+
+  handleClusterChange = cluster => {
+    this.workspaceStore.selectCluster(cluster)
+    this.fetchMetrics()
   }
 
   render() {
+    if (this.workspaceStore.clusters.data.length > 0) {
+      return (
+        <div className={styles.wrapper}>
+          {this.renderToolbar()}
+          {this.renderList()}
+        </div>
+      )
+    }
+
     return (
-      <div className={styles.wrapper}>
-        {this.renderToolbar()}
-        {this.renderList()}
-      </div>
+      <EmptyList
+        icon="cluster"
+        title={t('No Available Cluster')}
+        desc={t('WORKSPACE_NO_CLUSTER_TIP')}
+      />
     )
   }
 
@@ -81,7 +135,18 @@ class Ranking extends React.Component {
         )}
       >
         <div className={styles.toolbar_filter}>
-          <SortMetricSelect store={this.store} />
+          <Select
+            options={this.clusters}
+            value={this.workspaceStore.cluster}
+            onChange={this.handleClusterChange}
+            valueRenderer={this.valueRenderer}
+            optionRenderer={this.optionRenderer}
+          />
+          <Select
+            value={this.store.sort_metric}
+            onChange={this.store.changeSortMetric}
+            options={this.options}
+          />
           <span className={styles.sort_button}>
             <Icon
               name={
@@ -106,7 +171,11 @@ class Ranking extends React.Component {
     return (
       <Loading spinning={this.store.isLoading}>
         <div>
-          <Table store={this.store} />
+          <Table
+            store={this.store}
+            cluster={this.workspaceStore.cluster}
+            workspace={this.workspace}
+          />
           {this.renderPagination()}
         </div>
       </Loading>

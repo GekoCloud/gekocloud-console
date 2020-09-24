@@ -16,23 +16,43 @@
  * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { debounce, isEmpty, isUndefined } from 'lodash'
+import { get, debounce, isEmpty, isUndefined, set } from 'lodash'
 import React from 'react'
 import { Form } from 'components/Base'
 import { PropertiesInput } from 'components/Inputs'
 import { isValidLabel, updateLabels } from 'utils'
 
 export default class Metadata extends React.Component {
+  get fedPrefix() {
+    return this.props.isFederated ? 'spec.template.' : ''
+  }
+
   handleLabelsChange = debounce(value => {
-    const { module, formTemplate, onLabelsChange } = this.props
-    updateLabels(formTemplate, module, value)
+    const {
+      module,
+      kind,
+      isFederated,
+      formTemplate,
+      onLabelsChange,
+    } = this.props
+
+    const template = isFederated
+      ? get(formTemplate[kind], 'spec.template')
+      : formTemplate[kind]
+    updateLabels(template, module, value)
+
+    if (isFederated) {
+      set(formTemplate[kind], 'metadata.labels', value)
+    }
+
     onLabelsChange && onLabelsChange(value)
   }, 200)
 
   labelsValidator = (rule, value, callback) => {
     if (isUndefined(value)) {
       return callback()
-    } else if (isEmpty(value)) {
+    }
+    if (isEmpty(value)) {
       return callback({ message: t('Labels cannot be empty') })
     }
 
@@ -41,7 +61,11 @@ export default class Metadata extends React.Component {
     }
 
     this.props.store
-      .checkLabels({ labels: value, namespace: this.props.namespace })
+      .checkLabels({
+        labels: value,
+        namespace: this.props.namespace,
+        cluster: this.props.cluster,
+      })
       .then(resp => {
         if (resp.exist) {
           return callback({ message: t('Labels exists'), field: rule.field })
@@ -51,7 +75,7 @@ export default class Metadata extends React.Component {
   }
 
   render() {
-    const { kind } = this.props
+    const { kind, noWorkload } = this.props
     return (
       <>
         <Form.Item
@@ -62,19 +86,22 @@ export default class Metadata extends React.Component {
           ]}
         >
           <PropertiesInput
-            name={`${kind}.metadata.labels`}
+            name={`${kind}.${this.fedPrefix}metadata.labels`}
             addText={t('Add Label')}
             onChange={this.handleLabelsChange}
-            readOnlyKeys={['app']}
           />
         </Form.Item>
-        <Form.Item label={t('Annotations')}>
-          <PropertiesInput
-            name={`${kind}.metadata.annotations`}
-            addText={t('Add Annotation')}
-            hiddenKeys={globals.config.preservedAnnotations}
-          />
-        </Form.Item>
+        {!noWorkload && (
+          <Form.Item
+            label={`${t('Annotations')} (${t('Applied to the workload')})`}
+          >
+            <PropertiesInput
+              name={`${kind}.metadata.annotations`}
+              addText={t('Add Annotation')}
+              hiddenKeys={globals.config.preservedAnnotations}
+            />
+          </Form.Item>
+        )}
       </>
     )
   }

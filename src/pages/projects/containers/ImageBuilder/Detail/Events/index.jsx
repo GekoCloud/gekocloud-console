@@ -42,7 +42,7 @@ class Events extends React.Component {
 
   fetchData = () => {
     const { uid, name, namespace } = this.store.jobDetail
-
+    const { cluster } = this.props.match.params
     const fields = {
       'involvedObject.name': name,
       'involvedObject.namespace': namespace,
@@ -51,6 +51,7 @@ class Events extends React.Component {
     }
 
     this.eventStore.fetchList({
+      cluster,
       namespace: this.namespace,
       fieldSelector: joinSelector(fields),
     })
@@ -63,5 +64,5 @@ class Events extends React.Component {
   }
 }
 
-export default inject('rootStore')(observer(Events))
+export default inject('s2iRunStore')(observer(Events))
 export const Component = Events

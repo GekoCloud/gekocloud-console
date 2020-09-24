@@ -19,8 +19,8 @@
 import React from 'react'
 import { parse } from 'qs'
 import classnames from 'classnames'
-import { toJS, reaction } from 'mobx'
-import { throttle, isEmpty, isFunction } from 'lodash'
+import { toJS } from 'mobx'
+import { isEmpty, isFunction } from 'lodash'
 import { Menu, Icon, Dropdown } from '@pitrix/lego-ui'
 import { cacheFunc } from 'utils'
 import { MODULE_KIND_MAP } from 'utils/constants'
@@ -48,29 +48,6 @@ export default class BaseList extends React.Component {
     this.store = {}
   }
 
-  initWebsocket() {
-    const { namespace } = this.props.match.params
-
-    if (namespace && 'getWatchListUrl' in this.store) {
-      const url = this.store.getWatchListUrl({ namespace })
-
-      this.websocket.watch(url)
-
-      this.getData = throttle(this.getData, 1000)
-
-      this.disposer = reaction(
-        () => this.websocket.message,
-        message => {
-          const kind = MODULE_KIND_MAP[this.module]
-          if (message.object.kind === kind && message.type === 'MODIFIED') {
-            const params = parse(location.search.slice(1))
-            this.getData({ ...params, silent: true })
-          }
-        }
-      )
-    }
-  }
-
   componentDidMount() {
     this.unsubscribe = this.routing.history.subscribe(location => {
       if (location.pathname === this.props.match.url) {
@@ -81,8 +58,6 @@ export default class BaseList extends React.Component {
   }
 
   componentWillUnmount() {
-    this.unsubscribe && this.unsubscribe()
-    this.disposer && this.disposer()
     this.unMountActions && this.unMountActions()
   }
 
@@ -90,8 +65,8 @@ export default class BaseList extends React.Component {
     return globals.app.getActions({
       module: this.authKey,
       workspace: this.props.match.params.workspace,
-      project:
-        this.props.match.params.namespace || this.props.match.params.project_id,
+      project: this.props.match.params.namespace,
+      devops: this.props.match.params.devops,
     })
   }
 
@@ -123,12 +98,8 @@ export default class BaseList extends React.Component {
     return this.props.rootStore.routing
   }
 
-  get websocket() {
-    return this.props.rootStore.websocket
-  }
-
   get list() {
-    return this.store.list
+    return this.store.list || {}
   }
 
   get tips() {

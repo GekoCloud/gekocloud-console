@@ -25,7 +25,7 @@ export default {
   disconnected: '未连接',
   'Kubeconfig File': 'Kubeconfig 文件',
   'Put this into': '把它加入到',
-  'Geko Cloud Terminal': 'Geko Cloud 终端',
+  'KubeSphere Terminal': 'KubeSphere 终端',
   'Download File': '下载文件',
 
   KUBECONFIG_TIP: `

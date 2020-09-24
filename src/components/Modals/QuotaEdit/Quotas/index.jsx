@@ -37,10 +37,10 @@ export default class Quotas extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.data !== this.props.data) {
+  componentDidUpdate(prevProps) {
+    if (prevProps.data !== this.props.data) {
       this.setState({
-        items: [{ module: 'pods' }, ...this.getItems(nextProps)],
+        items: [{ module: 'pods' }, ...this.getItems(this.props)],
       })
     }
   }
@@ -107,6 +107,7 @@ export default class Quotas extends React.Component {
               onModuleDelete={this.handleItemModuleDelete}
               filterModules={filterModules}
               disableSelect={item.module === 'pods'}
+              isFederated={this.props.isFederated}
             />
           </Form.Item>
         ))}

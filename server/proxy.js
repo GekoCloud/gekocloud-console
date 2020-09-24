@@ -25,12 +25,14 @@ const { server: serverConfig } = getServerConfig()
 const NEED_OMIT_HEADERS = ['cookie', 'referer']
 
 const k8sResourceProxy = {
-  target: serverConfig.gatewayServer.url,
+  target: serverConfig.apiServer.url,
   changeOrigin: true,
   events: {
     proxyReq(proxyReq, req) {
       // Set authorization
-      proxyReq.setHeader('Authorization', `Bearer ${req.token}`)
+      if (req.token) {
+        proxyReq.setHeader('Authorization', `Bearer ${req.token}`)
+      }
 
       NEED_OMIT_HEADERS.forEach(key => proxyReq.removeHeader(key))
     },
@@ -38,9 +40,7 @@ const k8sResourceProxy = {
 }
 
 const devopsWebhookProxy = {
-  target: `${
-    serverConfig.gatewayServer.url
-  }/kapis/devops.kubesphere.io/v1alpha2`,
+  target: `${serverConfig.apiServer.url}/kapis/devops.kubesphere.io/v1alpha2`,
   changeOrigin: true,
   ignorePath: true,
   optionsHandle(options, req) {
@@ -49,7 +49,7 @@ const devopsWebhookProxy = {
 }
 
 const b2iFileProxy = {
-  target: serverConfig.gatewayServer.url,
+  target: serverConfig.apiServer.url,
   changeOrigin: true,
   ignorePath: true,
   selfHandleResponse: true,

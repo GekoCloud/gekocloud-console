@@ -24,8 +24,8 @@ import { Icon } from '@pitrix/lego-ui'
 import styles from './index.scss'
 
 const STATES = {
-  current: 'Setting up',
-  finished: 'Has been set',
+  current: 'Setting',
+  finished: 'Finished',
   notfinish: 'Not set',
 }
 
@@ -51,7 +51,8 @@ export default class Steps extends React.Component {
     const { current } = this.props
     if (index === current) {
       return 'current'
-    } else if (index < current) {
+    }
+    if (index < current) {
       return 'finished'
     }
 

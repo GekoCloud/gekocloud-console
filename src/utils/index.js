@@ -31,9 +31,7 @@ import {
 import generate from 'nanoid/generate'
 import moment from 'moment-mini'
 
-import cookie from 'utils/cookie'
-
-import { PATTERN_LABEL, LANG_MAP, MODULE_KIND_MAP } from './constants'
+import { PATTERN_LABEL, MODULE_KIND_MAP } from './constants'
 
 /**
  * format size, output the value with unit
@@ -134,6 +132,14 @@ export const safeParseJSON = (json, defaultValue) => {
   return result
 }
 
+export const safeAtob = str => {
+  let result = ''
+  try {
+    result = atob(str)
+  } catch (e) {}
+  return result
+}
+
 export const isSystemRole = role => /^system:/.test(role)
 
 /**
@@ -161,10 +167,13 @@ export const getLocalTime = time => {
 export const capitalize = string =>
   string.charAt(0).toUpperCase() + string.slice(1).toLowerCase()
 
-export const getQueryString = params =>
+export const getQueryString = (params, hasEncode = true) =>
   Object.keys(params)
     .filter(key => params[key])
-    .map(key => `${key}=${params[key]}`)
+    .map(
+      key =>
+        `${key}=${hasEncode ? encodeURIComponent(params[key]) : params[key]}`
+    )
     .join('&')
 
 export const getFilterString = (
@@ -190,7 +199,7 @@ export const isValidLabel = label =>
   )
 
 export const updateLabels = (template, module, value) => {
-  const formTemplate = template[MODULE_KIND_MAP[module]]
+  const formTemplate = template[MODULE_KIND_MAP[module]] || template
 
   set(formTemplate, 'metadata.labels', value)
 
@@ -202,9 +211,30 @@ export const updateLabels = (template, module, value) => {
     set(formTemplate, 'spec.jobTemplate.metadata.labels', value)
   }
 
-  if (['ingresses'].indexOf(module) === -1) {
+  if (['ingresses', 'persistentvolumeclaims'].indexOf(module) === -1) {
     set(formTemplate, 'spec.template.metadata.labels', value)
   }
+}
+
+export const updateFederatedAnnotations = template => {
+  const annotations = get(template, 'metadata.annotations', {})
+  const overrides = get(template, 'spec.overrides', [])
+
+  overrides.forEach(od => {
+    od.clusterOverrides = od.clusterOverrides || []
+    const cod = od.clusterOverrides.find(
+      item => item.path === '/metadata/annotations'
+    )
+    if (cod) {
+      cod.value = annotations
+    } else {
+      od.clusterOverrides.push({
+        path: '/metadata/annotations',
+        value: annotations,
+      })
+    }
+  })
+  set(template, 'spec.overrides', overrides)
 }
 
 const merge = (origin, path, newObj) => {
@@ -221,19 +251,25 @@ export const mergeLabels = (formData, labels) => {
     return
   }
 
+  const isFederated = formData.kind.startsWith('Federated')
+  const prefix = isFederated ? 'spec.template.' : ''
+
+  isFederated && merge(formData, `metadata.labels`, labels)
+
   switch (formData.kind) {
     case 'Deployment':
     case 'DaemonSet':
     case 'StatefulSet':
-      merge(formData, 'metadata.labels', labels)
-      merge(formData, 'spec.selector.matchLabels', labels)
-      merge(formData, 'spec.template.metadata.labels', labels)
+      merge(formData, `${prefix}metadata.labels`, labels)
+      merge(formData, `${prefix}spec.selector.matchLabels`, labels)
+      merge(formData, `${prefix}spec.template.metadata.labels`, labels)
       break
     case 'Service':
-      merge(formData, 'metadata.labels', labels)
-      merge(formData, 'spec.selector', labels)
+      merge(formData, `${prefix}metadata.labels`, labels)
+      merge(formData, `${prefix}spec.selector`, labels)
       break
     default:
+      merge(formData, `${prefix}metadata.labels`, labels)
   }
 }
 
@@ -283,9 +319,13 @@ export const memoryFormat = (memory, unit = 'Mi') => {
 
   let value = Number(trimEnd(memory.toLowerCase(), currentUnit))
 
-  if (/m$/g.test(memory)) {
-    // transfer to ki
+  if (/m$/g.test(String(memory))) {
+    // transfer m to ki
     value = Number(trimEnd(memory, 'm')) / (1000 * 1024)
+    currentUnitIndex = 0
+  } else if (/^[0-9.]*$/.test(String(memory))) {
+    // transfer bytes to ki
+    value = Number(memory) / 1024
     currentUnitIndex = 0
   }
 
@@ -352,16 +392,14 @@ export const getWebSocketProtocol = protocol => {
 }
 
 export const getDocsUrl = module => {
-  const lang = LANG_MAP[cookie('lang') || getBrowserLang()]
-
-  const { url: prefix, version } = globals.config.documents
+  const { url: prefix } = globals.config.documents
   const docUrl = get(globals.config, `resourceDocs[${module}]`, '')
 
   if (!docUrl) {
     return ''
   }
 
-  return `${prefix}/${version}/${lang}${docUrl}`
+  return `${prefix}${docUrl}`
 }
 
 export const hasChinese = str => /.*[\u4E00-\u9FA5]+.*/.test(str)
@@ -369,9 +407,13 @@ export const hasChinese = str => /.*[\u4E00-\u9FA5]+.*/.test(str)
 export const getBrowserLang = () => {
   const lang = (navigator.language || navigator.browserLanguage).toLowerCase()
 
+  if (lang === 'zh-tw') {
+    return 'tc'
+  }
   if (lang.indexOf('zh') !== -1) {
     return 'zh'
-  } else if (lang.indexOf('en') !== -1) {
+  }
+  if (lang.indexOf('en') !== -1) {
     return 'en'
   }
 
@@ -457,3 +499,22 @@ export const withDryRun = async requests => {
  */
 export const isAppsPage = (path = location.pathname) =>
   path === '/apps' || path.startsWith('/apps/app-')
+
+export const getClusterUrl = url => {
+  let requestURL = url
+
+  const reg = new RegExp(/\/(api|apis|kapis)\/(.*)\/?(klusters\/[^/]*)\/(.*)/)
+  const match = requestURL.match(reg)
+
+  if (match && match.length === 5) {
+    requestURL = globals.app.isMultiCluster
+      ? `/${match[1]}/${match[3].replace('klusters', 'clusters')}/${match[2]}/${
+          match[4]
+        }`
+      : `/${match[1]}/${match[2]}/${match[4]}`
+  }
+
+  return requestURL.replace(/\/\/+/, '/')
+}
+
+export const lazy = ctor => () => ctor()

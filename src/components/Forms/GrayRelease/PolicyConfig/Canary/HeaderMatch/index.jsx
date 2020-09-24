@@ -26,6 +26,17 @@ import styles from './index.scss'
 
 const RESERVED_KEYS = ['cookie', 'User-Agent']
 
+const getStateFromProps = props => {
+  const keys = Object.keys(props.value).filter(
+    item => !RESERVED_KEYS.includes(item)
+  )
+  const key = keys[0]
+  const match = (key ? Object.keys(props.value[key])[0] : 'exact') || 'exact'
+  const value = (key ? Object.values(props.value[key])[0] : '') || ''
+
+  return { key, match, value }
+}
+
 export default class HeaderMatch extends React.Component {
   static propTypes = {
     value: PropTypes.object,
@@ -40,29 +51,7 @@ export default class HeaderMatch extends React.Component {
   constructor(props) {
     super(props)
 
-    this.state = this.getStateFromProps(props)
-  }
-
-  componentWillReceiveProps(nextProps) {
-    const nextState = this.getStateFromProps(nextProps)
-    if (
-      nextState.key !== this.state.key ||
-      nextState.match !== this.state.match ||
-      nextState.value !== this.state.value
-    ) {
-      return this.setState(nextState)
-    }
-  }
-
-  getStateFromProps(props) {
-    const keys = Object.keys(props.value).filter(
-      item => !RESERVED_KEYS.includes(item)
-    )
-    const key = keys[0]
-    const match = (key ? Object.keys(props.value[key])[0] : 'exact') || 'exact'
-    const value = (key ? Object.values(props.value[key])[0] : '') || ''
-
-    return { key, match, value }
+    this.state = getStateFromProps(props)
   }
 
   get matchTypes() {

@@ -24,7 +24,7 @@ import ImageBuilderLastRun from 'projects/components/Cards/ImageBuilderLastRun'
 import RunRecords from 'projects/components/Cards/ImageRunRecord'
 import styles from './index.scss'
 
-@inject('rootStore')
+@inject('detailStore', 's2iRunStore')
 @observer
 class BuildRecords extends React.Component {
   get store() {
@@ -43,7 +43,11 @@ class BuildRecords extends React.Component {
       <React.Fragment>
         <div className={styles.title}>{t('Last build environment')}</div>
         <div className={styles.card}>
-          <ImageBuilderLastRun isB2i={this.isB2i} runDetail={runDetail} />
+          <ImageBuilderLastRun
+            isB2i={this.isB2i}
+            runDetail={runDetail}
+            params={params}
+          />
         </div>
         <div className={styles.title}>{t('Jobs Records')}</div>
         <div className={styles.card}>

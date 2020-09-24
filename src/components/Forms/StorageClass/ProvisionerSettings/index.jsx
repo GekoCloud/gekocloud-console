@@ -17,9 +17,9 @@
  */
 
 import React from 'react'
-import { get, set } from 'lodash'
+import { get, set, omit } from 'lodash'
 import { Form } from 'components/Base'
-import { CardSelect } from 'components/Inputs'
+import CardSelect from 'components/Inputs/CardSelect'
 import { MODULE_KIND_MAP, PROVISIONERS } from 'utils/constants'
 
 import styles from './index.scss'
@@ -28,11 +28,17 @@ export default class ProvisionerSettings extends React.Component {
   constructor(props) {
     super(props)
 
-    const { provisioner = PROVISIONERS[0].value } = this.formTemplate
-    set(this.formTemplate, 'provisioner', provisioner)
+    if (!this.formTemplate.provisioner) {
+      this.formTemplate.provisioner = PROVISIONERS[0].value
+      set(
+        this.formTemplate,
+        "metadata.annotations['kubesphere.io/provisioner']",
+        this.formTemplate.provisioner
+      )
+    }
 
     this.state = {
-      provisioner,
+      provisioner: this.formTemplate.provisioner,
     }
   }
 
@@ -42,7 +48,7 @@ export default class ProvisionerSettings extends React.Component {
   }
 
   provisionersOptions = [
-    ...PROVISIONERS,
+    ...PROVISIONERS.map(item => omit(item, ['description'])),
     { label: t('Custom'), value: '', icon: 'hammer' },
   ]
 
@@ -56,6 +62,7 @@ export default class ProvisionerSettings extends React.Component {
   }
 
   updateParams() {
+    this.formTemplate.provisioner = this.state.provisioner
     this.formTemplate.parameters = {}
   }
 
@@ -77,7 +84,7 @@ export default class ProvisionerSettings extends React.Component {
         >
           <CardSelect
             onChange={this.changeProvisioner}
-            name="provisioner"
+            name="metadata.annotations['kubesphere.io/provisioner']"
             options={this.provisionersOptions}
           />
         </Form.Item>

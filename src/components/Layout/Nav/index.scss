@@ -30,8 +30,6 @@
           .icon {
             margin-right: 8px;
             vertical-align: text-bottom;
-            color: #65a428;
-fill: #d8da00;
           }
 
           .qicon-chevron-down {
@@ -57,13 +55,13 @@ fill: #d8da00;
           color: $primary;
 
           :global .qicon {
-            color: #65a428;
-fill: #d8da00;
+            color: #00aa72;
+            fill: #90e0c5;
           }
 
           .devopsIcon {
-            color: #65a428;
-fill: #d8da00;
+            color: #00aa72;
+            fill: #90e0c5;
           }
         }
 
@@ -80,6 +78,37 @@ fill: #d8da00;
           transition: height $trans-speed ease-in-out,
             margin-top $trans-speed ease-in-out,
             opacity $trans-speed ease-in-out 0.1s;
+        }
+      }
+
+      &.disabled {
+        opacity: 0.7;
+
+        &.select,
+        &:hover,
+        &:active {
+          & > a {
+            color: #4a5974;
+            cursor: not-allowed;
+          }
+
+          :global .qicon {
+            color: #324558;
+            fill: #b6c2cd;
+          }
+        }
+
+        .title {
+          :global .qicon-chevron-down {
+            transform: none;
+          }
+        }
+
+        .innerNav > li {
+          height: 0;
+          opacity: 0;
+          margin: 0;
+          overflow: hidden;
         }
       }
 
@@ -114,6 +143,19 @@ fill: #d8da00;
     &:active {
       & > a {
         color: $primary;
+      }
+    }
+
+    &.disabled {
+      opacity: 0.7 !important;
+
+      &.select,
+      &:hover,
+      &:active {
+        & > a {
+          color: #4a5974;
+          cursor: not-allowed;
+        }
       }
     }
   }

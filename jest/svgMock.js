@@ -13,7 +13,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with KubGeko CloudeSphere Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Geko Cloud Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 module.exports = { ReactComponent: 'svg-mock' }

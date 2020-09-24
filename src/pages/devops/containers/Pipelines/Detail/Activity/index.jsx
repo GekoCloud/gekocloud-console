@@ -21,12 +21,13 @@ import {
   result as _result,
   get,
   omit,
+  isEmpty,
   debounce,
   isArray,
   isUndefined,
 } from 'lodash'
 import { Link } from 'react-router-dom'
-import { toJS, action } from 'mobx'
+import { toJS } from 'mobx'
 import { parse } from 'qs'
 import { observer, inject } from 'mobx-react'
 import { Level, LevelLeft, LevelRight } from '@pitrix/lego-ui'
@@ -69,9 +70,11 @@ export default class Activity extends React.Component {
   }
 
   get enabledActions() {
+    const { devops } = this.props.match.params
     return globals.app.getActions({
       module: 'pipelines',
-      project: this.props.match.params.project_id,
+      cluster: this.props.match.params.cluster,
+      devops,
     })
   }
 
@@ -99,6 +102,7 @@ export default class Activity extends React.Component {
     const { params } = this.props.match
     const isMutibranch = detail.branchNames
     const hasParameters = detail.parameters && detail.parameters.length
+
     if (isMutibranch || hasParameters) {
       this.setState({ showBranchModal: true })
     } else {
@@ -126,7 +130,7 @@ export default class Activity extends React.Component {
   }
 
   get isMutibranch() {
-    return this.store.detail && this.store.detail.scmSource
+    return this.store.detail && !isEmpty(toJS(this.store.detail.scmSource))
   }
 
   rowKeys = record => `${record.startTime}${record.queueId}`
@@ -134,10 +138,14 @@ export default class Activity extends React.Component {
   handleReplay = record => async () => {
     const { params } = this.props.match
 
-    const url = `devops/${params.project_id}/pipelines/${
+    const url = `devops/${params.devops}/pipelines/${
       params.name
     }${this.getActivityDetailLinks(record)}`
-    await this.props.detailStore.handleActivityReplay(url)
+
+    await this.props.detailStore.handleActivityReplay({
+      url,
+      cluster: params.cluster,
+    })
     this.handleFetch()
   }
 
@@ -146,8 +154,9 @@ export default class Activity extends React.Component {
     const { detail } = this.props.detailStore
 
     await this.props.detailStore.scanRepository({
-      project_id: params.project_id,
+      devops: params.devops,
       name: detail.name,
+      cluster: params.cluster,
     })
     this.store.fetchDetail(params)
     Notify.success({
@@ -155,30 +164,21 @@ export default class Activity extends React.Component {
     })
   }
 
-  @action
-  handleBranchSelect = async branch => {
-    const { params } = this.props.match
-
-    const result = await this.store.getBranchDetail({
-      ...params,
-      branch,
-    })
-
-    if (result.parameters) {
-      this.store.detail.parameters = result.parameters
-    }
-  }
-
   handleStop = record => async () => {
     const { params } = this.props.match
 
-    const url = `devops/${params.project_id}/pipelines/${
+    const url = `devops/${params.devops}/pipelines/${
       params.name
     }${this.getActivityDetailLinks(record)}`
-    await this.props.detailStore.handleActivityStop(url)
+    await this.props.detailStore.handleActivityStop({
+      url,
+      cluster: params.cluster,
+    })
+
     Notify.success({
       content: t('Stop Job Successfully, Status updated later'),
     })
+
     this.handleFetch()
   }
 
@@ -260,7 +260,7 @@ export default class Activity extends React.Component {
           },
         ]),
     {
-      title: t('Last message'),
+      title: t('Last Message'),
       dataIndex: 'causes',
       width: '25%',
       render: causes => _result(causes, '[0].shortDescription', ''),
@@ -269,7 +269,8 @@ export default class Activity extends React.Component {
       title: t('Duration'),
       dataIndex: 'durationInMillis',
       width: '10%',
-      render: durationInMillis => formatUsedTime(durationInMillis),
+      render: durationInMillis =>
+        durationInMillis ? formatUsedTime(durationInMillis) : '-',
     },
     {
       title: t('Updated Time'),
@@ -284,7 +285,7 @@ export default class Activity extends React.Component {
       render: record => {
         if (
           (record.branch && !record.commitId) ||
-          !this.enabledActions.includes('trigger')
+          !this.enabledActions.includes('edit')
         ) {
           return null
         }
@@ -311,7 +312,7 @@ export default class Activity extends React.Component {
       type: 'control',
       key: 'run',
       text: t('Run'),
-      action: 'trigger',
+      action: 'edit',
       onClick: this.handleRun,
     },
   ]
@@ -323,11 +324,10 @@ export default class Activity extends React.Component {
     return (
       <BranchSelectModal
         onOk={this.handleRunBranch}
-        onBranchSelect={this.handleBranchSelect}
         onCancel={this.hideBranchModal}
         visible={this.state.showBranchModal}
         branches={toJS(detail.branchNames)}
-        parameters={detail.parameters}
+        parameters={toJS(detail.parameters)}
         params={params || {}}
       />
     )
@@ -368,7 +368,7 @@ export default class Activity extends React.Component {
 
     const omitFilters = omit(filters, 'page')
 
-    const runnable = this.enabledActions.includes('trigger')
+    const runnable = this.enabledActions.includes('edit')
 
     if (isEmptyList && !filters.page) {
       if (isMutibranch && !detail.branchNames.length) {

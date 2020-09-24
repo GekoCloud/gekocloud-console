@@ -46,7 +46,7 @@ export default class AboutModal extends Component {
       >
         <div className={styles.describtion}>
           <div>
-            <img src="/assets/logo_cloud.svg" alt="" />
+            <img src="/assets/logo.svg" alt="" />
           </div>
           <p>{t('KS_DESCRIPTION')}</p>
           <strong>
@@ -55,11 +55,37 @@ export default class AboutModal extends Component {
         </div>
 
         <div className={styles.links}>
-          <div className={styles.right}>
-          <span>
+          <div className={styles.left}>
+            <span>
+              <a href={reposUrl} target="_blank">
+                <img src="/assets/github.svg" alt="github" />
+                <strong>{t('REPS_ADDRESS')}</strong>
+              </a>
+            </span>
+            <span>
               <a href={issueUrl} target="_blank">
                 <img src="/assets/bug.svg" alt="bug" />
                 <strong>{t('ISSUE_FEEDBACK')}</strong>
+              </a>
+            </span>
+          </div>
+          <div className={styles.right}>
+            <span>
+              <a href={slackUrl} target="_blank">
+                <img src="/assets/slack.svg" alt="slack" />
+                <strong>{t('PART_IN_DISCUSSION')}</strong>
+              </a>
+            </span>
+            <span>
+              <a href={reposUrl} target="_blank">
+                <img src="/assets/blue-theme-git.svg" alt="git" />
+                <strong>{t('CODE_CONTRIBUTE')}</strong>
+              </a>
+            </span>
+            <span>
+              <a href={reposUrl} target="_blank">
+                <img src="/assets/star.svg" alt="star" />
+                <strong>{t('GITHUB_STAR')}</strong>
               </a>
             </span>
           </div>

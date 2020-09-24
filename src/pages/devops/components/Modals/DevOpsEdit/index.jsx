@@ -19,13 +19,12 @@
 import { get } from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { toJS } from 'mobx'
 import { observer } from 'mobx-react'
-import { Input, TextArea } from '@pitrix/lego-ui'
-import { Modal, Form } from 'components/Base'
+import { Input } from '@pitrix/lego-ui'
+import { Modal, Form, TextArea } from 'components/Base'
 import { PATTERN_NAME } from 'utils/constants'
 
-import WorkspaceMemberStore from 'stores/workspace/member'
+import WorkspaceMemberStore from 'stores/user'
 
 @observer
 export default class DevOpsEditModal extends React.Component {
@@ -59,31 +58,18 @@ export default class DevOpsEditModal extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (
-      nextProps.detail &&
-      nextProps.detail.project_id &&
-      nextProps.detail.project_id !== get(this.props, 'detail.project_id')
-    ) {
+  componentDidUpdate(prevProps) {
+    const { detail, workspace } = this.props
+    if (detail.name && detail.name !== get(prevProps, 'detail.name')) {
       this.store.fetchList({
         limit: Infinity,
-        workspace: nextProps.workspace,
+        workspace,
       })
     }
   }
 
-  getMembersOptions() {
-    const { data } = toJS(this.store.list)
-
-    return data.map(member => ({
-      label: member.username,
-      value: member.username,
-    }))
-  }
-
   handleOk = data => {
     const { onOk } = this.props
-
     onOk(data)
   }
 
@@ -109,13 +95,16 @@ export default class DevOpsEditModal extends React.Component {
             { pattern: PATTERN_NAME, message: t('PATTERN_NAME_INVALID_TIP') },
           ]}
         >
-          <Input name="name" />
+          <Input name="name" disabled />
         </Form.Item>
         <Form.Item label={t('Creator')} desc={t('DEVOPS_ADMIN_DESC')}>
           <Input name="creator" disabled />
         </Form.Item>
+        <Form.Item label={t('Alias')} desc={t('ALIAS_DESC')}>
+          <Input name="aliasName" maxLength={63} />
+        </Form.Item>
         <Form.Item label={t('Description')} desc={t('DESCRIPTION_DESC')}>
-          <TextArea name="description" />
+          <TextArea maxLength={256} name="description" />
         </Form.Item>
       </Modal.Form>
     )
