@@ -78,7 +78,7 @@ class Header extends React.Component {
         <Link to={isAppsPage() && !globals.user ? '/apps' : '/'}>
           <img
             className={styles.logo}
-            src={isAppsPage() ? `/assets/login-logo.svg` : logo}
+            src={isAppsPage() ? `/assets/smartkube_logo.svg` : logo}
             alt=""
           />
         </Link>

@@ -6,9 +6,9 @@ body {
   height: 100%;
   line-height: 1;
   font-size: 14px;
-  font-family: 'PingFang SC', 'Lantinghei SC', 'Helvetica Neue', Helvetica,
-    Arial, 'Microsoft YaHei', 微软雅黑, STHeitiSC-Light, simsun, 宋体,
-    'WenQuanYi Zen Hei', 'WenQuanYi Micro Hei', sans-serif;
+  font-family: "PingFang SC", "Lantinghei SC", "Helvetica Neue", Helvetica,
+    Arial, "Microsoft YaHei", 微软雅黑, STHeitiSC-Light, simsun, 宋体,
+    "WenQuanYi Zen Hei", "WenQuanYi Micro Hei", sans-serif;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -35,8 +35,8 @@ img {
 svg {
   height: 20px;
   width: 20px;
-  color: #C0690C;
-  fill: #F9CE9F;
+  color: #c0690c;
+  fill: #f9ce9f;
 }
 
 ::selection {
@@ -51,14 +51,14 @@ svg {
 
 .logo {
   position: absolute;
-  top: 80px;
+  top: 50px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .logo img {
-  width: 180px;
-  height: 40px;
+  width: 150px;
+  height: 85px;
 }
 
 .login {
@@ -76,7 +76,7 @@ svg {
   position: relative;
   font-weight: 600;
   font-size: 12px;
-  color: #3563AD;
+  color: #3563ad;
   line-height: 20px;
   text-align: center;
 }
@@ -96,7 +96,7 @@ svg {
   padding: 6px;
   border-radius: 2px;
   background-color: #eff4f9;
-  color: #3563AD;
+  color: #3563ad;
   font-size: 12px;
   font-weight: 500;
   line-height: 20px;
@@ -131,7 +131,7 @@ svg {
   font-size: 12px;
   line-height: 20px;
   font-weight: 600;
-  color: #3563AD;
+  color: #3563ad;
   margin-bottom: 4px;
 }
 
@@ -161,7 +161,7 @@ svg {
 }
 
 .login-form-item input:focus {
-  border-color: #F18918;
+  border-color: #f18918;
 }
 
 input::placeholder {
@@ -207,7 +207,7 @@ input::-webkit-input-placeholder {
   text-align: right;
 }
 
-.login-form button[type='submit'] {
+.login-form button[type="submit"] {
   position: relative;
   width: 100%;
   height: 32px;
@@ -218,30 +218,30 @@ input::-webkit-input-placeholder {
   font-weight: 500;
   line-height: 20px;
   box-shadow: 0 8px 16px 0 rgba(36, 46, 66, 0.28);
-  border: solid 1px #3563AD;
-  background-color: #3563AD;
+  border: solid 1px #3563ad;
+  background-color: #3563ad;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
 }
 
-.login-form button[type='submit']:hover {
+.login-form button[type="submit"]:hover {
   box-shadow: none;
 }
 
-.login-form button[type='submit']:focus {
+.login-form button[type="submit"]:focus {
   outline: none;
   box-shadow: none;
 }
 
-.login-form button[type='submit'] > svg {
+.login-form button[type="submit"] > svg {
   display: none;
   vertical-align: middle;
   width: 16px;
   height: 16px;
 }
 
-.login-form button[type='submit'].loading > svg {
-  display: inline-block; 
+.login-form button[type="submit"].loading > svg {
+  display: inline-block;
 }
 
 .login-form button[disabled] {
@@ -269,7 +269,7 @@ input::-webkit-input-placeholder {
   top: -24px;
   font-size: 12px;
   line-height: 1.67;
-  color: #F18918;
+  color: #f18918;
   cursor: pointer;
 }
 

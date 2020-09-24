@@ -65,15 +65,57 @@ for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v D
 for i in $(grep -ri "#36435c" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#36435c%#65a428%gI' $i; done
 ```
 
+Aquí tenemos un listado completo con los comandos para reemplazar los colores de forma masiva:
+
+> WARN: Puede ser que alguno de los siguientes comandos no estén bien
+
+```yaml
+for i in $(grep -ri "#36435c" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#242E42%#335413%gI' $i; done
+for i in $(grep -ri "#242E42" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#242e42%#335413%gI' $i; done
+for i in $(grep -ri "#65A428" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#65A428%#3563ad%gI' $i; done
+for i in $(grep -ri "#D8DA00" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#D8DA00%#F18918%gI' $i; done
+for i in $(grep -ri "#65A428" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#65a428%#3563AD%gI' $i; done
+for i in $(grep -ri "#335413" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#335413%#3563AD%gI' $i; done
+for i in $(grep -ri "#55bc8a" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#55bc8a%#F18918%gI' $i; don
+for i in $(grep -ri "#00aa72" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#00aa72%#C0690C%gI' $i; done
+for i in $(grep -ri "#dbefe2" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#dbefe2%#90e0c5%gI' $i; done
+for i in $(grep -ri "#90e0c5" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#90e0c5%#F9CE9F%gI' $i; done
+# for i in $(grep -ri "#F9CE9F" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#F9CE9F%#FDF3E7%gI' $i; done
+for i in $(grep -ri "#329dce" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#329dce%#F18918%gI' $i; done
+for i in $(grep -ri "#324558" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#324558%#C0690C%gI' $i; done
+for i in $(grep -ri "#b6c2cd" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#b6c2cd%#F9CE9F%gI' $i; done
+```
+
 ### Cambiar ruta al logo
 
 ```yaml
 for i in $(grep -ri "/assets/logo.svg" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%/assets/logo.svg%/assets/smartkube_logo.svg%g' $i; done
+sed -i 's%assets/login-logo.svg%assets/smartkube_logo.svg%g' src/components/Layout/Header/index.jsx
+```
+
+### Modificar color subtítulos (texto debajo de titles)
+
+```yaml
+sed -i 's%#79879c%#4f7ec9%gI' ./src/scss/variables.scss
+```
+
+### Modificar colores mayoría iconos
+
+Los iconos heredan de la dependencia "lego", por lo que no hay ningún lugar en el código donde esté especificado.
+
+Añadir nuevo bloque en: ./src/scss/lego.custom.scss
+
+```yaml
+.qicon-dark {
+  color: #3563ad;
+  fill: #8aa9db;
+}
 ```
 
 ### Modificar tamaño logo en:
 
-- Header: ./src/components/Layout/Header/index.scss -> Cambiar a 115px x 70px
+- Pantalla login: ./server/public/login.css -> Cambiar a 150px x 85px (clase .logo img) + cambiar top: 80px a top: 50px (clase .logo)
+- Header: ./src/components/Layout/Header/index.scss -> Cambiar a 115px x 70px (clase .logo)
 - Platform info: ./src/pages/settings/containers/BaseInfo/index.scss -> Cambiar a 150px x 85px
 - About screen: ./src/components/Modals/About/index.scss -> Cambiar a 150px x 85px
 
@@ -136,6 +178,14 @@ color: #3563AD;  # Blau
 fill: #F18918:  # Taronja
 ```
 
+Colors secundaris:
+
+```yaml
+color: #1e3862;  # Blau fosc
+color: #4f7ec9;  # Blau clar
+color: #8aa9db;  # Blau més clar
+```
+
 #### Iconos settings (clusters management, access control, etc)
 
 ```yaml
@@ -158,7 +208,7 @@ fill: #F9CE9F; (naranja claro)
 #### Pantalla overview (fondo icono derecha)
 
 ```yaml
-color: #FDF3E7;
+color: #F9CE9F;
 ```
 
 #### Menú flotante background selected (click en platform)
