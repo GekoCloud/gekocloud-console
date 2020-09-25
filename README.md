@@ -121,6 +121,79 @@ Añadir nuevo bloque en: ./src/scss/lego.custom.scss
 }
 ```
 
+### Modificar texto "About"
+
+```yaml
+sed -i 's%Smartkube 是一款开源项目%Smartkube平台基于一个开源项目 Kubesphere%g' ./src/locales/zh/base.js
+sed -i 's%Smartkube 是一款开源项目%Smartkube平台基于一个开源项目 Kubesphere%g' ./src/locales/tc/base.js
+sed -i 's%Smartkube is an open source project aiming to provide %Smartkube Platform is based on an open source project called Kubesphere that provide %g' ./src/locales/en/base.js
+sed -i 's%Smartkube es un proyecto de código abierto que tiene como objetivo %Smartkube está basado en un proyecto de código abierto llamado Kubesphere que tiene como objetivo %g' ./src/locales/es/base.js
+```
+
+### Modificar enlaces sección "About"
+
+Aunque quitaremos los bloques, también dejaremos los enlaces en blanco por si acaso:
+
+```yaml
+sed -i 's%issueUrl: https://github.com/kubesphere/kubesphere/issues/new/choose%issueUrl: https://geko.cloud/contact%g' ./server/config.yaml
+sed -i 's%reposUrl: https://github.com/kubesphere/kubesphere%reposUrl: ""' ./server/config.yaml
+sed -i 's%reposUrl: https://github.com/kubesphere/kubesphere%reposUrl: ""' ./server/config.yaml
+sed -i 's%slackUrl: https://kubesphere.slack.com%slackUrl: ""' ./server/config.yaml
+sed -i 's%    url: https://v3-0.docs.kubesphere.io/docs%    url: ""' ./server/config.yaml
+sed -i 's%    api: https://v3-0.docs.kubesphere.io/docs%    api: ""' ./server/config.yaml
+```
+
+Para quitar los bloques tendremos que editar a mano este fichero: ./src/components/Modals/About/index.jsx. Busca y comenta estos bloques:
+
+```yaml
+    <div className={styles.describtion}>
+        <div>
+        <img src="/assets/smartkube_logo.png" alt="" />
+        </div>
+        <p>{t("KS_DESCRIPTION")}</p>
+        <strong>
+        Smartkube {t("Version")} : {version.kubesphere}
+        </strong>
+    </div>
+
+    <div className={styles.links}>
+        <div className={styles.left}>
+        {/* <span>
+            <a href={reposUrl} target="_blank">
+            <img src="/assets/github.svg" alt="github" />
+            <strong>{t('REPS_ADDRESS')}</strong>
+            </a>
+        </span> */}
+        <span>
+            <a href={issueUrl} target="_blank">
+            <img src="/assets/bug.svg" alt="bug" />
+            <strong>{t("ISSUE_FEEDBACK")}</strong>
+            </a>
+        </span>
+        </div>
+        <div className={styles.right}>
+        {/* <span>
+            <a href={slackUrl} target="_blank">
+            <img src="/assets/slack.svg" alt="slack" />
+            <strong>{t("PART_IN_DISCUSSION")}</strong>
+            </a>
+        </span>
+        <span>
+            <a href={reposUrl} target="_blank">
+            <img src="/assets/blue-theme-git.svg" alt="git" />
+            <strong>{t("CODE_CONTRIBUTE")}</strong>
+            </a>
+        </span>
+        <span>
+            <a href={reposUrl} target="_blank">
+            <img src="/assets/star.svg" alt="star" />
+            <strong>{t("GITHUB_STAR")}</strong>
+            </a>
+        </span> */}
+        </div>
+    </div>
+```
+
 ### Modificar tamaño logo en:
 
 - Pantalla login: ./server/public/login.css -> Cambiar a 150px x 85px (clase .logo img) + cambiar top: 80px a top: 50px (clase .logo)

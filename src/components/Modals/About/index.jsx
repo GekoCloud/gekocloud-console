@@ -16,26 +16,26 @@
  * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
+import React, { Component } from "react";
+import PropTypes from "prop-types";
 
-import { Modal } from 'components/Base'
+import { Modal } from "components/Base";
 
-import styles from './index.scss'
+import styles from "./index.scss";
 
 export default class AboutModal extends Component {
   static propTypes = {
     visible: PropTypes.bool,
     onCancel: PropTypes.func,
-  }
+  };
 
   static defaultProps = {
     visible: false,
     onCancel() {},
-  }
+  };
 
   render() {
-    const { issueUrl, reposUrl, version, slackUrl } = globals.config
+    const { issueUrl, reposUrl, version, slackUrl } = globals.config;
     return (
       <Modal
         bodyClassName={styles.body}
@@ -48,49 +48,49 @@ export default class AboutModal extends Component {
           <div>
             <img src="/assets/smartkube_logo.png" alt="" />
           </div>
-          <p>{t('KS_DESCRIPTION')}</p>
+          <p>{t("KS_DESCRIPTION")}</p>
           <strong>
-            Smartkube {t('Version')} : {version.kubesphere}
+            Smartkube {t("Version")} : {version.kubesphere}
           </strong>
         </div>
 
         <div className={styles.links}>
           <div className={styles.left}>
-            <span>
+            {/* <span>
               <a href={reposUrl} target="_blank">
                 <img src="/assets/github.svg" alt="github" />
                 <strong>{t('REPS_ADDRESS')}</strong>
               </a>
-            </span>
+            </span> */}
             <span>
               <a href={issueUrl} target="_blank">
                 <img src="/assets/bug.svg" alt="bug" />
-                <strong>{t('ISSUE_FEEDBACK')}</strong>
+                <strong>{t("ISSUE_FEEDBACK")}</strong>
               </a>
             </span>
           </div>
           <div className={styles.right}>
-            <span>
+            {/* <span>
               <a href={slackUrl} target="_blank">
                 <img src="/assets/slack.svg" alt="slack" />
-                <strong>{t('PART_IN_DISCUSSION')}</strong>
+                <strong>{t("PART_IN_DISCUSSION")}</strong>
               </a>
             </span>
             <span>
               <a href={reposUrl} target="_blank">
                 <img src="/assets/blue-theme-git.svg" alt="git" />
-                <strong>{t('CODE_CONTRIBUTE')}</strong>
+                <strong>{t("CODE_CONTRIBUTE")}</strong>
               </a>
             </span>
             <span>
               <a href={reposUrl} target="_blank">
                 <img src="/assets/star.svg" alt="star" />
-                <strong>{t('GITHUB_STAR')}</strong>
+                <strong>{t("GITHUB_STAR")}</strong>
               </a>
-            </span>
+            </span> */}
           </div>
         </div>
       </Modal>
-    )
+    );
   }
 }
