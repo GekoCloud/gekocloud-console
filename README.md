@@ -89,14 +89,23 @@ for i in $(grep -ri "#b6c2cd" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's
 ### Cambiar ruta al logo
 
 ```yaml
-for i in $(grep -ri "/assets/logo.svg" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%/assets/logo.svg%/assets/smartkube_logo.svg%g' $i; done
-sed -i 's%assets/login-logo.svg%assets/smartkube_logo.svg%g' src/components/Layout/Header/index.jsx
+for i in $(grep -ri "/assets/smartkube_logo.svg" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%/assets/smartkube_logo.svg%/assets/smartkube_logo.png%g' $i; done
+sed -i 's%assets/login-logo.svg%assets/smartkube_logo.png%g' ./src/components/Layout/Header/index.jsx
+sed -i 's%/assets/kubesphere.svg%/assets/smartkube_logo_horizontal.png%g' ./src/pages/clusters/containers/ServiceComponents/index.jsx
 ```
 
 ### Modificar color subtítulos (texto debajo de titles)
 
 ```yaml
 sed -i 's%#79879c%#4f7ec9%gI' ./src/scss/variables.scss
+```
+
+### Modificar icono "Healthy" (con los cambios previos saldría naranja)
+
+Añadir nueva línea en ./src/scss/variables.scss:
+
+```yaml
+$green-color06: #07d600;
 ```
 
 ### Modificar colores mayoría iconos

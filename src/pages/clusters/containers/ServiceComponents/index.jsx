@@ -67,7 +67,7 @@ export default class ServiceComponents extends React.Component {
     {
       type: 'kubesphere',
       title: 'Smartkube',
-      icon: '/assets/kubesphere.svg',
+      icon: '/assets/smartkube_logo_horizontal.png',
     },
     {
       type: 'kubernetes',
