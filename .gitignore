@@ -1,3 +1,4 @@
 dist/
 node_modules/
 .cache-loader/
+server/local_config.yaml
