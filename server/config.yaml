@@ -41,12 +41,12 @@ client:
     kubesphere: 3.0.0
 
   # kubesphere urls
-  issueUrl: https://github.com/kubesphere/kubesphere/issues/new/choose
-  reposUrl: https://github.com/kubesphere/kubesphere
-  slackUrl: https://kubesphere.slack.com
+  issueUrl: https://geko.cloud/contact
+  reposUrl: ""
+  slackUrl: ""
   documents:
-    url: https://v3-0.docs.kubesphere.io/docs
-    api: https://v3-0.docs.kubesphere.io/docs/api-reference/api-docs/
+    url: ""
+    api: ""
 
   # current support lanaguages
   supportLangs:

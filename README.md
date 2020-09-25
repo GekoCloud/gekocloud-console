@@ -136,11 +136,11 @@ Aunque quitaremos los bloques, también dejaremos los enlaces en blanco por si a
 
 ```yaml
 sed -i 's%issueUrl: https://github.com/kubesphere/kubesphere/issues/new/choose%issueUrl: https://geko.cloud/contact%g' ./server/config.yaml
-sed -i 's%reposUrl: https://github.com/kubesphere/kubesphere%reposUrl: ""' ./server/config.yaml
-sed -i 's%reposUrl: https://github.com/kubesphere/kubesphere%reposUrl: ""' ./server/config.yaml
-sed -i 's%slackUrl: https://kubesphere.slack.com%slackUrl: ""' ./server/config.yaml
-sed -i 's%    url: https://v3-0.docs.kubesphere.io/docs%    url: ""' ./server/config.yaml
-sed -i 's%    api: https://v3-0.docs.kubesphere.io/docs%    api: ""' ./server/config.yaml
+sed -i 's%reposUrl: https://github.com/kubesphere/kubesphere%reposUrl: ""%g' ./server/config.yaml
+sed -i 's%reposUrl: https://github.com/kubesphere/kubesphere%reposUrl: ""%g' ./server/config.yaml
+sed -i 's%slackUrl: https://kubesphere.slack.com%slackUrl: ""%g' ./server/config.yaml
+sed -i 's%    url: https://v3-0.docs.kubesphere.io/docs%    url: ""%g' ./server/config.yaml
+sed -i 's%    api: https://v3-0.docs.kubesphere.io/docs/api-reference/api-docs/%    api: ""%g' ./server/config.yaml
 ```
 
 Para quitar los bloques tendremos que editar a mano este fichero: ./src/components/Modals/About/index.jsx. Busca y comenta estos bloques:
