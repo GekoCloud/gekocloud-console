@@ -2,11 +2,11 @@
     <defs>
         <linearGradient id="a" x1="38.128%" x2="38.128%" y1="23.271%" y2="100%">
             <stop offset="0%" stop-color="#67DAA2"/>
-            <stop offset="100%" stop-color="#329DCE"/>
+            <stop offset="100%" stop-color="#F18918"/>
         </linearGradient>
         <linearGradient id="b" x1="118.988%" x2="-4.771%" y1="33.429%" y2="91.597%">
             <stop offset="0%" stop-color="#67DAA2"/>
-            <stop offset="100%" stop-color="#329DCE"/>
+            <stop offset="100%" stop-color="#F18918"/>
         </linearGradient>
     </defs>
     <g fill="none" fill-rule="nonzero">

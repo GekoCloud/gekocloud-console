@@ -129,7 +129,7 @@ export default {
 
   INVITE_CLUSTER_MEMBER_DESC: 'You can invite new members to this cluster.',
 
-  CLUSTER_API_SERVER_TITLE: 'Kubesphere API Server to be added to the cluster',
+  CLUSTER_API_SERVER_TITLE: 'Smartkube API Server to be added to the cluster',
   CLUSTER_API_SERVER_DESC:
     'You need to input the Smartkube API Server address to be added to the cluster',
 

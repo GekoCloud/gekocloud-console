@@ -68,8 +68,8 @@ export default {
   'Current Version': 'Current Version',
   Deploy: 'Deploy',
   'Deploy App': 'Deploy App',
-  'Deploy applications with one-click application templates provided by Kubesphere':
-    'Deploy applications with one-click application templates provided by Kubesphere',
+  'Deploy applications with one-click application templates provided by Smartkube':
+    'Deploy applications with one-click application templates provided by Smartkube',
   'Deploy New Application': 'Deploy New Application',
   'Deploy sample app Bookinfo': 'Deploy sample app Bookinfo',
   'Deployed Applications': 'Deployed Applications',

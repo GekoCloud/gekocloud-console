@@ -123,7 +123,7 @@ const config = {
       root('dist'),
     ]),
     new WebpackNotifier({
-      title: `Kubesphere console`,
+      title: `Smartkube console`,
       alwaysNotify: true,
       excludeWarnings: true,
     }),

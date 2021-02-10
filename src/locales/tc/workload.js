@@ -531,7 +531,7 @@ export default {
   'Pod replicas will be deployed by the default policy.':
     '容器組副本將根據預設策略部署',
   'Smartkube supports pulling images from the Image Registries and creating new images through source code (Source to Image).':
-    'Kubesphere 支持從鏡像倉庫拉取鏡像以及通過代碼構建新的鏡像並部署',
+    'Smartkube 支持從鏡像倉庫拉取鏡像以及通過代碼構建新的鏡像並部署',
 
   'Scheduling Info': '調度資訊',
   'Node Scheduling Info': '節點調度資訊',

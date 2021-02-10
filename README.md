@@ -15,7 +15,7 @@ Debes tener instalados los siguientes paquetes:
 
 Para poder configurar la consola local para atacar contra un clúster backend necesitamos parchear en el clúster el ks-apiserver:
 
-> En Smartkube el puerto a usar es el 30882. Para una instalación estándar de Kubesphere usaremos el 30881
+> En Smartkube el puerto a usar es el 30882. Para una instalación estándar de Smartkube usaremos el 30881
 
 ```
 kubectl -n kubesphere-system patch svc ks-apiserver -p '{"spec":{"type":"NodePort","ports":[{"name":"ks-apiserver","port":80,"protocal":"TCP","targetPort":9090,"nodePort":30882}]}}'
@@ -50,19 +50,19 @@ Podemos hacer el build y el tag automático con este script:
 ./build-prod.sh
 ```
 
-## Manual para sustituir estética Kubesphere a Smartkube
+## Manual para sustituir estética Smartkube a Smartkube
 
-### Cambiar texto "Kubesphere" por "Smartkube"
+### Cambiar texto "Smartkube" por "Smartkube"
 
 ```yaml
-for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%Kubesphere%Smartkube%g' $i; done
-for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%KubeSphere%Smartkube%g' $i; done
+for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%Smartkube%Smartkube%g' $i; done
+for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%Smartkube%Smartkube%g' $i; done
 ```
 
 ### Cambiar colores - Usamos el flag I al final del sed para que sea case-insensitive
 
 ```yaml
-for i in $(grep -ri "#36435c" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#36435c%#65a428%gI' $i; done
+for i in $(grep -ri "#3563ad" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#3563ad%#3563ad%gI' $i; done
 ```
 
 Aquí tenemos un listado completo con los comandos para reemplazar los colores de forma masiva:
@@ -70,26 +70,26 @@ Aquí tenemos un listado completo con los comandos para reemplazar los colores d
 > WARN: Puede ser que alguno de los siguientes comandos no estén bien
 
 ```yaml
-for i in $(grep -ri "#36435c" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#242E42%#335413%gI' $i; done
-for i in $(grep -ri "#242E42" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#242e42%#335413%gI' $i; done
-for i in $(grep -ri "#65A428" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#65A428%#3563ad%gI' $i; done
-for i in $(grep -ri "#D8DA00" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#D8DA00%#F18918%gI' $i; done
-for i in $(grep -ri "#65A428" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#65a428%#3563AD%gI' $i; done
-for i in $(grep -ri "#335413" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#335413%#3563AD%gI' $i; done
-for i in $(grep -ri "#55bc8a" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#55bc8a%#F18918%gI' $i; don
-for i in $(grep -ri "#00aa72" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#00aa72%#C0690C%gI' $i; done
-for i in $(grep -ri "#dbefe2" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#dbefe2%#90e0c5%gI' $i; done
-for i in $(grep -ri "#90e0c5" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#90e0c5%#F9CE9F%gI' $i; done
+for i in $(grep -ri "#3563ad" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#3563AD%#3563AD%gI' $i; done
+for i in $(grep -ri "#3563AD" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#3563AD%#3563AD%gI' $i; done
+for i in $(grep -ri "#3563ad" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#3563ad%#3563ad%gI' $i; done
+for i in $(grep -ri "#F18918" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#F18918%#F18918%gI' $i; done
+for i in $(grep -ri "#3563ad" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#3563ad%#3563AD%gI' $i; done
+for i in $(grep -ri "#3563AD" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#3563AD%#3563AD%gI' $i; done
+for i in $(grep -ri "#F18918" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#F18918%#F18918%gI' $i; don
+for i in $(grep -ri "#C0690C" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#C0690C%#C0690C%gI' $i; done
+for i in $(grep -ri "#F9CE9F" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#F9CE9F%#F9CE9F%gI' $i; done
+for i in $(grep -ri "#F9CE9F" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#F9CE9F%#F9CE9F%gI' $i; done
 # for i in $(grep -ri "#F9CE9F" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#F9CE9F%#FDF3E7%gI' $i; done
-for i in $(grep -ri "#329dce" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#329dce%#F18918%gI' $i; done
-for i in $(grep -ri "#324558" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#324558%#C0690C%gI' $i; done
-for i in $(grep -ri "#b6c2cd" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#b6c2cd%#F9CE9F%gI' $i; done
+for i in $(grep -ri "#F18918" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#F18918%#F18918%gI' $i; done
+for i in $(grep -ri "#C0690C" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#C0690C%#C0690C%gI' $i; done
+for i in $(grep -ri "#F9CE9F" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%#F9CE9F%#F9CE9F%gI' $i; done
 ```
 
 ### Cambiar ruta al logo
 
 ```yaml
-for i in $(grep -ri "/assets/smartkube_logo.svg" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%/assets/smartkube_logo.svg%/assets/smartkube_logo.png%g' $i; done
+for i in $(grep -ri "/assets/smartkube_logo.png" . | cut -d ":" -f1 | uniq | sort -n); do sed -i 's%/assets/smartkube_logo.png%/assets/smartkube_logo.png%g' $i; done
 sed -i 's%assets/login-logo.svg%assets/smartkube_logo.png%g' ./src/components/Layout/Header/index.jsx
 sed -i 's%/assets/kubesphere.svg%/assets/smartkube_logo_horizontal.png%g' ./src/pages/clusters/containers/ServiceComponents/index.jsx
 ```
@@ -124,10 +124,10 @@ Añadir nuevo bloque en: ./src/scss/lego.custom.scss
 ### Modificar texto "About"
 
 ```yaml
-sed -i 's%Smartkube 是一款开源项目%Smartkube平台基于一个开源项目 Kubesphere%g' ./src/locales/zh/base.js
-sed -i 's%Smartkube 是一款开源项目%Smartkube平台基于一个开源项目 Kubesphere%g' ./src/locales/tc/base.js
-sed -i 's%Smartkube is an open source project aiming to provide %Smartkube Platform is based on an open source project called Kubesphere that provide %g' ./src/locales/en/base.js
-sed -i 's%Smartkube es un proyecto de código abierto que tiene como objetivo %Smartkube está basado en un proyecto de código abierto llamado Kubesphere que tiene como objetivo %g' ./src/locales/es/base.js
+sed -i 's%Smartkube 是一款开源项目%Smartkube平台基于一个开源项目 Smartkube%g' ./src/locales/zh/base.js
+sed -i 's%Smartkube 是一款开源项目%Smartkube平台基于一个开源项目 Smartkube%g' ./src/locales/tc/base.js
+sed -i 's%Smartkube is an open source project aiming to provide %Smartkube Platform is based on an open source project called Smartkube that provide %g' ./src/locales/en/base.js
+sed -i 's%Smartkube es un proyecto de código abierto que tiene como objetivo %Smartkube está basado en un proyecto de código abierto llamado Smartkube que tiene como objetivo %g' ./src/locales/es/base.js
 ```
 
 ### Modificar enlaces sección "About"
@@ -203,44 +203,44 @@ Para quitar los bloques tendremos que editar a mano este fichero: ./src/componen
 
 ## Referencia de colores
 
-### Kubesphere colors
+### Smartkube colors
 
 #### Iconos Dashboard principal
 
 ```yaml
-color: #36435C;
+color: #3563ad;
 ```
 
 #### Iconos settings (clusters management, access control, etc)
 
 ```yaml
-color: #242E42;
+color: #3563AD;
 ```
 
 #### Workspace texto menú izquierda
 
 ```yaml
-color: #55bc8a;
+color: #F18918;
 ```
 
 #### Workspace iconos menú izquierda
 
 ```yaml
-color: #00aa72; (verde oscuro)
-fill: #90e0c5; (verde claro)
+color: #C0690C; (verde oscuro)
+fill: #F9CE9F; (verde claro)
 ```
 
 #### Pantalla overview (fondo icono derecha verde claro)
 
 ```yaml
-color: #dbefe2;
+color: #F9CE9F;
 ```
 
 #### Iconos pequeños svg
 
 ```yaml
-color: #324558; (dark gray)
-fill: #b6c2cd; (soft gray)
+color: #C0690C; (dark gray)
+fill: #F9CE9F; (soft gray)
 ```
 
 #### Menú flotante (click en platform)
@@ -250,7 +250,7 @@ NO SÉ EXACTAMENTE QUÉ ES ESTE VERDE: #369a6a
 #### Menú flotante background selected (click en platform)
 
 ```yaml
-color: #329dce;
+color: #F18918;
 ```
 
 ### Smartkube colors
@@ -271,7 +271,7 @@ color: #8aa9db;  # Blau més clar
 #### Iconos settings (clusters management, access control, etc)
 
 ```yaml
-color: #335413;
+color: #3563AD;
 ```
 
 #### Workspace texto menú izquierda
@@ -311,9 +311,13 @@ fill: #F9CE9F; (soft gray)
 #### Iconos dashboard principal
 
 ```yaml
-color: #65A428;
-fill: #D8DA00;
+color: #3563ad;
+fill: #F18918;
 ```
+
+## Build project
+
+Para hacer el build es recomendable usar el [entorno de desarrollo con docker](/docs/development-with-docker.md).
 
 ---
 
