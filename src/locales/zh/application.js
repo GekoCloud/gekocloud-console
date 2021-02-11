@@ -50,7 +50,7 @@ export default {
   'Build an app by app template': '应用模板部署',
   'Choose existing services or create new service components to build an app':
     '选择已有服务或者新建服务组件来构建应用',
-  'Deploy applications with one-click application templates provided by Smartkube':
+  'Deploy applications with one-click application templates provided by Kubesphere':
     '通过 Smartkube 提供的应用模板一键部署应用',
   'Sample apps can help you get started with app creation and app governance':
     '示例应用可以帮助您快速入手应用创建, 以及应用治理功能',

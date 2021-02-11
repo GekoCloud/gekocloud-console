@@ -461,7 +461,7 @@ export default {
     'please confirm that the modified content is correct, you can save the settings or cancel the settings.',
 
   KS_DESCRIPTION:
-    'Smartkube Platform is based on an open source project called Smartkube that provide enterprise-grade multi-tenant container platform on top of Kubernetes, the current mainstream container orchestration platform. It provides easy-to-use interface and wizard-style operations, reducing the learning curve and operating cost of Kubernetes in terms of the daily work of development, test and maintenance.',
+    'Smartkube Platform is based on an open source project called Kubesphere that provide enterprise-grade multi-tenant container platform on top of Kubernetes, the current mainstream container orchestration platform. It provides easy-to-use interface and wizard-style operations, reducing the learning curve and operating cost of Kubernetes in terms of the daily work of development, test and maintenance.',
 
   REPS_ADDRESS: 'GitHub',
   ISSUE_FEEDBACK: 'Feedback',
