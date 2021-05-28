@@ -50,13 +50,14 @@ Podemos hacer el build y el tag automático con este script:
 ./build-prod.sh
 ```
 
-## Manual para sustituir estética Smartkube a Smartkube
+## Manual para sustituir estética Kubesphere a Smartkube
 
-### Cambiar texto "Smartkube" por "Smartkube"
+### Cambiar texto "Kubesphere" por "Smartkube"
 
 ```yaml
-for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%Smartkube%Smartkube%g' $i; done
-for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%Smartkube%Smartkube%g' $i; done
+for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%Kubesphere%Smartkube%g' $i; done
+for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%kubesphere%Smartkube%g' $i; done
+for i in $(grep -ri "kubesphere" . | cut -d ":" -f1 | sort -n | uniq | grep -v Dockerfile); do sed -i 's%KubesPhere%Smartkube%g' $i; done
 ```
 
 ### Cambiar colores - Usamos el flag I al final del sed para que sea case-insensitive
