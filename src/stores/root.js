@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { action, observable, extendObservable } from 'mobx'
@@ -23,6 +23,7 @@ import { getQueryString } from 'utils'
 
 import UserStore from 'stores/user'
 import WebSocketStore from 'stores/websocket'
+import { get } from 'lodash'
 
 export default class RootStore {
   @observable
@@ -32,10 +33,10 @@ export default class RootStore {
   showGlobalNav = false
 
   @observable
-  showHistory = false
+  actions = {}
 
   @observable
-  actions = {}
+  oauthServers = []
 
   constructor() {
     this.websocket = new WebSocketStore()
@@ -71,16 +72,6 @@ export default class RootStore {
   }
 
   @action
-  toggleHistory = () => {
-    this.showHistory = !this.showHistory
-  }
-
-  @action
-  hideHistory = () => {
-    this.showHistory = false
-  }
-
-  @action
   registerActions = actions => {
     extendObservable(this.actions, actions)
   }
@@ -90,14 +81,17 @@ export default class RootStore {
     this.actions[id] && this.actions[id].on(...rest)
   }
 
-  @action
-  async login(params) {
-    return await request.post('login', params)
+  login(params) {
+    return request.post('login', params)
   }
 
   @action
   async logout() {
-    await request.post('logout')
+    const res = await request.post('logout')
+    const url = get(res, 'data.url')
+    if (url) {
+      window.location.href = url
+    }
   }
 
   @action

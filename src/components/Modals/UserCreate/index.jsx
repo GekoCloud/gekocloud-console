@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get } from 'lodash'
@@ -22,8 +22,8 @@ import PropTypes from 'prop-types'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
 
-import { Input, Select } from '@pitrix/lego-ui'
-import { Modal, Form, TextArea } from 'components/Base'
+import { Form, Input, Select, TextArea } from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 import { InputPassword } from 'components/Inputs'
 import { isSystemRole } from 'utils'
 import { PATTERN_NAME, PATTERN_PASSWORD } from 'utils/constants'
@@ -118,7 +118,7 @@ export default class UserCreateModal extends Component {
           { required: true, message: t('Please input user name') },
           {
             pattern: PATTERN_NAME,
-            message: `${t('Invalid user name')}. ${t('USER_NAME_DESC')}`,
+            message: t('Invalid user name', { message: t('USER_NAME_DESC') }),
           },
           { validator: this.userNameValidator },
         ]
@@ -157,10 +157,15 @@ export default class UserCreateModal extends Component {
             autoComplete="nope"
             disabled={!!detail}
             autoFocus={true}
+            maxLength={32}
           />
         </Form.Item>
         <Form.Item label={t('Email')} desc={t('EMAIL_DESC')} rules={emailRules}>
-          <Input name="spec.email" placeholder="User@example.com" />
+          <Input
+            name="spec.email"
+            placeholder="User@example.com"
+            autoComplete="nope"
+          />
         </Form.Item>
         <Form.Item label={t('Role')} desc={t('ROLE_DESC')}>
           <Select
@@ -185,7 +190,7 @@ export default class UserCreateModal extends Component {
             <InputPassword
               name="spec.password"
               placeholder={t('Please input password')}
-              autoComplete="new-password"
+              autoComplete="nope"
               withStrength
             />
           </Form.Item>

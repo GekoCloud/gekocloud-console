@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -40,7 +40,6 @@ import {
   cpuFormat,
   memoryFormat,
   cacheFunc,
-  formatRules,
   getWebSocketProtocol,
   hasChinese,
   getResourceCreator,
@@ -53,6 +52,7 @@ import {
   getLanguageName,
   parseUrl,
   replaceToLocalOrigin,
+  formatDuration,
 } from './index'
 
 it('formatSize', () => {
@@ -269,7 +269,7 @@ it('cpuFormat', () => {
 it('memoryFormat', () => {
   expect(memoryFormat(undefined)).toBe(undefined)
   expect(memoryFormat(null)).toBe(null)
-  expect(memoryFormat('2Gi')).toBe(2000)
+  expect(memoryFormat('2Gi')).toBe(2048)
   expect(memoryFormat('2Gi', 'Gi')).toBe(2)
   expect(memoryFormat('1981289121m', 'ki')).toBe(1934.853)
 })
@@ -331,14 +331,6 @@ it('get metadata info', () => {
   expect(getDisplayName(data3)).toBe('redis-xxx(redis)')
   expect(getDisplayName(data4)).toBe('redis-xxx')
   expect(getDisplayName(data5)).toBe('redis-xxx')
-})
-
-it('formatRules', () => {
-  const rules = [{ name: 'deployments', actions: ['create', 'get', 'delete'] }]
-  expect(formatRules(rules)).toStrictEqual({
-    deployments: ['create', 'get', 'delete'],
-  })
-  expect(formatRules()).toStrictEqual({})
 })
 
 it('getWebSocketProtocol', () => {
@@ -438,4 +430,11 @@ it('isAppsPage', () => {
   expect(isAppsPage('/apps')).toBe(true)
   expect(isAppsPage('/apps/app-ix7aus9')).toBe(true)
   expect(isAppsPage('/app')).toBe(false)
+})
+
+it('formatDuration', () => {
+  expect(formatDuration('6m')).toBe(360)
+  expect(formatDuration('1h')).toBe(3600)
+  expect(formatDuration('1.5d')).toBe(129600)
+  expect(formatDuration('6m', 'h')).toBe(0.1)
 })

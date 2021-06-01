@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,18 +21,21 @@ import moment from 'moment-mini'
 import classnames from 'classnames'
 import { observer } from 'mobx-react'
 import { observable, computed, action } from 'mobx'
-import stripAnsi from 'strip-ansi'
+import AnsiUp from 'ansi_up'
 import { get } from 'lodash'
-import { Icon, Select, Tooltip } from '@pitrix/lego-ui'
+import { Icon, Select, Tooltip } from '@juanchi_xd/components'
 
 import PodStore from 'stores/pod'
 import ProjectStore from 'stores/project'
 import LogStore from 'stores/logging/query'
 
-import { ReactComponent as BackIcon } from 'src/assets/back.svg'
+import { ReactComponent as BackIcon } from 'assets/back.svg'
+
 import DurationSelect from './DurationSelect'
 
 import styles from './index.scss'
+
+const converter = new AnsiUp()
 
 @observer
 export default class DetailModal extends React.Component {
@@ -80,6 +83,11 @@ export default class DetailModal extends React.Component {
     const { cluster } = this.props.searchInputState
     const { pods } = this.logStore
     const { workspace } = this.projectStore.detail
+
+    if (!workspace) {
+      return ''
+    }
+
     return `/${workspace}/clusters/${cluster}/projects/${namespace}/pods/${pods}`
   }
 
@@ -89,6 +97,11 @@ export default class DetailModal extends React.Component {
     const { cluster } = this.props.searchInputState
     const { pods, containers } = this.logStore
     const { workspace } = this.projectStore.detail
+
+    if (!workspace) {
+      return ''
+    }
+
     return `/${workspace}/clusters/${cluster}/projects/${namespace}/pods/${pods}/containers/${containers}`
   }
 
@@ -260,7 +273,11 @@ export default class DetailModal extends React.Component {
 
   fetchProject() {
     const { namespace } = this.props.detailState
-    this.projectStore.fetchDetail({ name: namespace, namespace })
+    const { cluster } = this.props.searchInputState
+    this.projectStore.fetchDetail(
+      { name: namespace, namespace, cluster },
+      () => {}
+    )
   }
 
   fetchPods() {
@@ -276,12 +293,6 @@ export default class DetailModal extends React.Component {
   render() {
     return (
       <div className={styles.container}>
-        <div className={styles.header}>
-          <div className={styles.pre} onClick={this.pre}>
-            <BackIcon width={16} height={22} />
-            <span>{t('Back to previous')}</span>
-          </div>
-        </div>
         <div className={styles.article}>
           {this.renderSummary()}
           {this.renderLog()}
@@ -422,21 +433,37 @@ export default class DetailModal extends React.Component {
     const logQuery = query.trim()
     const matchIndex = log.toUpperCase().indexOf(logQuery.toUpperCase())
     if (!logQuery || matchIndex === -1) {
-      return <span className={styles.queryLog}>{stripAnsi(log)}</span>
+      return (
+        <span
+          className={styles.queryLog}
+          dangerouslySetInnerHTML={{ __html: converter.ansi_to_html(log) }}
+        />
+      )
     }
-
-    const preString = log.slice(0, matchIndex)
-    const highlightLog = (
-      <span className={styles.hightLight}>
-        {stripAnsi(log.slice(matchIndex, matchIndex + logQuery.length))}
-      </span>
-    )
-    const lastString = log.slice(matchIndex + logQuery.length)
     return (
       <span className={styles.queryLog}>
-        {stripAnsi(preString)}
-        {highlightLog}
-        {stripAnsi(lastString)}
+        <span
+          dangerouslySetInnerHTML={{
+            __html: converter.ansi_to_html(log.slice(0, matchIndex)),
+          }}
+        />
+        {
+          <span
+            className={styles.hightLight}
+            dangerouslySetInnerHTML={{
+              __html: converter.ansi_to_html(
+                log.slice(matchIndex, matchIndex + logQuery.length)
+              ),
+            }}
+          />
+        }
+        <span
+          dangerouslySetInnerHTML={{
+            __html: converter.ansi_to_html(
+              log.slice(matchIndex + logQuery.length)
+            ),
+          }}
+        />
       </span>
     )
   }
@@ -455,6 +482,12 @@ export default class DetailModal extends React.Component {
     const { detailState } = this.props
     return (
       <div className={styles.summery}>
+        <div className={styles.header}>
+          <div className={styles.pre} onClick={this.pre}>
+            <BackIcon width={16} height={22} />
+            <span>{t('Back to previous')}</span>
+          </div>
+        </div>
         <h3>{t('Region Data')}</h3>
         <div className={styles.dataList}>
           <div>

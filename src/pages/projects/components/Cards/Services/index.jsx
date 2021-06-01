@@ -1,64 +1,95 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
 import { isEmpty } from 'lodash'
+import { observer } from 'mobx-react'
+import { Loading } from '@juanchi_xd/components'
 
-import { Card } from 'components/Base'
+import { Panel } from 'components/Base'
+import ServiceStore from 'stores/service'
+import { joinSelector } from 'utils'
+
 import Item from './Item'
 
+import styles from './index.scss'
+
+@observer
 export default class ServicesCard extends React.Component {
   static propTypes = {
     className: PropTypes.string,
     prefix: PropTypes.string,
-    data: PropTypes.array,
-    isLoading: PropTypes.bool,
+    selector: PropTypes.object,
   }
 
   static defaultProps = {
     prefix: '',
-    data: [],
-    isLoading: false,
+    selector: {},
+  }
+
+  store = new ServiceStore()
+
+  componentDidMount() {
+    this.getData()
+  }
+
+  getData = () => {
+    const { selector, cluster, namespace } = this.props
+    if (!isEmpty(selector)) {
+      this.store.fetchListByK8s({
+        cluster,
+        namespace,
+        labelSelector: joinSelector(selector),
+      })
+    }
   }
 
   renderContent() {
-    const { data, prefix } = this.props
+    const { prefix } = this.props
+    const { data, isLoading } = this.store.list
 
-    if (isEmpty(data)) return null
+    if (isEmpty(data) && !isLoading) {
+      return (
+        <div className={styles.empty}>
+          {t('NOT_AVAILABLE', { resource: t('Service') })}
+        </div>
+      )
+    }
 
-    return data.map(item => (
-      <Item key={`${item.type}-${item.name}`} prefix={prefix} detail={item} />
-    ))
+    return (
+      <Loading spinning={isLoading}>
+        <div className={styles.content}>
+          {data.map(item => (
+            <Item key={item.uid} prefix={prefix} detail={item} />
+          ))}
+        </div>
+      </Loading>
+    )
   }
 
   render() {
-    const { className, loading } = this.props
+    const { className } = this.props
 
     return (
-      <Card
-        className={className}
-        title={t('Services')}
-        loading={loading}
-        empty={t('NOT_AVAILABLE', { resource: t('Service') })}
-      >
+      <Panel className={className} title={t('Services')}>
         {this.renderContent()}
-      </Card>
+      </Panel>
     )
   }
 }

@@ -8,21 +8,6 @@
 .header {
   background-color: $bg-color;
   border-bottom: none;
-
-  :global {
-    .icon {
-      width: 32px !important;
-      height: 32px !important;
-      padding: 6px;
-      border-radius: 4px;
-      background-color: #3563AD;
-
-      .qicon {
-        color: rgba(255, 255, 255, 0.9);
-        fill: rgba(255, 255, 255, 0.4);
-      }
-    }
-  }
 }
 
 .body {
@@ -62,7 +47,7 @@
     color: #79879c;
 
     strong {
-      color: #3563AD;
+      color: #242e42;
     }
   }
 
@@ -174,7 +159,7 @@
 .bar {
   padding: 5px;
   border-radius: 2px;
-  background-color: #F18918;
+  background-color: #329dce;
   text-align: center;
   color: #ffffff;
   font-weight: $font-bold;

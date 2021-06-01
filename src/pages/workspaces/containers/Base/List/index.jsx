@@ -1,25 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react'
+import { get } from 'lodash'
 
-import { renderRoutes } from 'utils/router.config'
+import { renderRoutes, getIndexRoute } from 'utils/router.config'
 
 import { Nav } from 'components/Layout'
 import Selector from 'workspaces/components/Selector'
@@ -35,32 +36,19 @@ class WorkspaceLayout extends Component {
     return this.props.rootStore.routing
   }
 
-  get canViewOverview() {
-    return globals.app.hasPermission({
-      workspace: this.workspace,
-      module: 'projects',
-      action: 'view',
-    })
-  }
-
-  getRoutes() {
-    const { routes, path } = this.props.route
-    if (routes && !this.canViewOverview) {
-      routes.forEach(route => {
-        if (route.path === path && route.redirect) {
-          route.redirect.to = `${path}/projects`
-        }
-      })
-    }
-    return routes
-  }
-
   enterWorkspace = async workspace =>
-    this.routing.push(`/workspaces/${workspace}/overview`)
+    this.routing.push(`/workspaces/${workspace}/`)
 
   render() {
-    const { match, location } = this.props
+    const {
+      match,
+      location,
+      route: { routes = [], path },
+    } = this.props
     const { detail } = this.props.workspaceStore
+    const navs = globals.app.getWorkspaceNavs(this.workspace)
+    const indexPath = get(navs, '[0].items[0].name')
+
     return (
       <div className="ks-page">
         <div className="ks-page-side">
@@ -71,12 +59,23 @@ class WorkspaceLayout extends Component {
           />
           <Nav
             className="ks-page-nav"
-            navs={globals.app.getWorkspaceNavs(this.workspace)}
+            navs={navs}
             location={location}
             match={match}
           />
         </div>
-        <div className="ks-page-main">{renderRoutes(this.getRoutes())}</div>
+        <div className="ks-page-main">
+          {indexPath &&
+            renderRoutes([
+              ...routes,
+              getIndexRoute({
+                path,
+                to: `${path}/${indexPath}`,
+                exact: true,
+              }),
+              getIndexRoute({ path: '*', to: '/404', exact: true }),
+            ])}
+        </div>
       </div>
     )
   }

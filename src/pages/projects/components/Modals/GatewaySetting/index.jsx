@@ -1,26 +1,33 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { set, isEmpty, pick } from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { RadioButton, RadioGroup, Alert, Toggle } from '@pitrix/lego-ui'
-import { Modal, Form, Button } from 'components/Base'
+import {
+  Form,
+  Button,
+  RadioButton,
+  RadioGroup,
+  Alert,
+  Toggle,
+} from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 import { PropertiesInput } from 'components/Inputs'
 import Title from 'components/Forms/Base/Title'
 
@@ -135,7 +142,7 @@ export default class GatewaySettingModal extends React.Component {
                 <Form.Item label={t('Access Method')} className={styles.types}>
                   <RadioGroup
                     name="type"
-                    wrapClassName="radio-default"
+                    mode="button"
                     buttonWidth={155}
                     defaultValue={type}
                     onChange={this.handleTypeChange}
@@ -148,9 +155,7 @@ export default class GatewaySettingModal extends React.Component {
                 <Alert
                   className="margin-t12"
                   type="info"
-                  description={t(
-                    `INGRESS_CONTROLLER_${type.toUpperCase()}_DESC`
-                  )}
+                  message={t(`INGRESS_CONTROLLER_${type.toUpperCase()}_DESC`)}
                 />
                 {globals.app.hasClusterModule(cluster, 'servicemesh') && (
                   <>

@@ -1,24 +1,24 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { isEmpty } from 'lodash'
-import { InputPassword, Icon, Dropdown } from '@pitrix/lego-ui'
+import { InputPassword, Icon, Dropdown } from '@juanchi_xd/components'
 import classNames from 'classnames'
 import { PATTERN_PASSWORD } from 'utils/constants'
 
@@ -108,7 +108,7 @@ export default class Password extends React.Component {
       return { width: '66%', backgroundColor: '#f5a623' }
     }
     if (strength >= 8) {
-      return { width: '100%', backgroundColor: '#F18918' }
+      return { width: '100%', backgroundColor: '#55bc8a' }
     }
   }
 
@@ -117,7 +117,7 @@ export default class Password extends React.Component {
 
     return (
       <div className={styles.content}>
-        <p>{t('Your password must meet the following requirements')}:</p>
+        <p>{t('Your password must meet the following requirements')}</p>
         <ul className={styles.rules}>
           <li>
             <Icon

@@ -3,8 +3,8 @@
 <svg version="1.1" id="Colores_Corporativos" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
 	 x="0px" y="0px" viewBox="0 0 395.9 193.8" style="enable-background:new 0 0 395.9 193.8;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#3563ad;}
-	.st1{fill:#F18918;}
+	.st0{fill:#65A428;}
+	.st1{fill:#D8DA00;}
 	.st2{fill:#9D9D9C;}
 	.st3{fill:url(#SVGID_1_);}
 	.st4{fill:url(#SVGID_2_);}
@@ -78,7 +78,7 @@
 	<polygon class="st9" points="82.5,150.5 74.5,149.5 74.5,178.6 89.9,170.7 105.2,178.6 105.2,149.5 96.8,150.6 	"/>
 	<path class="st9" d="M27.4,96.6c0.9,0.8,1.8,1.6,2.8,2.2C29.3,98.2,28.3,97.4,27.4,96.6L27.4,96.6z"/>
 	<radialGradient id="SVGID_1_" cx="89.8673" cy="82.8651" r="66.446" gradientUnits="userSpaceOnUse">
-		<stop  offset="0" style="stop-color:#F18918"/>
+		<stop  offset="0" style="stop-color:#D8DA00"/>
 		<stop  offset="1" style="stop-color:#C5D31E"/>
 	</radialGradient>
 	<path class="st3" d="M153.2,112.5c-4.4,2.1-9.2,3.2-14.4,3.2c-18.5,0-33.6-15.1-33.6-33.6c0-18.5,15.1-33.6,33.6-33.6

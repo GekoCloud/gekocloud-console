@@ -1,23 +1,23 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, uniq, isEmpty, includes, cloneDeep } from 'lodash'
-import { safeParseJSON } from 'utils'
+import { safeParseJSON, compareVersion } from 'utils'
 
 /** A global class for authorization check. */
 export default class GlobalValue {
@@ -207,7 +207,7 @@ export default class GlobalValue {
     if (!this._cache_['globalNavs']) {
       const navs = []
 
-      globals.config.globalNavs.forEach(nav => {
+      cloneDeep(globals.config.globalNavs).forEach(nav => {
         if (this.checkNavItem(nav, params => this.hasPermission(params))) {
           navs.push(nav)
         }
@@ -227,7 +227,7 @@ export default class GlobalValue {
     if (!this._cache_[`cluster_${cluster}_navs`]) {
       const navs = []
 
-      globals.config.clusterNavs.forEach(nav => {
+      cloneDeep(globals.config.clusterNavs).forEach(nav => {
         const filteredItems = nav.items.filter(item => {
           item.cluster = cluster
           return this.checkNavItem(item, params =>
@@ -235,6 +235,7 @@ export default class GlobalValue {
           )
         })
         if (!isEmpty(filteredItems)) {
+          this.checkClusterVersionRequired(filteredItems, cluster)
           navs.push({ ...nav, items: filteredItems })
         }
       })
@@ -249,7 +250,7 @@ export default class GlobalValue {
     if (!this._cache_['accessNavs']) {
       const navs = []
 
-      globals.config.accessNavs.forEach(nav => {
+      cloneDeep(globals.config.accessNavs).forEach(nav => {
         const filteredItems = nav.items.filter(item =>
           this.checkNavItem(item, params => this.hasPermission(params))
         )
@@ -276,7 +277,7 @@ export default class GlobalValue {
     if (!this._cache_[`workspace_${workspace}_navs`]) {
       const navs = []
 
-      globals.config.workspaceNavs.forEach(nav => {
+      cloneDeep(globals.config.workspaceNavs).forEach(nav => {
         const filteredItems = nav.items.filter(item =>
           this.checkNavItem(item, params =>
             this.hasPermission({ ...params, workspace })
@@ -288,7 +289,7 @@ export default class GlobalValue {
         }
       })
 
-      this._cache_[`workspace_${workspace}_navs`] = cloneDeep(navs)
+      this._cache_[`workspace_${workspace}_navs`] = navs
     }
 
     return this._cache_[`workspace_${workspace}_navs`]
@@ -306,7 +307,7 @@ export default class GlobalValue {
     if (!this._cache_[`project_${cluster}_${project}_navs`]) {
       const navs = []
 
-      globals.config.projectNavs.forEach(nav => {
+      cloneDeep(globals.config.projectNavs).forEach(nav => {
         const filteredItems = nav.items.filter(item => {
           item.cluster = cluster
           return this.checkNavItem(item, params =>
@@ -315,6 +316,7 @@ export default class GlobalValue {
         })
 
         if (!isEmpty(filteredItems)) {
+          this.checkClusterVersionRequired(filteredItems, cluster)
           navs.push({ ...nav, items: filteredItems })
         }
       })
@@ -337,7 +339,7 @@ export default class GlobalValue {
     if (!this._cache_[`devops_${cluster}_${devops}_navs`]) {
       const navs = []
 
-      globals.config.devopsNavs.forEach(nav => {
+      cloneDeep(globals.config.devopsNavs).forEach(nav => {
         const filteredItems = nav.items.filter(item => {
           item.cluster = cluster
           return this.checkNavItem(item, params =>
@@ -346,6 +348,7 @@ export default class GlobalValue {
         })
 
         if (!isEmpty(filteredItems)) {
+          this.checkClusterVersionRequired(filteredItems, cluster)
           navs.push({ ...nav, items: filteredItems })
         }
 
@@ -360,7 +363,7 @@ export default class GlobalValue {
     if (!this._cache_['platformSettingsNavs']) {
       const navs = []
 
-      globals.config.platformSettingsNavs.forEach(nav => {
+      cloneDeep(globals.config.platformSettingsNavs).forEach(nav => {
         const filteredItems = nav.items.filter(item =>
           this.checkNavItem(item, params => this.hasPermission({ ...params }))
         )
@@ -376,8 +379,28 @@ export default class GlobalValue {
     return this._cache_['platformSettingsNavs']
   }
 
+  checkClusterVersionRequired(navs, cluster) {
+    const ksVersion = this.isMultiCluster
+      ? get(globals, `clusterConfig.${cluster}.ksVersion`)
+      : get(globals, 'ksConfig.ksVersion')
+
+    navs.forEach(item => {
+      if (
+        item.requiredClusterVersion &&
+        compareVersion(ksVersion, item.requiredClusterVersion) < 0
+      ) {
+        item.disabled = true
+        item.reason = 'CLUSTER_UPGRADE_REQUIRED'
+      }
+
+      if (item.children && item.children.length > 0) {
+        this.checkClusterVersionRequired(item.children, cluster)
+      }
+    })
+  }
+
   get enableAppStore() {
-    return this.hasKSModule('openpitrix')
+    return this.hasKSModule('openpitrix.appstore')
   }
 
   get isPlatformAdmin() {
@@ -389,14 +412,14 @@ export default class GlobalValue {
   }
 
   hasKSModule(module) {
-    return get(globals, `ksConfig.${module}`)
+    return get(globals, `ksConfig["${module}"]`)
   }
 
   hasClusterModule(cluster, module) {
     if (!this.isMultiCluster) {
       return this.hasKSModule(module)
     }
-    return get(globals, `clusterConfig.${cluster}.${module}`)
+    return get(globals, `clusterConfig.${cluster}["${module}"]`)
   }
 
   cacheHistory(url, obj) {

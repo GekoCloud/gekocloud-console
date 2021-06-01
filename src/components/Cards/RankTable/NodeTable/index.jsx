@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -23,7 +23,7 @@ import { getValueByUnit, getSuitableUnit } from 'utils/monitoring'
 
 import { get } from 'lodash'
 
-import { Icon } from '@pitrix/lego-ui'
+import { Icon } from '@juanchi_xd/components'
 import { Empty } from 'components/Base'
 import Link from 'components/Link'
 import Table from 'components/Tables/Ranking'
@@ -58,22 +58,25 @@ export default class NodeUsageRank extends React.Component {
     },
     {
       title: t('NODES'),
-      render: node => (
-        <div>
-          <h3>
-            <Link
-              to={`/clusters/${this.props.cluster}/nodes/${node.node}`}
-              auth={this.canViewNode}
-            >
-              {node.node}
-            </Link>
-            {node.role === 'master' && (
-              <span className={styles.label}>Master</span>
-            )}
-          </h3>
-          <p>{get(node, 'host_ip', '-')}</p>
-        </div>
-      ),
+      render: node => {
+        const link = get(node, 'role', []).includes('edge')
+          ? `/clusters/${this.props.cluster}/edgenodes/${node.node}`
+          : `/clusters/${this.props.cluster}/nodes/${node.node}`
+
+        return (
+          <div>
+            <h3>
+              <Link to={link} auth={this.canViewNode}>
+                {node.node}
+              </Link>
+              {node.role === 'master' && (
+                <span className={styles.label}>Master</span>
+              )}
+            </h3>
+            <p>{get(node, 'host_ip', '-')}</p>
+          </div>
+        )
+      },
     },
     {
       key: 'cpu',
@@ -170,6 +173,7 @@ export default class NodeUsageRank extends React.Component {
   render() {
     const { theme, store } = this.props
     const { data } = this.props.store
+
     return (
       <Table
         theme={theme}

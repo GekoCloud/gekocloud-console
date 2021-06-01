@@ -1,23 +1,23 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
-import { Button } from 'components/Base'
+import { Button } from '@juanchi_xd/components'
 import Banner from 'components/Cards/Banner'
 import { trigger } from 'utils/action'
 import { inject, observer } from 'mobx-react'
@@ -71,7 +71,7 @@ export default class AppBanner extends Component {
         },
         {
           value: 'composing',
-          label: t('Composing App'),
+          label: t('Composing Apps'),
         },
       ],
     }
@@ -101,7 +101,7 @@ export default class AppBanner extends Component {
         description: t('HOW_TO_USE_APPLICATION_GOVE_A'),
         operation: this.canDeployComposingApp ? (
           <Button onClick={this.showDeploySampleApp}>
-            {t('Deploy Sample Application')}
+            {t('Deploy Sample App')}
           </Button>
         ) : null,
         closable: false,
@@ -114,7 +114,7 @@ export default class AppBanner extends Component {
       <Banner
         {...this.props}
         description={t('APPLICATIONS_DESC')}
-        tabs={!globals.app.enableAppStore ? undefined : this.tabs}
+        tabs={!globals.app.hasKSModule('openpitrix') ? undefined : this.tabs}
         tips={this.tips}
       />
     )

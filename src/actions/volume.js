@@ -1,23 +1,24 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get } from 'lodash'
-import { Modal, Notify } from 'components/Base'
+import { Notify } from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 
 import CreateModal from 'components/Modals/Create'
 import NameModal from 'projects/components/Modals/ResourceNamed'
@@ -83,7 +84,7 @@ export default {
           params.namespace = params.namespace || get(data, 'metadata.namespace')
           await store.create(data, params)
           Modal.close(modal)
-          Notify.success({ content: `${t('Created Successfully')}!` })
+          Notify.success({ content: `${t('Created Successfully')}` })
           success && success()
           formPersist.delete(`${module}_create_form`)
         },
@@ -106,9 +107,9 @@ export default {
         onOk: async params => {
           await store.cloneVolume(params)
           Modal.close(modal)
-          Notify.success({ content: `${t('Created Successfully')}!` })
+          Notify.success({ content: `${t('Created Successfully')}` })
         },
-        title: t('Volume Clone'),
+        title: t('Clone Volume'),
         modal: NameModal,
         store,
         ...props,
@@ -121,7 +122,7 @@ export default {
         onOk: async params => {
           await store.createSnapshot(params)
           Modal.close(modal)
-          Notify.success({ content: `${t('Created Successfully')}!` })
+          Notify.success({ content: `${t('Created Successfully')}` })
         },
         title: t('Create Snapshot'),
         modal: NameModal,
@@ -136,7 +137,7 @@ export default {
         onOk: async params => {
           await store.patch(store.detail, params)
           Modal.close(modal)
-          Notify.success({ content: `${t('Updated Successfully')}!` })
+          Notify.success({ content: `${t('Updated Successfully')}` })
         },
         modal: ExpandModal,
         store,

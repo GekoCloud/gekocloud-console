@@ -30,7 +30,7 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 66px;
-  color: #3563AD;
+  color: #242e42;
 }
 
 .toolbar {
@@ -45,6 +45,7 @@
     }
     .toolbar_filter {
       float: left;
+      display: flex;
     }
     .sort_button {
       display: inline-block;
@@ -79,7 +80,7 @@
   .rankList_row {
     h3 {
       font-size: 14px;
-      color: #3563AD;
+      color: #242e42;
       font-weight: bold;
     }
     td,
@@ -97,7 +98,7 @@
       border-radius: 0 4px 4px 0;
     }
     .rankLink__sort_col {
-      background: #FDF3E7;
+      background: #dbefe2;
     }
   }
 }

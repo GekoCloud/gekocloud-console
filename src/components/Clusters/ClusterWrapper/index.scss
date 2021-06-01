@@ -1,25 +1,15 @@
 @import '~scss/variables';
 @import '~scss/mixins';
 
-.wrapper {
-   & > p {
-    @include TypographyParagraph($dark-color01);
-   }
-}
-
 .tags {
-  & > span {
-    height: auto;
-    margin-right: 4px;
-
-    & > span {
-      display: inline-block;
-      vertical-align: middle;
+  :global {
+    .tag {
       margin-right: 4px;
-    }
-  }
 
-  span {
-    color: $white !important;
+      .icon {
+        margin-top: -2px;
+        margin-right: 2px;
+      }
+    }
   }
 }

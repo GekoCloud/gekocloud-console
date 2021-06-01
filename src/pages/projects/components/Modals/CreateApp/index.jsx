@@ -1,27 +1,27 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get, set, unset, isFunction } from 'lodash'
+import { get, set, isFunction } from 'lodash'
 import React from 'react'
 import { toJS } from 'mobx'
 import PropTypes from 'prop-types'
-import { Icon } from '@pitrix/lego-ui'
-import { Modal, Button, Notify, Switch } from 'components/Base'
+import { Icon, Button, Notify } from '@juanchi_xd/components'
+import { Modal, Switch } from 'components/Base'
 import { mergeLabels, updateFederatedAnnotations } from 'utils'
 import FORM_TEMPLATES from 'utils/form.templates'
 
@@ -64,7 +64,7 @@ export default class ServiceDeployAppModal extends React.Component {
         }),
       }),
       isCodeMode: false,
-      isGovernance: this.serviceMeshEnable ? 'true' : 'false',
+      isGovernance: false,
     }
 
     this.formRef = React.createRef()
@@ -109,11 +109,7 @@ export default class ServiceDeployAppModal extends React.Component {
       return true
     }
 
-    const { cluster } = this.props
-    return (
-      globals.app.hasClusterModule(cluster, 'servicemesh') &&
-      get(this.routerStore, 'gateway.data.serviceMeshEnable')
-    )
+    return globals.app.hasClusterModule(this.props.cluster, 'servicemesh')
   }
 
   get steps() {
@@ -149,13 +145,17 @@ export default class ServiceDeployAppModal extends React.Component {
         'metadata.annotations["nginx.ingress.kubernetes.io/upstream-vhost"]',
         `productpage.${namespace}.svc.cluster.local`
       )
-      set(
-        formData.ingress,
-        'spec.rules[0].host',
-        gateway.isHostName
-          ? gateway.defaultIngress
-          : `productpage.${namespace}.${gateway.defaultIngress}.nip.io`
-      )
+      if (!gateway.defaultIngress) {
+        set(formData.ingress, 'spec.rules', [])
+      } else {
+        set(
+          formData.ingress,
+          'spec.rules[0].host',
+          gateway.isHostName
+            ? gateway.defaultIngress
+            : `productpage.${namespace}.${gateway.defaultIngress}.nip.io`
+        )
+      }
 
       this.setState({ formData })
     })
@@ -166,9 +166,6 @@ export default class ServiceDeployAppModal extends React.Component {
     const formData = {}
     resources.forEach(item => {
       set(item, 'metadata.namespace', namespace)
-      if (!this.serviceMeshEnable) {
-        unset(item, 'metadata.annotations["servicemesh.kubesphere.io/enabled"]')
-      }
 
       if (item.kind.indexOf('Application') !== -1) {
         formData.application = item
@@ -189,10 +186,13 @@ export default class ServiceDeployAppModal extends React.Component {
     const { cluster, namespace } = this.props
     await this.routerStore.getGateway({ cluster, namespace })
     const gateway = toJS(this.routerStore.gateway.data)
-    this.setState({
-      gateway,
-      isGovernance: this.serviceMeshEnable ? 'true' : 'false',
-    })
+    const isGovernance = !!(this.serviceMeshEnable && gateway.serviceMeshEnable)
+    set(
+      this.state.formData.application,
+      'metadata.annotations["servicemesh.kubesphere.io/enabled"]',
+      String(isGovernance)
+    )
+    this.setState({ gateway, isGovernance })
   }
 
   handleOk = () => {
@@ -270,23 +270,22 @@ export default class ServiceDeployAppModal extends React.Component {
   handleGovernanceChange = value => {
     const { isFederated } = this.props
     const { application, ingress, ...components } = this.state.formData
-    this.setState({ isGovernance: value })
-    const valueStr = String(value)
+    this.setState({ isGovernance: value === 'true' })
     Object.values(components).forEach(component => {
       set(
         component.workload,
         'metadata.annotations["servicemesh.kubesphere.io/enabled"]',
-        valueStr
+        value
       )
       set(
         component.service,
         'metadata.annotations["servicemesh.kubesphere.io/enabled"]',
-        valueStr
+        value
       )
       set(
         component.workload,
         'spec.template.metadata.annotations["sidecar.istio.io/inject"]',
-        valueStr
+        value
       )
       if (isFederated) {
         updateFederatedAnnotations(component.workload)

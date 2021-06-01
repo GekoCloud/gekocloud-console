@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get } from 'lodash'
@@ -21,8 +21,14 @@ import React from 'react'
 import classNames from 'classnames'
 import { toJS } from 'mobx'
 import { inject, observer } from 'mobx-react'
-import { Columns, Column } from '@pitrix/lego-ui'
-import { Button, Modal, Search, RadioGroup, ScrollLoad } from 'components/Base'
+import {
+  Button,
+  RadioGroup,
+  InputSearch,
+  Columns,
+  Column,
+} from '@juanchi_xd/components'
+import { Modal, ScrollLoad } from 'components/Base'
 
 import WorkspaceStore from 'stores/workspace'
 import ProjectStore from 'stores/project'
@@ -142,7 +148,7 @@ export default class ProjectSelectModal extends React.Component {
     this.setState({ search: name }, this.fetchData)
   }
 
-  handleRefresh = () => this.fetchData
+  handleRefresh = () => this.fetchData()
 
   handleTypeChange = type => {
     if (this.state.type !== type) {
@@ -226,6 +232,7 @@ export default class ProjectSelectModal extends React.Component {
           <Columns className="is-variable is-1">
             <Column className="is-narrow">
               <RadioGroup
+                mode="button"
                 value={type}
                 options={this.types}
                 onChange={this.handleTypeChange}
@@ -241,7 +248,7 @@ export default class ProjectSelectModal extends React.Component {
                     onChange={this.handleClusterChange}
                   />
                 )}
-                <Search
+                <InputSearch
                   className={classNames(styles.search, {
                     [styles.withSelect]: showClusterSelect,
                   })}

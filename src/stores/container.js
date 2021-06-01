@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { observable, action } from 'mobx'
@@ -125,6 +125,17 @@ export default class ContainerStore {
     this.watchHandler && this.watchHandler.abort()
   }
 
+  async checkPreviousLog({ cluster, namespace, podName, ...params }) {
+    const result = await request.get(
+      `${this.getDetailUrl({ cluster, namespace, podName })}/log`,
+      params,
+      {},
+      () => {}
+    )
+
+    return !!result
+  }
+
   @action
   async fetchAllLogs({ cluster, namespace, podName, ...params }) {
     return await request.get(
@@ -154,11 +165,11 @@ export default class ContainerStore {
       })}/registry/blob`,
       params,
       null,
-      e => e
+      (e, data) => data
     )
 
     if (get(result, 'status', 'succeeded') !== 'succeeded') {
-      return { status: 'failed' }
+      return { status: 'failed', message: result.message }
     }
 
     return ObjectMapper.imageBlob(result)

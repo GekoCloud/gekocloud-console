@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,7 +21,7 @@ import { toJS } from 'mobx'
 import { inject, observer } from 'mobx-react'
 import { get, isEmpty } from 'lodash'
 import { Link } from 'react-router-dom'
-import { Icon, Select } from '@pitrix/lego-ui'
+import { Icon, Select } from '@juanchi_xd/components'
 import { Panel } from 'components/Base'
 import { getValueByUnit, getSuitableUnit } from 'utils/monitoring'
 import Store from 'stores/rank/workload'
@@ -175,7 +175,7 @@ class UsageRanking extends React.Component {
     return (
       <Panel
         className={styles.wrapper}
-        title={`${t('Resources Usage Ranking')}(Top5)`}
+        title={`${t('Resources Usage Ranking')} (Top5)`}
       >
         {this.renderHeader()}
         {this.renderContent()}

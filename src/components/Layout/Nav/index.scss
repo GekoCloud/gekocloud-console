@@ -1,4 +1,7 @@
 @import '~scss/variables';
+@import '~scss/mixins';
+
+$trans-speed: 0.2s;
 
 .subNav {
   & > p {
@@ -32,41 +35,26 @@
             vertical-align: text-bottom;
           }
 
-          .qicon-chevron-down {
+          .kubed-icon-chevron-down {
             margin-top: 4px;
             transition: all $trans-speed ease-in-out;
           }
         }
-
-        .devopsIcon {
-          width: 16px;
-          height: 16px;
-          padding: 2px;
-          margin-right: 8px;
-          vertical-align: text-bottom;
-        }
       }
 
       &.select,
-      &.childSelect,
-      &:hover,
-      &:active {
+      &.open {
         & > a {
           color: $primary;
 
-          :global .qicon {
-            color: #C0690C;
-            fill: #F9CE9F;
-          }
-
-          .devopsIcon {
-            color: #C0690C;
-            fill: #F9CE9F;
+          :global .kubed-icon {
+            color: #00aa72;
+            fill: #90e0c5;
           }
         }
 
         .title {
-          :global .qicon-chevron-down {
+          :global .kubed-icon-chevron-down {
             transform: rotate(-180deg);
           }
         }
@@ -81,25 +69,31 @@
         }
       }
 
+      &.childSelect .title {
+        color: $primary;
+        :global .kubed-icon {
+          color: #00aa72;
+          fill: #90e0c5;
+        }
+      }
+
       &.disabled {
         opacity: 0.7;
 
-        &.select,
-        &:hover,
-        &:active {
+        &.select {
           & > a {
             color: #4a5974;
             cursor: not-allowed;
           }
 
-          :global .qicon {
-            color: #C0690C;
-            fill: #F9CE9F;
+          :global .kubed-icon {
+            color: #324558;
+            fill: #b6c2cd;
           }
         }
 
         .title {
-          :global .qicon-chevron-down {
+          :global .kubed-icon-chevron-down {
             transform: none;
           }
         }
@@ -135,6 +129,7 @@
       margin-top $trans-speed ease-in-out 0.1s, opacity $trans-speed ease-in-out;
 
     & > a {
+      display: block;
       color: #4a5974;
     }
 
@@ -175,4 +170,9 @@
 .rightIcon {
   float: right;
   margin-right: 0 !important;
+}
+
+.tip {
+  margin-top: -2px;
+  margin-left: 4px;
 }

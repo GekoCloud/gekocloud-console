@@ -1,29 +1,29 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
 import copy from 'fast-copy'
 import { observer } from 'mobx-react'
-import { get, debounce, unset } from 'lodash'
+import { get, debounce, pick, unset } from 'lodash'
 
-import { Input, Select } from '@pitrix/lego-ui'
-import { Form, Modal, TextArea } from 'components/Base'
+import { Form, Input, Select, TextArea } from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 
 import UserStore from 'stores/user'
 
@@ -51,10 +51,16 @@ export default class EditBasicInfoModal extends React.Component {
     }
 
     this.userStore = new UserStore()
-    this.userStore.fetchList()
+    this.fetchUsers()
   }
 
-  getUsers() {
+  fetchUsers = params => {
+    return this.userStore.fetchList({
+      ...params,
+    })
+  }
+
+  get users() {
     const manger = get(this.props.detail, 'spec.template.spec.manager')
     const users = this.userStore.list.data.map(user => ({
       label: user.username,
@@ -142,20 +148,13 @@ export default class EditBasicInfoModal extends React.Component {
         <Form.Item label={t('Workspace Manager')}>
           <Select
             name="spec.template.spec.manager"
-            searchable
-            options={this.getUsers()}
+            options={this.users}
+            pagination={pick(this.userStore.list, ['page', 'limit', 'total'])}
+            isLoading={this.userStore.list.isLoading}
+            onFetch={this.fetchUsers}
             defaultValue={globals.user.username}
             onChange={this.handleChange}
-            onInputChange={this.handleInputChange}
-            onBlurResetsInput={false}
-            onCloseResetsInput={false}
-            openOnClick={true}
-            isLoadingAtBottom
-            isLoading={this.userStore.list.isLoading}
-            bottomTextVisible={
-              this.userStore.list.total === this.userStore.list.data.length
-            }
-            onMenuScrollToBottom={this.handleScrollToBottom}
+            searchable
           />
         </Form.Item>
         <Form.Item label={t('Description')} desc={t('DESCRIPTION_DESC')}>

@@ -1,31 +1,32 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { get, isEmpty } from 'lodash'
-import { Loading } from '@pitrix/lego-ui'
+import { Loading } from '@juanchi_xd/components'
 
 import { getDisplayName, getLocalTime } from 'utils'
 import { trigger } from 'utils/action'
-import AppStore from 'stores/application/crd'
 
+import AppStore from 'stores/application/crd'
+import { Status } from 'components/Base'
 import DetailPage from 'projects/containers/Base/Detail'
 
 import routes from './routes'
@@ -51,9 +52,7 @@ export default class CRDAppDetail extends React.Component {
   get listUrl() {
     const { workspace, cluster, namespace } = this.props.match.params
 
-    return `/${workspace}/clusters/${cluster}/projects/${namespace}/${
-      this.module
-    }/composing`
+    return `/${workspace}/clusters/${cluster}/projects/${namespace}/${this.module}/composing`
   }
 
   get routing() {
@@ -81,12 +80,24 @@ export default class CRDAppDetail extends React.Component {
     {
       key: 'addComponent',
       icon: 'add',
-      text: t('Add Component'),
+      text: t('Add Service'),
       action: 'edit',
       onClick: () =>
-        this.trigger('crd.app.addcomponent', {
+        this.trigger('crd.app.addservice', {
+          success: this.fetchComponents,
           detail: toJS(this.store.detail),
+          ...this.props.match.params,
+        }),
+    },
+    {
+      key: 'addRoute',
+      icon: 'add',
+      text: t('Add Route'),
+      action: 'edit',
+      onClick: () =>
+        this.trigger('crd.app.addroute', {
           success: this.fetchData,
+          detail: toJS(this.store.detail),
           ...this.props.match.params,
         }),
     },
@@ -123,6 +134,10 @@ export default class CRDAppDetail extends React.Component {
       {
         name: t('Project'),
         value: namespace,
+      },
+      {
+        name: t('Status'),
+        value: <Status name={t(detail.status)} type={detail.status} />,
       },
       {
         name: t('Application'),

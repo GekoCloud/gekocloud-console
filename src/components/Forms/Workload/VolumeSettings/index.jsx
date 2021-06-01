@@ -1,31 +1,31 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, unset, isUndefined, isEmpty } from 'lodash'
 import React from 'react'
 import { toJS } from 'mobx'
 import { observer } from 'mobx-react'
-import { Toggle, Tooltip, Icon } from '@pitrix/lego-ui'
+import { Toggle, Tooltip, Icon, Alert, Form } from '@juanchi_xd/components'
 
 import { generateId, safeParseJSON } from 'utils'
 import { MODULE_KIND_MAP } from 'utils/constants'
 import { findVolume, isNotPersistentVolume } from 'utils/volume'
-import { Alert, Form } from 'components/Base'
+
 import VolumeStore from 'stores/volume'
 import FederatedStore from 'stores/federated'
 import ProjectStore from 'stores/project'
@@ -99,9 +99,7 @@ class VolumeSettings extends React.Component {
   }
 
   get logPathPrefix() {
-    return `${
-      this.prefix
-    }metadata.annotations["logging.kubesphere.io/logsidecar-config"]`
+    return `${this.prefix}metadata.annotations["logging.kubesphere.io/logsidecar-config"]`
   }
 
   get projectEnableCollectingFileLog() {
@@ -457,6 +455,7 @@ class VolumeSettings extends React.Component {
   }
 
   renderVolumeTemplate() {
+    const { cluster } = this.props
     const { collectSavedLog } = this.state
     const containers = get(
       this.fedFormTemplate,
@@ -469,7 +468,8 @@ class VolumeSettings extends React.Component {
       <AddVolumeTemplate
         volume={this.selectVolume}
         containers={containers}
-        namepsace={namespace}
+        cluster={cluster}
+        namespace={namespace}
         onSave={this.handleVolumeTemplate}
         onCancel={this.resetState}
         checkVolumeNameExist={this.checkVolumeNameExist}

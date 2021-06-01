@@ -1,22 +1,23 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 const { resolve } = require('path')
+const merge = require('lodash/merge')
 const webpack = require('webpack')
 const CopyPlugin = require('copy-webpack-plugin')
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin')
@@ -25,33 +26,30 @@ const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin
 
-const ChunkRenamePlugin = require('webpack-chunk-rename-plugin')
-
 const root = path => resolve(__dirname, `../${path}`)
 
 const baseConfig = require('./webpack.base')
+const localeConfig = require('./webpack.locale')
 
 const smp = new SpeedMeasurePlugin()
 
-module.exports = smp.wrap({
+const config = smp.wrap({
   mode: 'production',
   entry: baseConfig.entry,
   output: {
-    filename: '[name].js',
+    filename: '[name].[chunkhash].js',
     path: root('dist/'),
     publicPath: '/dist/',
-    chunkFilename: '[name].[chunkhash].js',
+    chunkFilename: '[chunkhash].js',
   },
   module: {
     rules: [
       ...baseConfig.moduleRules,
       {
-        test: /\.scss$/,
-        exclude: /lego.theme.scss/,
+        test: /\.s[ac]ss$/i,
         include: root('src'),
         loader: [
           MiniCssExtractPlugin.loader,
-          { loader: 'cache-loader' },
           {
             loader: 'css-loader',
             options: {
@@ -65,14 +63,22 @@ module.exports = smp.wrap({
             loader: 'postcss-loader',
             options: baseConfig.postCssOptions,
           },
-          { loader: 'fast-sass-loader' },
+          { loader: 'sass-loader' },
+        ],
+      },
+      {
+        test: /\.s[ac]ss$/i,
+        include: root('node_modules'),
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'sass-loader',
         ],
       },
       {
         test: /\.css$/,
         loader: [
           MiniCssExtractPlugin.loader,
-          { loader: 'cache-loader' },
           {
             loader: 'css-loader',
             options: {
@@ -101,7 +107,7 @@ module.exports = smp.wrap({
     concatenateModules: true,
     minimize: true,
     splitChunks: {
-      chunks: 'all',
+      chunks: 'async',
       minChunks: 1,
       maxAsyncRequests: 5,
       maxInitialRequests: 5,
@@ -111,11 +117,6 @@ module.exports = smp.wrap({
           name: 'vendor',
           priority: 10,
         },
-        lego: {
-          test: /[\\/]node_modules[\\/]@pitrix[\\/].*.jsx?$/,
-          name: 'lego',
-          priority: 20,
-        },
         common: {
           name: 'common',
           minChunks: 2,
@@ -124,17 +125,15 @@ module.exports = smp.wrap({
       },
     },
   },
-  resolve: baseConfig.resolve,
+  resolve: merge({}, baseConfig.resolve, {
+    alias: { lodash: root('node_modules/lodash') },
+  }),
   plugins: [
     ...baseConfig.plugins,
-    new ChunkRenamePlugin({
-      vendor: '[name].js',
-      lego: '[name].js',
-    }),
     new CopyPlugin([{ from: root('src/assets'), to: root('dist/assets') }]),
     new MiniCssExtractPlugin({
-      filename: '[name].css',
-      chunkFilename: '[name].[chunkhash].css',
+      filename: '[name].[chunkhash].css',
+      chunkFilename: '[chunkhash].css',
     }),
     new OptimizeCssAssetsPlugin({
       assetNameRegExp: /\.css$/g,
@@ -151,3 +150,6 @@ module.exports = smp.wrap({
     new BundleAnalyzerPlugin({ analyzerMode: 'static' }),
   ],
 })
+
+
+module.exports = [config, localeConfig]

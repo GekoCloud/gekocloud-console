@@ -1,28 +1,37 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
-
-import { observable, action } from 'mobx'
+import { isEmpty, pick, get, set, isUndefined } from 'lodash'
+import { observable, action, toJS } from 'mobx'
 import { observer } from 'mobx-react'
-import { Form, Modal, Checkbox, SearchSelect, Tag } from 'components/Base'
-import { Input, Select, Icon, Columns, Column } from '@pitrix/lego-ui'
+import {
+  Checkbox,
+  Column,
+  Columns,
+  Form,
+  Icon,
+  Input,
+  Select,
+  Tag,
+} from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 
 import styles from './index.scss'
 
@@ -54,22 +63,10 @@ export default class KubernetesDeploy extends React.Component {
     onCancel() {},
   }
 
-  constructor(props) {
-    super(props)
-    this.formRef = React.createRef()
-    this.state = { formData: {} }
-  }
+  @observable
+  formData = { enableConfigSubstitution: true, deleteResource: false }
 
-  static getDerivedStateFromProps(nextProps) {
-    if (nextProps.edittingData.type === 'kubernetesDeploy') {
-      const formData = nextProps.edittingData.data.reduce((prev, arg) => {
-        prev[arg.key] = arg.value.value
-        return prev
-      }, {})
-      return { formData }
-    }
-    return null
-  }
+  formRef = React.createRef()
 
   @observable
   dockerCredentials = [{ key: 'default' }]
@@ -80,25 +77,85 @@ export default class KubernetesDeploy extends React.Component {
   @observable
   isShowDetail = false
 
-  handleChange = type => e => {
-    this.setState(state => {
-      state.formData[type] = e.target ? e.target.value.trim() : e
-      return state
-    })
+  componentDidMount() {
+    if (this.props.edittingData.type === 'kubernetesDeploy') {
+      const formData = this.props.edittingData.data.reduce((prev, arg) => {
+        prev[arg.key] = arg.value.value
+        return prev
+      }, {})
+
+      const { dockerCredentials, secretNamespace, secretName } = formData
+
+      this.isShowAdvenced = !!(
+        dockerCredentials ||
+        secretNamespace ||
+        secretName
+      )
+
+      this.formData = formData
+      this.initData()
+    }
   }
 
   @action
   handleCredentialChange = (key, type) => e => {
     this.dockerCredentials = this.dockerCredentials.map(credential => {
       if (credential.key === key) {
-        credential[type] = e.target ? e.target.value : e
+        if (type === 'credentialsId' && isUndefined(e)) {
+          delete credential[type]
+        } else {
+          credential[type] = e && e.target ? e.target.value : e
+        }
       }
+
       return credential
     })
   }
 
   handleAddDockerCredential = () => {
     this.dockerCredentials.push({ key: `${Math.random()}` })
+  }
+
+  initData = () => {
+    const { dockerCredentials } = this.formData
+    this.dockerCredentials = []
+
+    if (dockerCredentials) {
+      const matchData = dockerCredentials.match(/\$\{(\[(.+)\])\}$/)
+      const value = get(matchData, '[2]', '')
+      const data = value.match(/(\[(.+)\])+/g)
+
+      if (!isEmpty(data)) {
+        const _data = data[0].split('],[').map(item => {
+          const obj = {}
+          const _item = item
+            .replace('[', '')
+            .replace(']', '')
+            .split(',')
+
+          _item.forEach(__item => {
+            const [curKey, curValue] = this.handleStrToArr(__item)
+            obj.key = curValue
+            obj[curKey] = curValue
+          })
+
+          return obj
+        })
+
+        this.dockerCredentials = _data
+      } else {
+        this.dockerCredentials = []
+      }
+    } else {
+      this.dockerCredentials = []
+    }
+  }
+
+  handleStrToArr = item => {
+    let [key, value] = item.split(':')
+    key = key.trim()
+    value = value.trim().replace(/'/g, '')
+    return [key, value]
   }
 
   showAdvencedSetting = () => {
@@ -117,13 +174,14 @@ export default class KubernetesDeploy extends React.Component {
 
   handleOk = () => {
     this.formRef.current.validate(() => {
-      const _arguments = Object.keys(this.state.formData).map(key => ({
+      const _arguments = Object.keys(this.formData).map(key => ({
         key,
         value: {
           isLiteral: true,
-          value: this.state.formData[key],
+          value: this.formData[key],
         },
       }))
+
       if (this.isShowAdvenced) {
         const params = this.dockerCredentials.reduce(
           (str, credential, index) => {
@@ -135,16 +193,26 @@ export default class KubernetesDeploy extends React.Component {
           },
           ''
         )
-        if (params !== '[]') {
-          _arguments.push({
-            key: 'dockerCredentials',
-            value: {
-              isLiteral: false,
-              value: `\${[${params}]}`,
-            },
-          })
+
+        if (!isEmpty(params) || params !== '[]') {
+          const dockerCredentials = _arguments.find(
+            item => item.key === 'dockerCredentials'
+          )
+          if (dockerCredentials) {
+            set(dockerCredentials, 'value.value', `\${[${params}]}`)
+            set(dockerCredentials, 'value.isLiteral', false)
+          } else {
+            _arguments.push({
+              key: 'dockerCredentials',
+              value: {
+                isLiteral: false,
+                value: `\${[${params}]}`,
+              },
+            })
+          }
         }
       }
+
       this.props.onAddStep({
         name: 'kubernetesDeploy',
         arguments: _arguments.filter(arg => arg.value.value !== ''),
@@ -153,31 +221,23 @@ export default class KubernetesDeploy extends React.Component {
   }
 
   renderDockerCredentials = () => {
-    const { passWordCredentials } = this.props.store
+    const { credentialsList } = this.props.store
     return (
       <div className={styles.dockerCredentialsContent}>
         <div className={styles.dockerCredentialsContent__title}>
           {t('Kubernetes Secrets')}
         </div>
         <Form.Item label={t('Kubernetes Namespace for Secret')}>
-          <Input
-            name="secretNamespace"
-            value={this.state.formData.secretNamespace}
-            onChange={this.handleChange('secretNamespace')}
-          />
+          <Input name="secretNamespace" />
         </Form.Item>
         <Form.Item label={t('Secret Name')}>
-          <Input
-            name="secretName"
-            value={this.state.formData.secretName}
-            onChange={this.handleChange('secretName')}
-          />
+          <Input name="secretName" />
         </Form.Item>
         <div className={styles.dockerCredentialsContent__title}>
           {t('Docker Container Registry Credentials')}
         </div>
         <div>
-          {this.dockerCredentials.map(credential => (
+          {toJS(this.dockerCredentials).map(credential => (
             <div
               key={credential.key}
               className={styles.dockerCredentialsContent__content}
@@ -197,11 +257,20 @@ export default class KubernetesDeploy extends React.Component {
               <Form.Item label={t('Registry Credentials')}>
                 <Select
                   value={credential.credentialsId}
-                  options={passWordCredentials}
-                  onChange={this.handleCredentialChange(
-                    credential.key,
-                    'credentialsId'
-                  )}
+                  options={this.getRepoCredentialsList()}
+                  pagination={pick(credentialsList, ['page', 'limit', 'total'])}
+                  isLoading={credentialsList.isLoading}
+                  onFetch={this.getCredentialsListData}
+                  optionRenderer={this.optionRender}
+                  valueRenderer={this.optionRender}
+                  searchable
+                  clearable
+                  onChange={e =>
+                    this.handleCredentialChange(
+                      credential.key,
+                      'credentialsId'
+                    )(e)
+                  }
                 />
               </Form.Item>
             </div>
@@ -232,10 +301,18 @@ export default class KubernetesDeploy extends React.Component {
     ]
   }
 
+  getRepoCredentialsList = () => {
+    const list = this.getCredentialsList()
+      .filter(item => this.props.store.isPassWordCredentials(item.type))
+      .map(item => ({ ...item, disabled: false }))
+
+    return list
+  }
+
   optionRender = ({ label, type, disabled }) => (
     <span style={{ display: 'flex', alignItem: 'center' }}>
       {label}&nbsp;&nbsp;
-      <Tag type={disabled ? '' : 'warning'}>
+      <Tag type={disabled ? 'default' : 'warning'}>
         {type === 'ssh' ? 'SSH' : t(type)}
       </Tag>
     </span>
@@ -244,7 +321,7 @@ export default class KubernetesDeploy extends React.Component {
   optionRender = ({ label, type, disabled }) => (
     <span style={{ display: 'flex', alignItem: 'center' }}>
       {label}&nbsp;&nbsp;
-      <Tag type={disabled ? '' : 'warning'}>
+      <Tag type={disabled ? 'default' : 'warning'}>
         {type === 'ssh' ? 'SSH' : t(type)}
       </Tag>
     </span>
@@ -273,7 +350,7 @@ export default class KubernetesDeploy extends React.Component {
         </div>
         <Form
           className={styles.KubernetesForm}
-          data={this.state.formData}
+          data={this.formData}
           ref={this.formRef}
         >
           <Form.Item
@@ -291,16 +368,16 @@ export default class KubernetesDeploy extends React.Component {
               </p>
             }
           >
-            <SearchSelect
+            <Select
               name="kubeconfigId"
               options={this.getCredentialsList()}
-              page={credentialsList.page}
-              total={credentialsList.total}
-              currentLength={credentialsList.data.length}
+              pagination={pick(credentialsList, ['page', 'limit', 'total'])}
               isLoading={credentialsList.isLoading}
               onFetch={this.getCredentialsListData}
               optionRenderer={this.optionRender}
               valueRenderer={this.optionRender}
+              searchable
+              clearable
             />
           </Form.Item>
           <Form.Item label={t('Config File Path')}>
@@ -309,14 +386,20 @@ export default class KubernetesDeploy extends React.Component {
           <Columns className="margin-t12">
             <Column>
               <Form.Item>
-                <Checkbox name="enableConfigSubstitution" defaultValue={true}>
-                  {t('Enable Variable Substitution in Config')}
+                <Checkbox
+                  name="enableConfigSubstitution"
+                  checked={this.formData.enableConfigSubstitution}
+                >
+                  {t('enableConfigSubstitution')}
                 </Checkbox>
               </Form.Item>
             </Column>
             <Column>
               <Form.Item>
-                <Checkbox name="deleteResource" defaultValue={false}>
+                <Checkbox
+                  name="deleteResource"
+                  checked={this.formData.deleteResource}
+                >
                   {t('Delete all resources of the deployment file')}
                 </Checkbox>
               </Form.Item>

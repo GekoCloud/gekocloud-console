@@ -54,7 +54,8 @@ pre {
   white-space: pre-wrap;
   font-size: $body-size;
   color: $text-color;
-  font-family: $font-family;
+  font-family: $font-family-code;
+  overflow: auto;
   -webkit-font-smoothing: unset;
 }
 
@@ -113,12 +114,12 @@ pre {
 }
 
 ::-moz-selection {
-  background: #369a6a;
+  background: #65a428;
   color: #fff;
 }
 
 ::selection {
-  background: #369a6a;
+  background: #65a428;
   color: #fff;
 }
 
@@ -160,14 +161,14 @@ pre {
   svg {
     width: 16px;
     height: 16px;
-    color: #C0690C;
-    fill: #F9CE9F;
+    color: #324558;
+    fill: #b6c2cd;
   }
 
   &:hover {
     svg {
-      color: #C0690C;
-      fill: #FDF3E7;
+      color: #00aa72;
+      fill: #90e0c5;
     }
   }
 }

@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, omit } from 'lodash'
@@ -22,7 +22,7 @@ import React from 'react'
 import { mergeLabels, updateFederatedAnnotations } from 'utils'
 import ServiceStore from 'stores/service'
 
-import CreateServiceModal from 'projects/components/Modals/ServiceCreate/InApp'
+import CreateAppServiceModal from 'projects/components/Modals/CreateAppService'
 import ServiceList from './ServiceList'
 
 import styles from './index.scss'
@@ -32,7 +32,6 @@ export default class Services extends React.Component {
 
   state = {
     components: omit(this.props.formData, ['application', 'ingress']) || {},
-    componentsError: '',
     editData: {},
     showAdd: false,
   }
@@ -51,12 +50,6 @@ export default class Services extends React.Component {
   }
 
   validate(callback) {
-    if (Object.keys(this.state.components).length <= 0) {
-      return this.setState({
-        componentsError: t('Service components should not be empty'),
-      })
-    }
-
     callback && callback()
   }
 
@@ -105,9 +98,7 @@ export default class Services extends React.Component {
 
     set(
       formData.workload,
-      `spec.template.${
-        this.fedPrefix
-      }metadata.annotations["sidecar.istio.io/inject"]`,
+      `spec.template.${this.fedPrefix}metadata.annotations["sidecar.istio.io/inject"]`,
       String(isGovernance)
     )
 
@@ -158,12 +149,18 @@ export default class Services extends React.Component {
     this.updateGovernance(data)
 
     const key = get(data, 'service.metadata.name')
+    const oldName = get(this.state.editData, 'Service.metadata.name')
     this.setState(
-      ({ components }) => ({
-        components: { ...components, [key]: data },
-        componentsError: '',
-      }),
+      ({ components }) => {
+        if (oldName && components[oldName]) {
+          delete components[oldName]
+        }
+        return { components: { ...components, [key]: data }, editData: {} }
+      },
       () => {
+        if (oldName) {
+          delete this.props.formData[oldName]
+        }
         this.props.formData[key] = data
         this.updateComponentKind()
         this.hideAdd()
@@ -186,7 +183,7 @@ export default class Services extends React.Component {
 
   render() {
     const { cluster, namespace, isFederated, projectDetail } = this.props
-    const { components, showAdd, editData, componentsError } = this.state
+    const { components, showAdd, editData } = this.state
 
     return (
       <div className={styles.wrapper}>
@@ -197,14 +194,13 @@ export default class Services extends React.Component {
         <div className={styles.title}>{t('Application Components')}</div>
         <div className={styles.components}>
           <ServiceList
-            error={componentsError}
             data={components}
             clusters={projectDetail.clusters}
             onAdd={this.showAdd}
             onDelete={this.handleDelete}
           />
         </div>
-        <CreateServiceModal
+        <CreateAppServiceModal
           cluster={cluster}
           namespace={namespace}
           detail={editData}

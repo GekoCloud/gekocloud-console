@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import {
@@ -107,7 +107,7 @@ export const getSuitableValue = (
   return `${count}${unitText}`
 }
 
-export const getValueByUnit = (num, unit) => {
+export const getValueByUnit = (num, unit, precision = 2) => {
   let value = parseFloat(num)
 
   switch (unit) {
@@ -175,13 +175,13 @@ export const getValueByUnit = (num, unit) => {
       break
   }
 
-  return Number(value) === 0 ? 0 : Number(value.toFixed(2))
+  return Number(value) === 0 ? 0 : Number(value.toFixed(precision))
 }
 
 export const getFormatTime = (ms, showDay) =>
   getLocalTime(Number(ms))
     .format(showDay ? 'MM-DD HH:mm' : 'HH:mm:ss')
-    .replace(/:00$/g, '')
+    .replace(/(\d+:\d+)(:00)$/g, '$1')
 
 export const getChartData = ({
   type,
@@ -189,6 +189,7 @@ export const getChartData = ({
   xKey = 'time',
   legend = [],
   valuesData = [],
+  dot = 2,
 }) => {
   /*
     build a value map => { 1566289260: {...} }
@@ -210,11 +211,11 @@ export const getChartData = ({
         }, {})
       }
 
-      if (key && valueMap[time]) {
+      if (key !== undefined && key !== null && valueMap[time]) {
         valueMap[time][key] =
           value === '-1'
             ? null
-            : getValueByUnit(value, isUndefined(unit) ? type : unit)
+            : getValueByUnit(value, isUndefined(unit) ? type : unit, dot)
       }
 
       if (!minX || minX > time) minX = time
@@ -256,6 +257,7 @@ export const getAreaChartOps = ({
     xKey,
     legend,
     valuesData,
+    dot: rest.dot,
   })
 
   return {

@@ -1,25 +1,25 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get } from 'lodash'
+import { get, has } from 'lodash'
 import React from 'react'
 import isEqual from 'react-fast-compare'
-import { Icon } from '@pitrix/lego-ui'
+import { Icon } from '@juanchi_xd/components'
 import { getMetricData } from 'utils/service'
 import { GRAY_RELEASE_CATEGORIES } from 'utils/constants'
 
@@ -116,24 +116,47 @@ export default class Item extends React.Component {
           )
         : NaN,
     ]
-    const request_duration = [
-      getMetricData(
-        get(
-          newMetrics,
-          'histograms.request_duration["0.95"].matrix[0].values',
-          []
+
+    let request_duration = []
+    if (has(newMetrics, 'histograms.request_duration_millis')) {
+      request_duration = [
+        getMetricData(
+          get(
+            newMetrics,
+            'histograms.request_duration_millis["avg"].matrix[0].values',
+            []
+          ),
+          NaN
         ),
-        NaN
-      ) * 1000,
-      getMetricData(
-        get(
-          oldMetrics,
-          'histograms.request_duration["0.95"].matrix[0].values',
-          []
+        getMetricData(
+          get(
+            oldMetrics,
+            'histograms.request_duration_millis["avg"].matrix[0].values',
+            []
+          ),
+          NaN
         ),
-        NaN
-      ) * 1000,
-    ]
+      ]
+    } else {
+      request_duration = [
+        getMetricData(
+          get(
+            newMetrics,
+            'histograms.request_duration["avg"].matrix[0].values',
+            []
+          ),
+          NaN
+        ) * 1000,
+        getMetricData(
+          get(
+            oldMetrics,
+            'histograms.request_duration["avg"].matrix[0].values',
+            []
+          ),
+          NaN
+        ) * 1000,
+      ]
+    }
 
     return [
       {
@@ -160,7 +183,6 @@ export default class Item extends React.Component {
         data: request_duration,
         icon: 'timed-task',
         unit: 'ms',
-        tip: t('95% requests duration'),
       },
     ]
   }
@@ -262,22 +284,32 @@ export default class Item extends React.Component {
         <div className={styles.right}>
           <div className={styles.versions}>
             <p>
-              <strong>{t('Version Compare')}</strong>
+              <strong>{t('Version Comparison')}</strong>
             </p>
             <p className={styles.tag}>
               {data.newVersion}
               &nbsp;
               <span>
-                ({t('Replicas')}: {get(newHealth, 'workloadStatus.available')}/
-                {get(newHealth, 'workloadStatus.replicas')})
+                ({t('Replicas')}:{' '}
+                {get(newHealth, 'workloadStatus.available') ||
+                  get(newHealth, 'workloadStatus.availableReplicas')}
+                /
+                {get(newHealth, 'workloadStatus.replicas') ||
+                  get(newHealth, 'workloadStatus.desiredReplicas')}
+                )
               </span>
             </p>
             <p className={styles.tag}>
               {data.oldVersion}
               &nbsp;
               <span>
-                ({t('Replicas')}: {get(oldHealth, 'workloadStatus.available')}/
-                {get(oldHealth, 'workloadStatus.replicas')})
+                ({t('Replicas')}:{' '}
+                {get(oldHealth, 'workloadStatus.available') ||
+                  get(oldHealth, 'workloadStatus.availableReplicas')}
+                /
+                {get(oldHealth, 'workloadStatus.replicas') ||
+                  get(oldHealth, 'workloadStatus.desiredReplicas')}
+                )
               </span>
             </p>
           </div>

@@ -1,52 +1,53 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { getIndexRoute } from 'utils/router.config'
 
 import Layout from '../containers/layout'
-
-import Pipelines from '../containers/Pipelines'
+import DevopsListLayout from '../containers/Base/List'
+import PipelinesList from '../containers/Pipelines/PipelinesList'
 import BaseInfo from '../containers/BaseInfo'
 import Roles from '../containers/Roles'
 import Members from '../containers/Members'
 import Credential from '../containers/Credential'
-
-import PipelineRoutes from './pipeline'
-import CredentialRoutes from './credential'
 
 import detail from './detail'
 
 const PATH = '/:workspace/clusters/:cluster/devops/:devops'
 
 export default [
-  ...PipelineRoutes,
-  ...CredentialRoutes,
-  ...detail,
   {
     path: PATH,
     component: Layout,
     routes: [
-      { path: `${PATH}/pipelines`, component: Pipelines, exact: true },
-      { path: `${PATH}/base-info`, component: BaseInfo, exact: true },
-      { path: `${PATH}/roles`, component: Roles, exact: true },
-      { path: `${PATH}/members`, component: Members, exact: true },
-      { path: `${PATH}/credentials`, component: Credential, exact: true },
-      getIndexRoute({ path: PATH, to: `${PATH}/pipelines`, exact: true }),
+      ...detail,
+      {
+        path: '',
+        component: DevopsListLayout,
+        routes: [
+          { path: `${PATH}/pipelines`, component: PipelinesList, exact: true },
+          { path: `${PATH}/base-info`, component: BaseInfo, exact: true },
+          { path: `${PATH}/roles`, component: Roles, exact: true },
+          { path: `${PATH}/members`, component: Members, exact: true },
+          { path: `${PATH}/credentials`, component: Credential, exact: true },
+          getIndexRoute({ path: PATH, to: `${PATH}/pipelines`, exact: true }),
+        ],
+      },
       getIndexRoute({ path: '*', to: '/404', exact: true }),
     ],
   },

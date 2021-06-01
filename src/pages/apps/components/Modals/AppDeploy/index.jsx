@@ -1,28 +1,28 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
 import { observer } from 'mobx-react'
 import { get } from 'lodash'
-import { Loading } from '@pitrix/lego-ui'
+import { Button, Loading } from '@juanchi_xd/components'
 
-import { Modal, Button } from 'components/Base'
+import { Modal } from 'components/Base'
 
 import BasicInfo from 'components/Forms/AppDeploy/BasicInfo'
 import AppConfig from 'components/Forms/AppDeploy/AppConfig'
@@ -45,7 +45,6 @@ export default class AppDeploy extends React.Component {
     cluster: PropTypes.string,
     workspace: PropTypes.string,
     namespace: PropTypes.string,
-    runtime_id: PropTypes.string,
     versionId: PropTypes.string,
     onOk: PropTypes.func,
     onCancel: PropTypes.func,
@@ -65,10 +64,12 @@ export default class AppDeploy extends React.Component {
       currentStep: 0,
       formData: {
         app_id: props.app.app_id,
-        name: `${props.app.name.slice(0, 7)}-${generateId()}`,
+        name: `${props.app.name
+          .slice(0, 7)
+          .toLowerCase()
+          .replaceAll(' ', '-')}-${generateId()}`,
         version_id: props.versionId,
         namespace: props.namespace,
-        runtime_id: props.runtime_id,
         cluster: props.cluster,
         workspace: props.workspace,
       },
@@ -113,7 +114,10 @@ export default class AppDeploy extends React.Component {
         },
       })
     }
-    await this.fileStore.fetch({ version_id: this.state.formData.version_id })
+    await this.fileStore.fetch({
+      app_id: this.props.app.app_id,
+      version_id: this.state.formData.version_id,
+    })
     this.setState({ intializing: false })
   }
 
@@ -167,7 +171,7 @@ export default class AppDeploy extends React.Component {
       versionId,
       versionStore: this.versionStore,
       fileStore: this.fileStore,
-      appID: app.app_id,
+      appId: app.app_id,
     }
 
     if (step.isForm) {

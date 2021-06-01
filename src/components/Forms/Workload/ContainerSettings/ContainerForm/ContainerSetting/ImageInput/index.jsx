@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
@@ -21,12 +21,11 @@ import PropTypes from 'prop-types'
 import { get, set, throttle, isObject, isEmpty } from 'lodash'
 import classnames from 'classnames'
 import moment from 'moment-mini'
-import { Icon, Loading } from '@pitrix/lego-ui'
+import { Form, Button, Icon, Loading, Tooltip } from '@juanchi_xd/components'
 
 import { getDocsUrl, formatSize } from 'utils'
 
 import { PATTERN_IMAGE, PATTERN_IMAGE_TAG } from 'utils/constants'
-import { Form, Button } from 'components/Base'
 
 import ContainerStore from 'stores/container'
 
@@ -95,11 +94,17 @@ export default class ImageSearch extends Component {
     if (this.image && image === this.image) {
       return
     }
-    this.getImageDetail({ image, secret, logo, short_description })
+
+    this.ImageDetail = { image, secret, logo, short_description }
+    this.getImageDetail(this.ImageDetail)
   }
 
-  getImageDetail = async ({ image, secret, ...rest }) => {
-    const { namespace, cluster } = this.props
+  getImageDetailNoCert = () => {
+    this.getImageDetail({ ...this.ImageDetail, insecure: true })
+  }
+
+  getImageDetail = async ({ image, secret, insecure, ...rest }) => {
+    const { namespace, imageRegistries } = this.props
     if (!image || this.isUnMounted) {
       return
     }
@@ -108,11 +113,15 @@ export default class ImageSearch extends Component {
 
     this.setState({ isLoading: true })
 
+    const secretDetail = imageRegistries.find(item => item.value === secret)
+    const cluster = get(secretDetail, 'cluster')
+
     const result = await this.store.getImageDetail({
       cluster,
       namespace,
       image,
       secret,
+      insecure,
     })
 
     const selectedImage = { ...result, ...rest, image }
@@ -144,6 +153,10 @@ export default class ImageSearch extends Component {
     }
   }
 
+  renderWaringText = () => {
+    return <p>{t('IGNORE_CERT_WARN_DESC')}</p>
+  }
+
   renderSelectedContent = () => {
     if (this.state.isLoading) {
       return (
@@ -154,7 +167,34 @@ export default class ImageSearch extends Component {
     }
 
     if (isObject(this.selectedImage)) {
-      if (this.selectedImage.status === 'failed') {
+      const { message, status } = this.selectedImage
+
+      if (status === 'failed') {
+        if (message.includes('x509')) {
+          return (
+            <div
+              className={classnames(
+                styles.selectedContent,
+                styles.emptyContent
+              )}
+            >
+              <Icon name="docker" className={styles.icon} />
+              <p className={styles.desc}>
+                {t('IGNORE_CERT_DESC')}
+                <Tooltip content={this.renderWaringText}>
+                  <span
+                    className={styles.textConfirm}
+                    onClick={this.getImageDetailNoCert}
+                  >
+                    {t('to try again')}
+                  </span>
+                </Tooltip>
+                <span>?</span>
+              </p>
+            </div>
+          )
+        }
+
         return (
           <div
             className={classnames(styles.selectedContent, styles.emptyContent)}
@@ -169,7 +209,6 @@ export default class ImageSearch extends Component {
         image,
         size,
         layers,
-        message,
         createTime,
         exposedPorts = [],
         registry,

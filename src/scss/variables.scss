@@ -3,13 +3,13 @@
 // --------------------------------------------------
 
 // init
-$dark-color01: #4f7ec9;
+$dark-color01: #79879c;
 $dark-color02: #6b7b95;
 $dark-color03: #5f708a;
 $dark-color04: #4a5974;
 $dark-color05: #404e68;
-$dark-color06: #3563ad;
-$dark-color07: #3563ad;
+$dark-color06: #36435c;
+$dark-color07: #242e42;
 $dark-color08: #181d28;
 $light-color01: #f9fbfd;
 $light-color02: #eff4f9;
@@ -21,13 +21,12 @@ $light-color07: #c1c9d1;
 $light-color08: #abb4be;
 $green-color01: #c4e6d4;
 $green-color02: #a2d8bb;
-$green-color03: #f18918;
+$green-color03: #55bc8a;
 $green-color04: #479e88;
 $green-color05: #3b747a;
-$green-color06: #07d600;
 $blue-color01: #c7deef;
 $blue-color02: #7eb8dc;
-$blue-color03: #f18918;
+$blue-color03: #329dce;
 $blue-color04: #3385b0;
 $blue-color05: #326e93;
 $red-color01: #fae7e5;
@@ -42,6 +41,9 @@ $yellow-color04: #e0992c;
 $yellow-color05: #8d663e;
 $white: #ffffff;
 $black: #000000;
+
+// Custom Variable
+$header-bg-color: rgba(56,55,54,.87);
 
 // specific color
 $dark: $dark-color07;
@@ -136,11 +138,11 @@ $card-selector-shadow: 0 8px 16px 0 rgba(36, 46, 66, 0.08);
 $tr-shadow: inset 0 2px 4px 0 rgba(72, 91, 127, 0.2);
 
 // font
-$font-family: "PingFang SC", "Lantinghei SC", "Helvetica Neue", Helvetica, Arial,
-  "Microsoft YaHei", 微软雅黑, STHeitiSC-Light, simsun, 宋体,
-  "WenQuanYi Zen Hei", "WenQuanYi Micro Hei", sans-serif;
+$font-family: 'PingFang SC', 'Lantinghei SC', 'Helvetica Neue', Helvetica, Arial,
+  'Microsoft YaHei', 微软雅黑, STHeitiSC-Light, simsun, 宋体,
+  'WenQuanYi Zen Hei', 'WenQuanYi Micro Hei', sans-serif;
 $font-family-id: Roboto, $font-family;
-$font-family-code: "PT Mono", Monaco, Menlo, Consolas, "Courier New", monospace;
+$font-family-code: 'PT Mono', Monaco, Menlo, Consolas, 'Courier New', monospace;
 
 $size-small: 12px;
 $size-normal: 14px;
@@ -181,10 +183,18 @@ $heading-heights: (
   h5: 20px,
   h6: 20px,
 );
-$icon-status-info: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNLTMtM2gyNHYyNEgtM3oiLz48cGF0aCBmaWxsPSIjMjE5MUNBIiBkPSJNOSAxOEE5IDkgMCAxIDEgOSAwYTkgOSAwIDAgMSAwIDE4ek05IDUuNjgxYTEuMzEyIDEuMzEyIDAgMSAwIDAtMi42MjMgMS4zMTIgMS4zMTIgMCAwIDAgMCAyLjYyM3pNOCA3LjUxNlYxNWgyVjcuNTE2SDh6Ii8+PC9nPjwvc3ZnPg==");
-$icon-status-success: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNLTMtM2gyNHYyNEgtM3oiLz48cGF0aCBmaWxsPSIjMDBBQTcyIiBkPSJNOSAxOEE5IDkgMCAxIDEgOSAwYTkgOSAwIDAgMSAwIDE4em0tMi4xMTUtNi45NEw0LjQ5NCA4LjY3bC0xLjQxNSAxLjQxNCAzLjgwNiAzLjgwNiA3LjU0OC03LjU0OC0xLjQxNC0xLjQxNC02LjEzNCA2LjEzNHoiLz48L2c+PC9zdmc+");
-$icon-status-warning: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxOCI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNLTItM2gyNHYyNEgtMnoiLz48cGF0aCBmaWxsPSIjRjVDNDE0IiBkPSJNMTAgMGwxMCAxNy4zMkgwTDEwIDB6bTAgMTYuMDAxYTEgMSAwIDEgMCAwLTIgMSAxIDAgMCAwIDAgMnpNOSA2bC4yIDdoMS42bC4yLTdIOXoiLz48L2c+PC9zdmc+");
-$icon-status-error: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNLTMtM2gyNHYyNEgtM3oiLz48cGF0aCBmaWxsPSIjQ0EyNjIxIiBkPSJNMTIuNzI4IDBMMTggNS4yNzJ2Ny40NTZMMTIuNzI4IDE4SDUuMjcyTDAgMTIuNzI4VjUuMjcyTDUuMjcyIDBoNy40NTZ6bS0yLjMxNCA5bDMuNDY2LTMuNDY2LTEuNDE0LTEuNDE0TDkgNy41ODYgNS41MzYgNC4xMjIgNC4xMjIgNS41MzYgNy41ODYgOSA0LjEyIDEyLjQ2NmwxLjQxNCAxLjQxNEw5IDEwLjQxNGwzLjQ2NCAzLjQ2NCAxLjQxNC0xLjQxNEwxMC40MTQgOXoiLz48cGF0aCBmaWxsPSIjRkZGIiBkPSJNMTAuNDE0IDlsMy40NjQgMy40NjQtMS40MTQgMS40MTRMOSAxMC40MTQgNS41MzQgMTMuODggNC4xMiAxMi40NjYgNy41ODYgOSA0LjEyMiA1LjUzNmwxLjQxNC0xLjQxNEw5IDcuNTg2bDMuNDY2LTMuNDY2IDEuNDE0IDEuNDE0eiIvPjwvZz48L3N2Zz4=");
+$icon-status-info: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNLTMtM2gyNHYyNEgtM3oiLz48cGF0aCBmaWxsPSIjMjE5MUNBIiBkPSJNOSAxOEE5IDkgMCAxIDEgOSAwYTkgOSAwIDAgMSAwIDE4ek05IDUuNjgxYTEuMzEyIDEuMzEyIDAgMSAwIDAtMi42MjMgMS4zMTIgMS4zMTIgMCAwIDAgMCAyLjYyM3pNOCA3LjUxNlYxNWgyVjcuNTE2SDh6Ii8+PC9nPjwvc3ZnPg==');
+$icon-status-success: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNLTMtM2gyNHYyNEgtM3oiLz48cGF0aCBmaWxsPSIjMDBBQTcyIiBkPSJNOSAxOEE5IDkgMCAxIDEgOSAwYTkgOSAwIDAgMSAwIDE4em0tMi4xMTUtNi45NEw0LjQ5NCA4LjY3bC0xLjQxNSAxLjQxNCAzLjgwNiAzLjgwNiA3LjU0OC03LjU0OC0xLjQxNC0xLjQxNC02LjEzNCA2LjEzNHoiLz48L2c+PC9zdmc+');
+$icon-status-warning: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxOCI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNLTItM2gyNHYyNEgtMnoiLz48cGF0aCBmaWxsPSIjRjVDNDE0IiBkPSJNMTAgMGwxMCAxNy4zMkgwTDEwIDB6bTAgMTYuMDAxYTEgMSAwIDEgMCAwLTIgMSAxIDAgMCAwIDAgMnpNOSA2bC4yIDdoMS42bC4yLTdIOXoiLz48L2c+PC9zdmc+');
+$icon-status-error: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNLTMtM2gyNHYyNEgtM3oiLz48cGF0aCBmaWxsPSIjQ0EyNjIxIiBkPSJNMTIuNzI4IDBMMTggNS4yNzJ2Ny40NTZMMTIuNzI4IDE4SDUuMjcyTDAgMTIuNzI4VjUuMjcyTDUuMjcyIDBoNy40NTZ6bS0yLjMxNCA5bDMuNDY2LTMuNDY2LTEuNDE0LTEuNDE0TDkgNy41ODYgNS41MzYgNC4xMjIgNC4xMjIgNS41MzYgNy41ODYgOSA0LjEyIDEyLjQ2NmwxLjQxNCAxLjQxNEw5IDEwLjQxNGwzLjQ2NCAzLjQ2NCAxLjQxNC0xLjQxNEwxMC40MTQgOXoiLz48cGF0aCBmaWxsPSIjRkZGIiBkPSJNMTAuNDE0IDlsMy40NjQgMy40NjQtMS40MTQgMS40MTRMOSAxMC40MTQgNS41MzQgMTMuODggNC4xMiAxMi40NjYgNy41ODYgOSA0LjEyMiA1LjUzNmwxLjQxNC0xLjQxNEw5IDcuNTg2bDMuNDY2LTMuNDY2IDEuNDE0IDEuNDE0eiIvPjwvZz48L3N2Zz4=');
 
 $kube-tools-z-index: 1999;
 $kube-pop-up-window-z-index: $kube-tools-z-index + 1;
+
+// tree
+$tree-node-height: 32px;
+$tree-border-radius: 2px;
+$tree-text-color: $dark-color07;
+$tree-node-hover-bg: $light-color02;
+$tree-node-selected-bg: $dark-color07;
+$tree-switch-hover-color: $light-color06;

@@ -1,58 +1,48 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get, set } from 'lodash'
 import React from 'react'
-import classNames from 'classnames'
+import PropTypes from 'prop-types'
+
 import { observable, action, toJS } from 'mobx'
 import { observer } from 'mobx-react'
-import { Input, Icon, Sortable } from '@pitrix/lego-ui'
-import { Form, Button } from 'components/Base'
-import { PIPELINE_TASKS } from 'src/utils/constants'
 
-import { renderStepArgs } from '../Card/detail'
+import { get, isEmpty, set } from 'lodash'
+
+import { Form, Button, Input, Icon, Select } from '@juanchi_xd/components'
+import YamlEditor from '../StepModals/kubernetesYaml'
+import StepContainer from './StepContainer'
 import StepsSelector from '../StepsSelector'
+
 import styles from '../Sider/index.scss'
 import cardStyles from '../Card/index.scss'
 
-const nestingSteps = {
-  withCredentials: true,
-  dir: true,
-  container: true,
-  timeout: true,
-  withSonarQubeEnv: true,
-  not: true,
-  allOf: true,
-  anyOf: true,
-}
-
-const isEditable = function(name) {
-  return PIPELINE_TASKS.All.includes(name) || name === 'sh'
-}
+const AgentType = [
+  { label: 'Any', value: 'any' },
+  { label: 'node', value: 'node' },
+  { label: 'kubernetes', value: 'kubernetes' },
+  { label: 'none', value: 'none' },
+]
 
 @observer
 export default class StepsEditor extends React.Component {
   static defaultProps = {
     activeStage: {},
-  }
-
-  state = {
-    stage: null,
   }
 
   @observable
@@ -61,21 +51,146 @@ export default class StepsEditor extends React.Component {
   @observable
   isEditMode = false
 
+  @observable
+  formData = {}
+
+  @observable
+  showYaml = false
+
   get steps() {
     return get(this.props.activeStage, 'branches[0].steps', [])
+  }
+
+  get labelDataList() {
+    return get(this.props.store, 'labelDataList', [])
   }
 
   get hasNestStage() {
     return !!this.props.activeStage.stages
   }
 
-  static getDerivedStateFromProps(nextProps) {
-    return { stage: toJS(nextProps.activeStage) }
+  get agentType() {
+    return get(this.props.activeStage, 'agent.type', 'none')
+  }
+
+  static childContextTypes = {
+    toggleAddStep: PropTypes.func,
+    handleEdit: PropTypes.func,
+    handleDeleteStep: PropTypes.func,
+  }
+
+  getChildContext() {
+    return {
+      toggleAddStep: this.toggleAddStep,
+      handleEdit: this.handleEdit,
+      handleDeleteStep: this.handleDeleteStep,
+    }
   }
 
   @action
   handleChangeName = value => {
     this.props.activeStage.name = value
+    this.handleSetValue()
+  }
+
+  @action
+  handleSetYaml = value => {
+    this.formData.yaml = value
+    this.showYaml = false
+  }
+
+  @action
+  hideYamlEditor = () => {
+    this.showYaml = false
+  }
+
+  @action
+  showEditor = () => {
+    this.showYaml = true
+  }
+
+  componentDidMount() {
+    const args = toJS(get(this.props.activeStage, 'agent.arguments', []))
+
+    this.formData = args.reduce((data, arg) => {
+      data[arg.key] = arg.value.value
+      return data
+    }, {})
+  }
+
+  getAgentArguments() {
+    const agentType = get(this.props.activeStage, 'agent.type')
+
+    if (!agentType) {
+      set(this.props.activeStage, 'agent.type', 'none')
+    }
+
+    if (!isEmpty(toJS(this.formData))) {
+      const _arguments = Object.keys(this.formData).map(key => ({
+        key,
+        value: { isLiteral: true, value: this.formData[key] },
+      }))
+
+      set(
+        this.props.activeStage,
+        'agent.arguments',
+        isEmpty(_arguments) ? undefined : _arguments
+      )
+    }
+  }
+
+  renderAgentForms = () => {
+    const labelDataList = toJS(this.labelDataList)
+    const labelDefaultValue = get(labelDataList, '0.value', '')
+
+    switch (this.agentType) {
+      case 'node':
+        return (
+          <Form data={this.formData} ref={this.formRef}>
+            <Form.Item
+              label={t('label')}
+              desc={t(
+                'The label on which to run the Pipeline or individual stage'
+              )}
+            >
+              <Select
+                name="label"
+                options={labelDataList}
+                defaultValue={labelDefaultValue}
+              />
+            </Form.Item>
+          </Form>
+        )
+      case 'kubernetes':
+        return (
+          <Form data={this.formData} ref={this.formRef}>
+            <Form.Item label={t('label')} desc={t('')}>
+              <Input name="label" defaultValue="default" />
+            </Form.Item>
+            <Form.Item
+              label={t('yaml')}
+              desc={
+                <span className={styles.clickable} onClick={this.showEditor}>
+                  {t('show yaml editor')}
+                </span>
+              }
+            >
+              <Input name="yaml" />
+            </Form.Item>
+            <Form.Item label={t('defaultContainer')} desc={t('')}>
+              <Input name="defaultContainer" />
+            </Form.Item>
+          </Form>
+        )
+      default:
+        return null
+    }
+  }
+
+  @action
+  handleAgentTypeChange = type => {
+    this.formData = {}
+    set(this.props.activeStage, 'agent.type', type)
     this.handleSetValue()
   }
 
@@ -96,6 +211,7 @@ export default class StepsEditor extends React.Component {
       type: step.name,
       data: step.arguments,
     })
+
     this.index = index
     this.zIndex = zIndex
     this.isEditMode = true
@@ -118,23 +234,30 @@ export default class StepsEditor extends React.Component {
         if (_index === 0) {
           return `[${value}]`
         }
+
         return `${_path}.children[${value}]`
       }, '')
+
       const prevDataChildren = get(
         this.steps,
         `${path}.children[${this.index}].children`
       )
+
       if (prevDataChildren) {
         step.children = prevDataChildren
       }
+
       get(this.steps, `${path}.children`).splice(this.index, 1, step)
     } else {
       const prevDataChildren = get(this.steps, `[${this.index}].children`)
+
       if (prevDataChildren) {
         step.children = prevDataChildren
       }
+
       this.steps.splice(this.index, 1, step)
     }
+
     this.props.store.isAddingStep = false
     this.isEditMode = false
     this.props.store.setEdittingData({})
@@ -149,12 +272,14 @@ export default class StepsEditor extends React.Component {
     }
 
     let prevData = this.steps
+
     if (typeof this.props.store.isAddingStep === 'string') {
       if (!this.props.activeStage.when) {
-        this.props.activeStage.when = { conditions: [] }
+        set(this.props.activeStage, 'when.conditions', [])
       }
       prevData = this.props.activeStage.when.conditions
     }
+
     if (this.zIndex.length) {
       const path = this.zIndex.reduce((_path, value, _index) => {
         if (_index === 0) {
@@ -167,22 +292,27 @@ export default class StepsEditor extends React.Component {
     } else {
       prevData.push(step)
     }
+
     this.props.store.isAddingStep = false
     this.handleSetValue()
   }
 
   addNoInputTask = task => {
     const { activeStage } = this.props
+
     if (!activeStage.when) {
-      activeStage.when = { conditions: [] }
+      set(activeStage, 'when.conditions', [])
     }
+
     if (this.zIndex.length) {
       const path = this.zIndex.reduce((_path, value, _index) => {
         if (_index === 0) {
           return `[${value}]`
         }
+
         return `${_path}.children[${value}]`
       }, '')
+
       get(activeStage.when.conditions, `${path}.children`).push({
         name: task,
         children: [],
@@ -190,6 +320,7 @@ export default class StepsEditor extends React.Component {
     } else {
       activeStage.when.conditions.push({ name: task, children: [] })
     }
+
     this.props.store.isAddingStep = false
     this.handleSetValue()
   }
@@ -212,6 +343,7 @@ export default class StepsEditor extends React.Component {
     } else {
       prevData.splice(index, 1)
     }
+    this.setState({ index: 1 })
     this.handleSetValue()
   }
 
@@ -222,24 +354,31 @@ export default class StepsEditor extends React.Component {
         if (_index === 0) {
           return `[${value}]`
         }
+
         return `${_path}.children[${value}]`
       }, '')
+
       const preData = get(this.steps, `${path}.children`)
+
       const sortedData = steps.map(step =>
         preData.find(
           (preSteps, index) => JSON.stringify(preSteps) + index === step
         )
       )
+
       set(this.steps, `${path}.children`, sortedData)
     } else {
       const preData = this.steps
+
       const sortedData = steps.map(step =>
         preData.find(
           (preSteps, index) => JSON.stringify(preSteps) + index === step
         )
       )
+
       set(this.props.activeStage, 'branches[0].steps', sortedData)
     }
+
     this.handleSetValue()
   }
 
@@ -250,97 +389,27 @@ export default class StepsEditor extends React.Component {
     ) {
       delete this.props.activeStage.when
     }
+
     if (this.props.activeStage.error) {
       this.props.activeStage.error = undefined
     }
+
     this.props.store.setValue(this.props.activeStage)
   }
 
   cancelFocus = () => {
+    this.getAgentArguments()
     this.props.store.clearFocus()
   }
 
-  renderLists = (steps, zIndex, listType) =>
-    steps.map((step, index) => (
-      <div
-        key={JSON.stringify(step) + index}
-        className={classNames(
-          `pipelineCard__item-${zIndex}`,
-          cardStyles.pipelineCard__item
-        )}
-        data-id={JSON.stringify(step) + index}
-      >
-        <span
-          className={styles.delete}
-          onClick={this.handleDeleteStep(index, zIndex, listType)}
-        >
-          <Icon name="trash" clickable />
-        </span>
-        {listType || !isEditable(step.name) ? null : (
-          <span
-            className={styles.edit}
-            onClick={this.handleEdit(zIndex, index, step, listType)}
-          >
-            <Icon name="wrench" clickable />
-          </span>
-        )}
-        <div className={cardStyles.content__title}>
-          <span
-            className={classNames(
-              `pipelineCard__item__drag-${zIndex}`,
-              styles.pipelineCard__item__drag
-            )}
-            style={{ cursor: '-webkit-grab' }}
-          >
-            <Icon name="drag-handle" color={{ primary: '#41b1ea' }} />
-          </span>
-          {t(step.name)}
-        </div>
-        {renderStepArgs(step)}
-        {this.renderSteps(step.children, [...zIndex, index], listType)}
-        {step.name in nestingSteps ? (
-          <div
-            className={cardStyles.addSteps}
-            onClick={this.toggleAddStep([...zIndex, index], listType)}
-          >
-            <Icon name="add" /> &nbsp;
-            {listType ? t(`Add nesting ${listType}s`) : t('Add nesting steps')}
-          </div>
-        ) : null}
-      </div>
-    ))
-
-  renderSteps = (steps, zIndex, listType) => {
-    if (steps && steps.length) {
-      return (
-        <Sortable
-          tag="div"
-          options={{
-            handle: `.pipelineCard__item__drag-${zIndex}`,
-            draggable: `.pipelineCard__item-${zIndex}`,
-            animation: 150,
-          }}
-          onChange={this.handleSortSteps(zIndex)}
-        >
-          {this.renderLists(steps, zIndex, listType)}
-        </Sortable>
-      )
-    }
-  }
-
   renderConditions() {
-    if (
-      !this.props.activeStage.when ||
-      !this.props.activeStage.when.conditions
-    ) {
+    const conditions = get(this.props, 'activeStage.when.conditions')
+
+    if (!conditions) {
       return null
     }
 
-    return this.renderLists(
-      this.props.activeStage.when.conditions,
-      [],
-      'condition'
-    )
+    return <StepContainer steps={conditions} zIndex={[]} listType="condition" />
   }
 
   render() {
@@ -357,10 +426,21 @@ export default class StepsEditor extends React.Component {
         <div className={styles.form}>
           <Form.Item label={t('Name')}>
             <Input
+              className={styles.name_input}
               value={this.props.activeStage.name || ''}
               onChange={this.handleChangeName}
             />
           </Form.Item>
+          <div className={styles.title}>{t('Agent')}</div>
+          <Form.Item desc={t('AGENT_TYPE_DESC')} label={t('Type')}>
+            <Select
+              options={AgentType}
+              defaultValue="none"
+              value={this.agentType}
+              onChange={this.handleAgentTypeChange}
+            />
+          </Form.Item>
+          {this.renderAgentForms()}
           <div className={styles.title}>
             {t('pipeline_conditions')}
             <span>
@@ -383,7 +463,7 @@ export default class StepsEditor extends React.Component {
             {t('Task')}
             <span>{t('Drag and drop tasks to sort')}</span>
           </div>
-          {this.renderSteps(this.steps, [])}
+          <StepContainer steps={this.steps} zIndex={[]} />
           {this.hasNestStage ? null : (
             <div
               className={cardStyles.addSteps}
@@ -406,6 +486,12 @@ export default class StepsEditor extends React.Component {
             onAddNoInputTask={this.addNoInputTask}
           />
         ) : null}
+        <YamlEditor
+          value={this.formData.yaml || ''}
+          visible={this.showYaml}
+          onCancel={this.hideYamlEditor}
+          onOk={this.handleSetYaml}
+        />
       </div>
     )
   }

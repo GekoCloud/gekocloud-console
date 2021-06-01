@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import {
@@ -30,47 +30,34 @@ const BANDWIDTH_RULE_CONFIG = getBaseRuleConfig({
 })
 
 export default {
-  workload_cpu_usage: {
+  'namespace:workload_cpu_usage:sum{$1}': {
     label: 'cpu usage',
     prefixIcon: 'cpu',
     ruleConfig: CPU_RULE_CONFIG,
   },
-  workload_memory_usage: {
+  'namespace:workload_memory_usage:sum{$1}': {
     label: 'memory usage (including cache)',
     prefixIcon: 'memory',
     ruleConfig: MEMORY_RULE_CONFIG,
   },
-  workload_memory_usage_wo_cache: {
+  'namespace:workload_memory_usage_wo_cache:sum{$1}': {
     label: 'memory usage',
     prefixIcon: 'memory',
     ruleConfig: MEMORY_RULE_CONFIG,
   },
-  workload_net_bytes_transmitted: {
+  'namespace:workload_net_bytes_transmitted:sum_irate{$1}': {
     label: 'network data transmitting rate',
     prefixIcon: 'network',
     ruleConfig: BANDWIDTH_RULE_CONFIG,
   },
-  workload_net_bytes_received: {
+  'namespace:workload_net_bytes_received:sum_irate{$1}': {
     label: 'network data receiving rate',
     prefixIcon: 'network',
     ruleConfig: BANDWIDTH_RULE_CONFIG,
   },
-  workload_deployment_unavailable_replicas_ratio: {
-    kind: 'deployment',
-    label: 'Unavailable deployment replicas ratio',
+  'namespace:$2_unavailable_replicas:ratio{$1}': {
+    label: 'Unavailable replicas ratio',
     prefixIcon: 'backup',
-    ruleConfig: PERCENT_RULE_CONFIG,
-  },
-  workload_daemonset_unavailable_replicas_ratio: {
-    kind: 'daemonset',
-    label: 'Unavailable daemonset replicas ratio',
-    prefixIcon: 'deamon-set',
-    ruleConfig: PERCENT_RULE_CONFIG,
-  },
-  workload_statefulset_unavailable_replicas_ratio: {
-    kind: 'statefulset',
-    label: 'Unavailable statefulset replicas ratio',
-    prefixIcon: 'stateful-set',
     ruleConfig: PERCENT_RULE_CONFIG,
   },
 }

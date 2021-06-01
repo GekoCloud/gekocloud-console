@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -186,6 +186,7 @@ export default function withList(options) {
       render() {
         return (
           <ObserverComponent
+            name={this.name}
             module={this.module}
             store={this.store}
             prefix={this.prefix}
@@ -216,6 +217,10 @@ export function withProjectList(options) {
 
 export function withClusterList(options) {
   return withList({ injectStores: ['rootStore', 'clusterStore'], ...options })
+}
+
+export function withDevOpsList(options) {
+  return withList({ injectStores: ['rootStore', 'devopsStore'], ...options })
 }
 
 export class ListPage extends React.Component {
@@ -284,21 +289,23 @@ export class ListPage extends React.Component {
         ? ObjectMapper.federated(this.store.mapper)
         : this.store.mapper
 
-      this.disposer = reaction(
-        () => this.websocket.message,
-        message => {
-          if (message.object.kind === kind) {
-            if (message.type === 'MODIFIED') {
-              const data = {
-                ...this.props.match.params,
-                ...mapper(toJS(message.object)),
-              }
-              this.store.list.updateItem(data)
-            } else if (message.type === 'DELETED' || message.type === 'ADDED') {
-              _getData()
+      const onMessage = message => {
+        if (message.object.kind === kind) {
+          if (message.type === 'MODIFIED') {
+            const data = {
+              ...this.props.match.params,
+              ...mapper(toJS(message.object)),
             }
+            this.store.list.updateItem(data)
+          } else if (message.type === 'DELETED' || message.type === 'ADDED') {
+            _getData()
           }
         }
+      }
+
+      this.disposer = reaction(
+        () => this.websocket.message,
+        this.props.onMessage || onMessage
       )
     }
   }

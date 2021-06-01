@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -26,7 +26,7 @@ import { cacheFunc } from 'utils'
 import { getAreaChartOps } from 'utils/monitoring'
 import PodMonitorStore from 'stores/monitoring/pod'
 
-import { Alert } from '@pitrix/lego-ui'
+import { Alert } from '@juanchi_xd/components'
 import { MultiArea } from 'components/Charts'
 import { Controller as MonitoringController } from 'components/Cards/Monitoring'
 import PodsMonitoring from 'projects/components/Modals/PodsMonitoring'
@@ -190,9 +190,7 @@ export default class Monitorings extends React.Component {
         isEmpty={isEmpty(this.metrics)}
         isFederated
       >
-        {isMore && (
-          <Alert description={t('MONITORING_ALERT_DESC')} type="info" />
-        )}
+        {isMore && <Alert message={t('MONITORING_ALERT_DESC')} type="info" />}
         {configs.map(item => {
           item.data = get(this.metrics, `${item.metricType}.data.result`) || []
           item.legend = item.data.map((record, index) =>

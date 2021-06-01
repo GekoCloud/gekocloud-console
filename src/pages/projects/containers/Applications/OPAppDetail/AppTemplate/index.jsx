@@ -1,26 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { isEmpty } from 'lodash'
 import React from 'react'
+import { isEmpty } from 'lodash'
 import { when, toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
-import { Tabs } from '@pitrix/lego-ui'
+import { Tabs } from '@juanchi_xd/components'
 
 import AppVersionStore from 'stores/openpitrix/version'
 import AppFileStore from 'stores/openpitrix/file'
@@ -28,13 +28,12 @@ import AppFileStore from 'stores/openpitrix/file'
 import { Card } from 'components/Base'
 import Markdown from 'components/Base/Markdown'
 import TextPreview from 'components/TextPreview'
-import VersionInfo from '../VersionInfo'
 
 import styles from './index.scss'
 
 const { TabPanel } = Tabs
 
-@inject('rootStore', 'detailStore')
+@inject('detailStore')
 @observer
 export default class AppTemplate extends React.Component {
   constructor(props) {
@@ -45,16 +44,14 @@ export default class AppTemplate extends React.Component {
     }
 
     this.store = props.detailStore
-    this.module = props.module
 
     this.appVersionStore = new AppVersionStore()
     this.appFileStore = new AppFileStore()
 
-    when(() => !isEmpty(this.store.detail), () => this.getData())
-  }
-
-  get workspace() {
-    return this.props.match.params.workspace
+    when(
+      () => !isEmpty(this.store.detail),
+      () => this.getData()
+    )
   }
 
   getData() {
@@ -72,29 +69,6 @@ export default class AppTemplate extends React.Component {
   handleTabChange = tab => {
     this.setState({ tab })
   }
-
-  handleUpgrade = async version_id => {
-    const {
-      detail: { cluster_id, name, app_id, env },
-    } = toJS(this.store)
-    const { workspace, namespace, cluster } = this.props.match.params
-    await this.store.upgrade(
-      {
-        app_id,
-        cluster_id,
-        name,
-        version_id,
-        conf: env,
-      },
-      { workspace, namespace, cluster, cluster_id }
-    )
-
-    this.props.rootStore.routing.push(
-      `/${workspace}/clusters/${cluster}/projects/${namespace}/applications/template`
-    )
-  }
-
-  handleRollback = () => {}
 
   renderReadme() {
     const files = this.appFileStore.files
@@ -114,42 +88,16 @@ export default class AppTemplate extends React.Component {
     return <TextPreview files={files} />
   }
 
-  renderVersionInfo() {
-    const { detail } = toJS(this.store)
-    const { cluster, workspace, namespace } = this.props.match.params
-    const { data, isLoading } = toJS(this.appVersionStore.list)
-
-    return (
-      <VersionInfo
-        data={data}
-        loading={isLoading}
-        detail={detail}
-        cluster={cluster}
-        workspace={workspace}
-        namespace={namespace}
-        onUpgrade={this.handleUpgrade}
-        onRollback={this.handleRollback}
-      />
-    )
-  }
-
   render() {
     const { tab } = this.state
     return (
       <Card title={t('App Description')} className={styles.wrapper}>
-        <Tabs
-          className="tabs-default"
-          activeName={tab}
-          onChange={this.handleTabChange}
-        >
+        <Tabs type="button" activeName={tab} onChange={this.handleTabChange}>
           <TabPanel label={t('App Description')} name="readme">
             {this.renderReadme()}
           </TabPanel>
           <TabPanel label={t('Configuration Files')} name="settings">
             {this.renderSettings()}
-          </TabPanel>
-          <TabPanel label={t('Version Info')} name="version">
-            {this.renderVersionInfo()}
           </TabPanel>
         </Tabs>
       </Card>

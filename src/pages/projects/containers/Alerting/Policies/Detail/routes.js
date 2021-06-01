@@ -1,55 +1,38 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { getIndexRoute } from 'utils/router.config'
 
-import AlertingRules from 'clusters/containers/Alerting/Policies/Detail/AlertRules'
-import MonitoringTarget from 'clusters/containers/Alerting/Policies/Detail/MonitoringTarget'
-import NotificationRules from 'clusters/containers/Alerting/Policies/Detail/NotificationRules'
-import AlertingHistory from 'clusters/containers/Alerting/Policies/Detail/AlertHistory'
+import AlertingRules from './AlertRules'
+import AlertingMessages from './AlertMessages'
 
-const PATH =
-  '/:workspace/clusters/:cluster/projects/:namespace/alert-policies/:name'
-
-export default [
+export default path => [
   {
-    path: `${PATH}/alert-rules`,
+    path: `${path}/rules`,
     title: 'Alerting Rules',
     component: AlertingRules,
     exact: true,
   },
   {
-    path: `${PATH}/monitoring-target`,
-    title: 'Monitoring Target',
-    component: MonitoringTarget,
+    path: `${path}/messages`,
+    title: 'Alerting Messages',
+    component: AlertingMessages,
     exact: true,
   },
-  {
-    path: `${PATH}/notification-rules`,
-    title: 'Notification Rules',
-    component: NotificationRules,
-    exact: true,
-  },
-  {
-    path: `${PATH}/alert-history`,
-    title: 'Alerting History',
-    component: AlertingHistory,
-    exact: true,
-  },
-  getIndexRoute({ path: PATH, to: `${PATH}/alert-rules`, exact: true }),
+  getIndexRoute({ path, to: `${path}/rules`, exact: true }),
 ]

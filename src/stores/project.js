@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, omit } from 'lodash'
@@ -100,10 +100,14 @@ export default class ProjectStore extends Base {
 
     params.limit = params.limit || 10
 
-    const result = await request.get(
-      this.getResourceUrl({ cluster, workspace, namespace }),
-      withTypeSelectParams(params, type)
-    )
+    const result =
+      (await request
+        .get(
+          this.getResourceUrl({ cluster, workspace, namespace }),
+          withTypeSelectParams(params, type)
+        )
+        .catch(() => {})) || {}
+
     const data = get(result, 'items', []).map(item => ({
       cluster,
       ...this.mapper(item),
@@ -124,17 +128,18 @@ export default class ProjectStore extends Base {
   }
 
   @action
-  async fetchDetail({ cluster, workspace, namespace }) {
+  async fetchDetail({ cluster, workspace, namespace }, reject) {
     this.isLoading = true
     const detail = await request.get(
       this.getDetailUrl({ cluster, workspace, name: namespace }),
       null,
       null,
-      res => {
-        if (res.reason === 'NotFound' || res.reason === 'Forbidden') {
-          global.navigateTo('/404')
-        }
-      }
+      reject ||
+        (res => {
+          if (res.reason === 'NotFound' || res.reason === 'Forbidden') {
+            global.navigateTo('/404')
+          }
+        })
     )
 
     this.detail = { cluster, ...this.mapper(detail) }

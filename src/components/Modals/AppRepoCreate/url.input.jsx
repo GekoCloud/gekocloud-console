@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -25,8 +25,14 @@ import { isEmpty, get, set, trim } from 'lodash'
 
 import { checkRepoInvalidReason } from 'utils/app'
 
-import { Input, Select, Tooltip, Loading } from '@pitrix/lego-ui'
-import { Button } from 'components/Base'
+import {
+  Button,
+  Input,
+  Select,
+  Tooltip,
+  Loading,
+  Icon,
+} from '@juanchi_xd/components'
 
 import styles from './index.scss'
 
@@ -94,8 +100,8 @@ export default class UrlInput extends React.Component {
 
   getCredential(formData) {
     const credential = {
-      access_key_id: '',
-      secret_access_key: '',
+      accessKeyID: '',
+      secretAccessKey: '',
     }
 
     if (formData.credential) {
@@ -188,11 +194,9 @@ export default class UrlInput extends React.Component {
     }
 
     if (this.type === 's3') {
-      const { access_key_id, secret_access_key } = this.credential
+      const { accessKeyID, secretAccessKey } = this.credential
       return (
-        !isEmpty(this.url) &&
-        !isEmpty(access_key_id) &&
-        !isEmpty(secret_access_key)
+        !isEmpty(this.url) && !isEmpty(accessKeyID) && !isEmpty(secretAccessKey)
       )
     }
 
@@ -239,7 +243,7 @@ export default class UrlInput extends React.Component {
               : checkRepoInvalidReason(validateStatusCode)
           }
         >
-          <span className={`icon icon-${validateStatus}`} />
+          <Icon name={validateStatus} />
         </Tooltip>
       )
 
@@ -249,7 +253,7 @@ export default class UrlInput extends React.Component {
   renderField() {
     return (
       <div className={styles.field}>
-        <label className={styles.label}>{t('URL')}:</label>
+        <label className={styles.label}>{t('URL')}</label>
         <div className={styles.fieldInput}>
           <Select
             className={styles.protocol}
@@ -263,7 +267,7 @@ export default class UrlInput extends React.Component {
             name="url"
             value={this.url}
             validateStatus={this.validateStatus}
-            placeholder="eg. https://github.com/mycompany/myca…"
+            placeholder="https://github.com/mycompany/myca…"
             onChange={this.handleUrlChange}
           />
           {this.renderValidateStatus()}
@@ -290,16 +294,16 @@ export default class UrlInput extends React.Component {
         <div className={styles.accessItem}>
           <label className={styles.label}>{t('Access Key ID')}:</label>
           <Input
-            name="access_key_id"
-            value={this.credential.access_key_id}
+            name="accessKeyID"
+            value={this.credential.accessKeyID}
             onChange={this.handleAccessInputChange}
           />
         </div>
         <div className={styles.accessItem}>
           <label className={styles.label}>{t('Secret Access Key')}:</label>
           <Input
-            name="secret_access_key"
-            value={this.credential.secret_access_key}
+            name="secretAccessKey"
+            value={this.credential.secretAccessKey}
             onChange={this.handleAccessInputChange}
           />
         </div>

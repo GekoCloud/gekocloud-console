@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,7 +21,7 @@ import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { get, isArray } from 'lodash'
 
-import { Loading } from '@pitrix/lego-ui'
+import { Loading, Notify, Icon } from '@juanchi_xd/components'
 
 import { getDisplayName, getLocalTime, parseUrl } from 'utils'
 import { trigger } from 'utils/action'
@@ -31,6 +31,7 @@ import ResourceStore from 'stores/workload/resource'
 
 import DetailPage from 'projects/containers/Base/Detail'
 
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 import getRoutes from './routes'
 
 @inject('rootStore')
@@ -79,6 +80,12 @@ export default class ImageBuilderDetail extends React.Component {
     await this.s2iRunStore.fetchJobDetail({
       ...this.params,
       name: get(runDetail, '_originData.status.kubernetesJobName', ''),
+    })
+  }
+
+  handleCopy = () => {
+    Notify.success({
+      content: t('Copy Successfully'),
     })
   }
 
@@ -148,9 +155,11 @@ export default class ImageBuilderDetail extends React.Component {
     const sourceUrl = get(spec, 'config.sourceUrl', '')
     const path = get(parseUrl(sourceUrl), 'pathname', `/${sourceUrl}`)
     const url = this.pathAddCluster(path, cluster)
-    const downLoadUrl = `${window.location.protocol}//${
-      window.location.host
-    }/b2i_download${url}`
+    const downLoadUrl = `${window.location.protocol}//${window.location.host}/b2i_download${url}`
+    const secret = get(detail, 'spec.config.secretCode', '')
+    const triggerLink = `http://s2ioperator-trigger-service.kubesphere-devops-system.svc/s2itrigger/v1alpha1/general/namespaces/${
+      detail.namespace
+    }/s2ibuilders/${detail.name}/${secret ? `?secretCode=${secret}` : ''}`
 
     return [
       {
@@ -185,6 +194,17 @@ export default class ImageBuilderDetail extends React.Component {
           </a>
         ) : (
           sourceUrl
+        ),
+      },
+      {
+        name: t('Remote Trigger Link'),
+        value: (
+          <>
+            <span>{triggerLink}</span>
+            <CopyToClipboard text={triggerLink} onCopy={this.handleCopy}>
+              <Icon name="copy" changeable />
+            </CopyToClipboard>
+          </>
         ),
       },
       {

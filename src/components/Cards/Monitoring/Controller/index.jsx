@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -23,8 +23,8 @@ import { get, isEmpty, isArray, flatten } from 'lodash'
 
 import { startAutoRefresh, stopAutoRefresh } from 'utils/monitoring'
 
-import { Icon, Loading, Select } from '@pitrix/lego-ui'
-import { Card, Button } from 'components/Base'
+import { Button, Icon, Loading, Select } from '@juanchi_xd/components'
+import { Card } from 'components/Base'
 import TimeSelector from './TimeSelector'
 
 import styles from './index.scss'
@@ -181,9 +181,13 @@ export default class MonitoringController extends React.Component {
     if (!enableAutoRefresh) return null
 
     return (
-      <Button className={styles.button} onClick={this.handleAutoRefresh}>
-        <Icon type="light" name={autoRefresh ? 'pause' : 'start'} size={20} />
-      </Button>
+      <Button
+        className={styles.button}
+        type="control"
+        icon={autoRefresh ? 'pause' : 'start'}
+        iconType="light"
+        onClick={this.handleAutoRefresh}
+      ></Button>
     )
   }
 
@@ -219,9 +223,13 @@ export default class MonitoringController extends React.Component {
           onToggle={this.handleToggle}
         />
         {this.renderAutoRefresh()}
-        <Button className={styles.button} onClick={this.handleRefresh}>
-          <Icon type="light" name="refresh" size={20} />
-        </Button>
+        <Button
+          className={styles.button}
+          type="control"
+          icon="refresh"
+          iconType="light"
+          onClick={this.handleRefresh}
+        ></Button>
         {this.renderCustomActions()}
       </div>
     )

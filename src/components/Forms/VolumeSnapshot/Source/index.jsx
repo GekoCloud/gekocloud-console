@@ -1,24 +1,24 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
-import { get } from 'lodash'
-import { Form, SearchSelect } from 'components/Base'
+import { get, pick } from 'lodash'
+import { Form, Select } from '@juanchi_xd/components'
 import { MODULE_KIND_MAP } from 'utils/constants'
 import ProjectStore from 'stores/project'
 import VolumeStore from 'stores/volume'
@@ -95,16 +95,16 @@ export default class Source extends React.Component {
             label={t('Project')}
             rules={[{ required: true, message: t('This param is required') }]}
           >
-            <SearchSelect
+            <Select
               name={'metadata.namespace'}
               defaultValue={defaultValue}
-              page={namespaces.page}
-              total={namespaces.total}
+              pagination={pick(namespaces, ['page', 'limit', 'total'])}
               isLoading={namespaces.isLoading}
               options={this.namespaceOpts}
-              currentLength={namespaces.data.length}
               onChange={this.handleNamespaceChange}
               onFetch={this.updateNamespace}
+              searchable
+              clearable
             />
           </Form.Item>
 
@@ -112,16 +112,16 @@ export default class Source extends React.Component {
             label={t('Volume')}
             rules={[{ required: true, message: t('This param is required') }]}
           >
-            <SearchSelect
+            <Select
               name={'spec.source.name'}
               defaultValue={defaultVolume}
-              page={volumes.page}
-              total={volumes.total}
+              pagination={pick(volumes, ['page', 'limit', 'total'])}
               isLoading={volumes.isLoading}
               options={this.volumesOpts}
-              currentLength={volumes.data.length}
               onChange={this.handleVolumeChange}
               onFetch={this.updateStorageClass}
+              searchable
+              clearable
             />
           </Form.Item>
 

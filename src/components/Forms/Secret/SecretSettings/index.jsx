@@ -1,26 +1,30 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, isUndefined } from 'lodash'
 import React from 'react'
-import { Input, InputPassword, TextArea } from '@pitrix/lego-ui'
-import { Form } from 'components/Base'
-import { CustomSelect } from 'components/Inputs'
+import {
+  Form,
+  Input,
+  InputPassword,
+  Select,
+  TextArea,
+} from '@juanchi_xd/components'
 
 import { hasChinese } from 'utils'
 import { MODULE_KIND_MAP } from 'utils/constants'
@@ -251,8 +255,10 @@ export default class SecretSettings extends React.Component {
     return content
   }
 
+  valueRenderer = option => `${option.value} (${option.label})`
+
   render() {
-    const { formRef, mode } = this.props
+    const { formRef } = this.props
     const { state } = this.state
 
     if (state === 'data') {
@@ -261,20 +267,17 @@ export default class SecretSettings extends React.Component {
 
     return (
       <Form data={this.fedFormTemplate} ref={formRef}>
-        {mode !== 'edit' ? (
-          <Form.Item label={t('Type')} desc={t('SECRET_TYPE_DESC')}>
-            <CustomSelect
-              name="type"
-              options={this.getTypeOptions()}
-              onChange={this.handleTypeChange}
-              placeholder={t('Please Select')}
-            />
-          </Form.Item>
-        ) : (
-          <Form.Item label={t('Type')}>
-            <Input name="type" disabled />
-          </Form.Item>
-        )}
+        <Form.Item label={t('Type')} desc={t('SECRET_TYPE_DESC')}>
+          <Select
+            name="type"
+            options={this.getTypeOptions()}
+            valueRenderer={this.valueRenderer}
+            optionRenderer={this.valueRenderer}
+            onChange={this.handleTypeChange}
+            placeholder={t('Please Select')}
+            searchable
+          />
+        </Form.Item>
         {this.renderContent()}
       </Form>
     )

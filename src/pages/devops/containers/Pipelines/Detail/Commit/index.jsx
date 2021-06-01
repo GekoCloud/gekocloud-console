@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -23,16 +23,18 @@ import { observer, inject } from 'mobx-react'
 import { parse } from 'qs'
 import { getLocalTime } from 'utils'
 
-import EmptyCard from '../../EmptyCard'
-import Table from '../../Table'
+import Table from 'components/Tables/List'
+import EmptyCard from 'devops/components/Cards/EmptyCard'
 
-@inject('rootStore')
+@inject('rootStore', 'detailStore')
 @observer
 export default class Branch extends React.Component {
-  constructor(props) {
-    super(props)
-    this.name = 'Commit'
-    this.store = props.detailStore || {}
+  store = this.props.detailStore || {}
+
+  name = 'Commit'
+
+  get routing() {
+    return this.props.rootStore.routing
   }
 
   componentDidMount() {
@@ -60,10 +62,6 @@ export default class Branch extends React.Component {
     this.routing.query(params, refresh)
   }
 
-  get routing() {
-    return this.props.rootStore.routing
-  }
-
   getFilteredValue = dataIndex => this.store.list.filters[dataIndex]
 
   getColumns = () => [
@@ -73,14 +71,14 @@ export default class Branch extends React.Component {
       width: '20%',
       render: (commitId, record) => {
         return (
-          <a href={record.url} target="_blank">
+          <a href={record.url} target="_blank" rel="noreferrer noopener">
             {commitId && commitId.slice(0, 6)}
           </a>
         )
       },
     },
     {
-      title: t('author'),
+      title: t('Author'),
       dataIndex: 'author',
       width: '20%',
       render: author => author || '-',
@@ -124,13 +122,14 @@ export default class Branch extends React.Component {
     return (
       <Table
         data={data}
+        rowKey="commitId"
         columns={this.getColumns()}
         filters={omitFilters}
         pagination={pagination}
         isLoading={isLoading}
         selectedRowKeys={selectedRowKeys}
         onFetch={this.handleFetch}
-        disableSearch
+        hideSearch
       />
     )
   }

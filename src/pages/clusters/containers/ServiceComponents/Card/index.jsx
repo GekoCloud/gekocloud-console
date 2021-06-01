@@ -1,26 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import moment from 'moment-mini'
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Icon, Columns, Column } from '@pitrix/lego-ui'
-import { Status } from 'components/Base'
+import { Columns, Column } from '@juanchi_xd/components'
+import { Status, Text } from 'components/Base'
 import { getComponentStatus } from 'utils/status'
 
 import styles from './index.scss'
@@ -34,46 +34,38 @@ const Card = ({ cluster, component = {} }) => {
   return (
     <div className={styles.card} data-test="service-component">
       <Columns>
-        <Column className="is-narrow">
-          <Icon name="components" size={32} />
-        </Column>
-        <Column className="is-4">
-          <div className="h6">
-            <Link to={`/clusters/${cluster}/components/${namespace}/${name}`}>
-              {name}
-            </Link>
-            {descText !== descKey ? <p>{descText}</p> : null}
-          </div>
-        </Column>
-        <Column className="is-2">
-          <div>
-            <p>
-              <Status type={status} name={t(status)} />
-            </p>
-            <p>{t('Status')}</p>
-          </div>
+        <Column>
+          <Text
+            icon="components"
+            title={
+              <Link to={`/clusters/${cluster}/components/${namespace}/${name}`}>
+                {name}
+              </Link>
+            }
+            description={descText !== descKey ? <p>{descText}</p> : null}
+          />
         </Column>
         <Column className="is-2">
-          <div>
-            <p>
-              <strong>
-                {component.healthyBackends} / {component.totalBackends}
-              </strong>
-            </p>
-            <p>{t('Replicas Number')}</p>
-          </div>
+          <Text
+            title={<Status type={status} name={t(status)} />}
+            description={t('Status')}
+          />
         </Column>
         <Column className="is-2">
-          <div>
-            <p>
-              <strong>
-                {component.startedAt
-                  ? moment(component.startedAt).toNow(true)
-                  : '-'}
-              </strong>
-            </p>
-            <p>{t('Running Time')}</p>
-          </div>
+          <Text
+            title={`${component.healthyBackends} / ${component.totalBackends}`}
+            description={t('Replicas Number')}
+          />
+        </Column>
+        <Column className="is-2">
+          <Text
+            title={
+              component.startedAt
+                ? moment(component.startedAt).toNow(true)
+                : '-'
+            }
+            description={t('Running Time')}
+          />
         </Column>
       </Columns>
     </div>

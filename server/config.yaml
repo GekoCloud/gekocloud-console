@@ -23,30 +23,30 @@ server:
 
   # kubesphere console session params, not login session
   sessionKey: 'kubesphere:sess'
-  sessionTimeout: 7200000 # unit: millisecond
+  sessionTimeout: 3600000 # unit: millisecond
 
   # backend service gateway server
   apiServer:
-    url: http://ks-apiserver.kubesphere-system.svc
-    wsUrl: ws://ks-apiserver.kubesphere-system.svc
+    url: https://ks-apiserver.digio-int.smartkube.cloud
+    wsUrl: ws://ks-apiserver.digio-int.smartkube.cloud
 
   # docker image search default url
   dockerHubUrl: https://hub.docker.com
 
 client:
-  title: Smartkube
+  title: SmartKube
   description: ''
 
   version:
-    kubesphere: 3.0.0
+    kubesphere: 3.1.0
 
   # kubesphere urls
   issueUrl: https://geko.cloud/contact
-  reposUrl: ""
-  slackUrl: ""
+  reposUrl: ''
+  slackUrl: ''
   documents:
-    url: ""
-    api: ""
+    url: ''
+    api: ''
 
   # current support lanaguages
   supportLangs:
@@ -75,7 +75,7 @@ client:
       icon: openpitrix
       authKey: app-templates
       authAction: manage
-      ksModule: openpitrix
+      ksModule: openpitrix.appstore
     - name: settings
       title: Platform Settings
       icon: cogwheel
@@ -95,6 +95,7 @@ client:
           icon: nodes
           children:
             - { name: nodes, title: Cluster Nodes }
+            - { name: edgenodes, title: Edge Nodes, clusterModule: kubeedge }
         - { name: components, title: Service Components, icon: components }
         - { name: projects, title: NAV_PROJECTS, icon: project }
         - name: app-workloads
@@ -121,6 +122,11 @@ client:
           children:
             - { name: secrets, title: Secrets }
             - { name: configmaps, title: ConfigMaps }
+            - {
+                name: serviceaccounts,
+                title: ServiceAccounts,
+                requiredClusterVersion: v3.1.0,
+              }
         - name: network
           title: Network Management
           icon: earth
@@ -129,6 +135,11 @@ client:
                 name: networkpolicies,
                 title: Network Policies,
                 clusterModule: network,
+              }
+            - {
+                name: ippools,
+                title: Pod IP Pools,
+                clusterModule: 'network.ippool',
               }
         # Contains dangerous operations, only available for platform-admin.
         - {
@@ -161,16 +172,23 @@ client:
                 authKey: monitoring,
               }
             - {
-                name: alert-messages,
+                name: alerts,
                 title: Alerting Messages,
                 icon: loudspeaker,
-                clusterModule: 'alerting',
+                clusterModule: alerting,
+                requiredClusterVersion: v3.1.0,
               }
             - {
-                name: alert-policies,
+                name: alert-rules,
                 title: Alerting Policies,
                 icon: hammer,
-                clusterModule: 'alerting',
+                clusterModule: alerting,
+                requiredClusterVersion: v3.1.0,
+              }
+            - {
+                name: custom-monitoring,
+                title: Custom Monitoring,
+                requiredClusterVersion: v3.1.0,
               }
         - name: cluster-settings
           title: Cluster Settings
@@ -191,13 +209,6 @@ client:
               }
             # - { name: members, title: Cluster Members }
             # - { name: roles, title: Cluster Roles }
-            - {
-                name: mail-server,
-                title: Mail Server,
-                icon: mail,
-                authKey: cluster-settings,
-                clusterModule: notification,
-              }
             - {
                 name: log-collections,
                 title: Log Collections,
@@ -224,12 +235,26 @@ client:
             icon: home,
             authKey: platform-settings,
           }
+        - name: notification-management
+          title: Notification Management
+          icon: bell
+          children:
+            - { name: mail, title: Mail, authKey: platform-settings }
+            - { name: dingtalk, title: DingTalk, authKey: platform-settings }
+            - { name: wecom, title: WeCom, authKey: platform-settings }
+            - { name: slack, title: Slack, authKey: platform-settings }
+            - { name: webhook, title: Webhook, authKey: platform-settings }
 
   # workspace page navigations
   workspaceNavs:
     - cate: 'workspace'
       items:
-        - { name: overview, title: Overview, icon: dashboard, authKey: 'projects' }
+        - {
+            name: overview,
+            title: Overview,
+            icon: dashboard,
+            authKey: 'projects',
+          }
         - name: projects
           title: NAV_PROJECTS
           icon: project
@@ -253,7 +278,7 @@ client:
                 title: App Templates,
                 icon: appcenter,
                 authKey: app-templates,
-                ksModule: openpitrix,
+                ksModule: openpitrix.appstore,
               }
             - {
                 name: repos,
@@ -266,8 +291,10 @@ client:
           icon: cogwheel
           children:
             - { name: base-info, title: Basic Info, skipAuth: true }
+            - { name: quota, title: Quota Management }
             - { name: roles, title: Workspace Roles }
             - { name: members, title: Workspace Members }
+            - { name: groups, title: Workspace Groups }
 
   # apps manage page navigations
   manageAppNavs:
@@ -281,7 +308,12 @@ client:
   projectNavs:
     - cate: 'project'
       items:
-        - { name: overview, title: Overview, icon: dashboard, authKey: 'services' }
+        - {
+            name: overview,
+            title: Overview,
+            icon: dashboard,
+            authKey: 'services',
+          }
         - name: app-workloads
           title: Application Workloads
           icon: appcenter
@@ -313,6 +345,11 @@ client:
           children:
             - { name: secrets, title: Secrets }
             - { name: configmaps, title: ConfigMaps }
+            - {
+                name: serviceaccounts,
+                title: ServiceAccounts,
+                requiredClusterVersion: v3.1.0,
+              }
         - {
             name: grayrelease,
             title: Grayscale Release,
@@ -331,16 +368,20 @@ client:
           icon: monitor
           children:
             - {
-                name: alert-messages,
-                title: Alerting Message,
+                name: alerts,
+                title: Alerting Messages,
+                icon: loudspeaker,
                 clusterModule: alerting,
+                requiredClusterVersion: v3.1.0,
               }
             - {
-                name: alert-policies,
-                title: Alerting Policy,
+                name: alert-rules,
+                title: Alerting Policies,
+                icon: hammer,
                 clusterModule: alerting,
+                requiredClusterVersion: v3.1.0,
               }
-            - { name: custom-monitoring, title: Custom Monitoring }
+            - { name: custom-monitoring, title: Custom Monitoring, requiredClusterVersion: v3.1.0, }
         - name: settings
           title: Project Settings
           icon: cogwheel
@@ -471,35 +512,36 @@ client:
   # docs url for resources
   resourceDocs:
     # Project User Guide
-    applications: /project-user-guide/application-workloads/app-template/
-    composingapps: /project-user-guide/application-workloads/composing-app/
+    applications: /project-user-guide/application/app-template/
+    composingapps: /project-user-guide/application/compose-app/
     deployments: /project-user-guide/application-workloads/deployments/
     statefulsets: /project-user-guide/application-workloads/statefulsets/
     daemonsets: /project-user-guide/application-workloads/daemonsets/
     jobs: /project-user-guide/application-workloads/jobs/
     cronjobs: /project-user-guide/application-workloads/cronjobs/
     services: /project-user-guide/application-workloads/services/
-    ingresses: /project-user-guide/application-workloads/ingress/
-    s2i_template: /project-user-guide/application-workloads/s2i-template/
-    volumes: /project-user-guide/storage/volume/
+    ingresses: /project-user-guide/application-workloads/routes/
+    s2i_template: /project-user-guide/image-builder/s2i-templates/
+    volumes: /project-user-guide/storage/volumes/
     secrets: /project-user-guide/configuration/secrets/
     configmaps: /project-user-guide/configuration/configmaps/
+    serviceaccounts: /project-user-guide/configuration/serviceaccounts/
     imageregistry: /project-user-guide/configuration/image-registry/
-    grayrelease: /project-user-guide/grayscale/overview/
+    grayrelease: /project-user-guide/grayscale-release/overview/
 
     # Project Administration
     internet: /project-administration/project-gateway/
-    project_base_info: /project-administration/project-quota/
-    project_roles: /project-administration/project-roles/
-    project_members: /project-administration/project-members/
+    project_base_info: /workspace-administration/project-quotas/
+    project_roles: /project-administration/role-and-member-management/
+    project_members: /project-administration/role-and-member-management/
 
     # Cluster Administrator Guide
     nodes: /cluster-administration/nodes/
-    storageclasses: /cluster-administration/storageclass/
+    storageclasses: /cluster-administration/persistent-volume-and-storage-class/
 
     # DevOps User Guide
-    cicds: /devops-user-guide/introduction/pipeline/
-    cridentials: /devops-user-guide/introduction/credential/
+    pipelines: /devops-user-guide/how-to-use/pipeline-settings/
+    cridentials: /devops-user-guide/how-to-use/credential-management/
 
     # Developer Guide
     helm_specification: /application-store/app-developer-guide/helm-specification/
@@ -513,3 +555,17 @@ client:
   # devops:
   #  replace sonarqube link to customize url origin, default is useless
   # sonarqubeURL: http://139.123.123.123:8080
+
+  #notification management
+  notification:
+    mail:
+      max_number_of_eamil: 50
+    dingtalk:
+      max_number_of_cid: 20
+      max_number_of_keyword: 20
+    wecom:
+      max_number_of_toUser: 50
+      max_number_of_toParty: 20
+      max_number_of_toTag: 20
+    slack:
+      max_number_of_channel: 20

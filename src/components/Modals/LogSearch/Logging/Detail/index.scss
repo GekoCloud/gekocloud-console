@@ -7,7 +7,7 @@ $titleHeight: 30px;
 }
 
 .header {
-  line-height: $titleHeight;
+  line-height: 20px;
 
   @at-root {
     .pre {
@@ -89,7 +89,7 @@ $titleHeight: 30px;
     }
     .log {
       border-radius: 4px;
-      background-color: #3563AD;
+      background-color: #242e42;
       color: #fff;
       display: grid;
       grid-template-rows: auto 1fr;
@@ -111,11 +111,12 @@ $titleHeight: 30px;
               border-radius: 3px;
               :global {
                 .select-control {
-                  background-color: #3563AD;
+                  background-color: #242e42;
                   color: inherit;
                   font-weight: 400;
                   border: none;
                   background-color: transparent !important;
+                  box-shadow: none !important;
                   &:hover {
                     background-color: transparent;
                   }
@@ -123,7 +124,7 @@ $titleHeight: 30px;
                 .option-selected-area {
                   display: none;
                 }
-                .select-value-label,
+                .select-value,
                 .select-value {
                   color: #fff !important;
                 }
@@ -133,12 +134,15 @@ $titleHeight: 30px;
               }
             }
             .pollingBtn {
+              display: flex;
+              align-items: center;
+              justify-content: center;
               border: solid 1px #182236;
               border-radius: 2px;
-              background-color: #3563AD;
+              background-color: #242e42;
               width: 32px;
               text-align: center;
-              line-height: 32px;
+              height: 32px;
               cursor: pointer;
             }
             .duration {
@@ -198,4 +202,5 @@ $titleHeight: 30px;
 .queryLog {
   color: #d8dee5;
   white-space: pre-wrap;
+  font-family: $font-family-code;
 }

@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -34,15 +34,15 @@ export default class PipelineEdges extends React.Component {
     )
   }
 
-  onInsertColunm = index => () => {
-    this.props.onInsertColunm(index)
+  onInsertColumn = index => () => {
+    this.props.onInsertColumn(index)
   }
 
   getRightLinePath(height) {
     if (!height) {
       return `M ${EDGES_LENGTH} ${POINT_R} H ${2 * EDGES_LENGTH - POINT_R}`
     }
-    height += POINT_R
+    height += POINT_R - 10
     return `M${EDGES_LENGTH} ${POINT_R}  V ${height -
       CURVE_R} Q ${EDGES_LENGTH}, ${height} ${EDGES_LENGTH +
       CURVE_R}, ${height} H ${2 * EDGES_LENGTH - POINT_R}`
@@ -52,7 +52,7 @@ export default class PipelineEdges extends React.Component {
     if (!height) {
       return `M${POINT_R} ${POINT_R} H ${EDGES_LENGTH}`
     }
-    height += POINT_R
+    height += POINT_R - 10
     return `M${POINT_R} ${height} H ${EDGES_LENGTH -
       CURVE_R} Q ${EDGES_LENGTH},${height} ${EDGES_LENGTH},${height -
       CURVE_R} V ${POINT_R}`
@@ -74,7 +74,7 @@ export default class PipelineEdges extends React.Component {
           strokeDasharray="3,3"
           fill="white"
           strokeWidth={STROKEWIDTH}
-          onClick={this.onInsertColunm(index + 1)}
+          onClick={this.onInsertColumn(index + 1)}
         />
         <line
           x1={EDGES_LENGTH - 5}
@@ -197,7 +197,7 @@ export default class PipelineEdges extends React.Component {
               cx={POINT_R}
               cy={POINT_R}
               r={POINT_R - 1}
-              fill={'#F18918'}
+              fill={'#329dce'}
             />
           </marker>
           <marker
@@ -229,14 +229,14 @@ export default class PipelineEdges extends React.Component {
     const { heights, index, posision, isEditMode } = this.props
 
     if (!isEditMode && index === heights.length - 1) {
-      return <div className={style.connects__colunm} />
+      return <div className={style.connects__column} />
     }
 
     return (
       <React.Fragment>
         <div
-          className={style.connects__colunm}
-          style={{ height: `${this.getMaxHeight() + 40}px` }}
+          className={style.connects__column}
+          style={{ height: `${this.getMaxHeight() + 32}px` }}
         >
           {this.renderEdges()}
           {isEditMode && !index && posision === 'Right'

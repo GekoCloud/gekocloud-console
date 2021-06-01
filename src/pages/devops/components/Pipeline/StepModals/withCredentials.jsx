@@ -1,29 +1,28 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import { get } from 'lodash'
-
+import { get, pick } from 'lodash'
 import { action } from 'mobx'
 import { observer } from 'mobx-react'
-import { Form, Modal, SearchSelect, Tag } from 'components/Base'
-import { Input } from '@pitrix/lego-ui'
+import { Form, Input, Select, Tag } from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 import { groovyToJS } from 'utils/devops'
 
 import styles from './index.scss'
@@ -222,17 +221,17 @@ export default class WithCredentials extends React.Component {
               </p>
             }
           >
-            <SearchSelect
+            <Select
               name="credentialsId"
               options={this.getCredentialsList()}
-              page={credentialsList.page}
-              total={credentialsList.total}
-              currentLength={credentialsList.data.length}
+              pagination={pick(credentialsList, ['page', 'limit', 'total'])}
               isLoading={credentialsList.isLoading}
               onFetch={this.getCredentialsListData}
               onChange={this.handleCredentialChange}
               optionRenderer={this.optionRender}
               valueRenderer={this.optionRender}
+              searchable
+              clearable
             />
           </Form.Item>
           {this.renderParams()}

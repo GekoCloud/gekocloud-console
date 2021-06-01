@@ -1,24 +1,23 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 const { resolve } = require('path')
 const webpack = require('webpack')
-const CopyPlugin = require('copy-webpack-plugin')
 
 const root = path => resolve(__dirname, `../${path}`)
 
@@ -41,7 +40,11 @@ module.exports = {
   optimization: {
     minimize: false,
   },
-  externals: { hiredis: 'hiredis' }, // Need this to avoid error when working with Express
+  externals: {
+    hiredis: 'hiredis',
+    webpack: 'webpack',
+    'koa-webpack-middleware': 'koa-webpack-middleware',
+  }, // Need this to avoid error when working with Express
   module: {
     rules: [
       {
@@ -60,8 +63,5 @@ module.exports = {
       'process.env.BROWSER': false,
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
-    new CopyPlugin([
-      { from: root('node_modules/svg-captcha/fonts'), to: root('dist/fonts') },
-    ]),
   ],
 }

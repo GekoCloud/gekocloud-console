@@ -1,29 +1,37 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import { get } from 'lodash'
-import { Input, Columns, Column } from '@pitrix/lego-ui'
+import { get, pick } from 'lodash'
+import {
+  Column,
+  Columns,
+  Form,
+  Input,
+  Select,
+  Tag,
+  TextArea,
+} from '@juanchi_xd/components'
 import { compareVersion } from 'utils/app'
 import { PATTERN_SERVICE_NAME } from 'utils/constants'
-import { Form, SearchSelect, Tag, Text, TextArea } from 'components/Base'
+import { Text } from 'components/Base'
 
 import Placement from './Placement'
 
@@ -56,10 +64,10 @@ export default class BasicInfo extends React.Component {
   )
 
   fetchVersions = async (params = {}) => {
-    const { appID, versionStore, fromStore } = this.props
+    const { appId, versionStore, fromStore } = this.props
     return versionStore.fetchList({
       ...params,
-      app_id: appID,
+      app_id: appId,
       status: fromStore ? 'active' : undefined,
     })
   }
@@ -82,7 +90,7 @@ export default class BasicInfo extends React.Component {
   }
 
   render() {
-    const { formData, formRef, namespace, versionId, versionStore } = this.props
+    const { formData, formRef, namespace, versionStore } = this.props
     return (
       <div className={styles.wrapper}>
         <Form data={formData} ref={formRef}>
@@ -96,7 +104,9 @@ export default class BasicInfo extends React.Component {
                   { required: true, message: t('Please input name') },
                   {
                     pattern: PATTERN_SERVICE_NAME,
-                    message: `${t('Invalid name')}, ${t('CLUSTER_NAME_DESC')}`,
+                    message: t('Invalid name', {
+                      message: t('CLUSTER_NAME_DESC'),
+                    }),
                   },
                 ]}
               >
@@ -110,19 +120,20 @@ export default class BasicInfo extends React.Component {
                   { required: true, message: t('Please select version') },
                 ]}
               >
-                <SearchSelect
+                <Select
                   name="version_id"
                   options={this.sortedVersions}
                   placeholder={t('Please select version')}
-                  page={versionStore.list.page}
-                  total={versionStore.list.total}
-                  currentLength={versionStore.list.data.length}
+                  pagination={pick(versionStore.list, [
+                    'page',
+                    'limit',
+                    'total',
+                  ])}
                   isLoading={versionStore.list.isLoading}
                   onFetch={this.fetchVersions}
                   onChange={this.handleVersionChange}
                   optionRenderer={this.versionOptionRender}
                   valueRenderer={this.versionOptionRender}
-                  disabled={!!versionId}
                 />
               </Form.Item>
             </Column>
@@ -130,7 +141,7 @@ export default class BasicInfo extends React.Component {
           <Columns>
             <Column>
               <Form.Item label={t('Description')} desc={t('DESCRIPTION_DESC')}>
-                <TextArea name="desc" maxLength={256} />
+                <TextArea name="description" maxLength={256} />
               </Form.Item>
             </Column>
             <Column />

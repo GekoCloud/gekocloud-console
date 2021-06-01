@@ -1,27 +1,29 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { set, get, isEmpty, isObject, unset } from 'lodash'
+import { set, get, isEmpty, isObject, unset, isUndefined } from 'lodash'
 import { action, observable } from 'mobx'
+import { safeBtoa } from 'utils/base64'
 import {
   CREDENTIAL_KEY,
   CREDENTIAL_DISPLAY_KEY,
   API_VERSIONS,
+  CREDENTIAL_TYPE_LIST,
 } from 'utils/constants'
 
 import FORM_TEMPLATES from 'utils/form.templates'
@@ -93,8 +95,8 @@ export default class CredentialStore extends BaseStore {
       }
     )
 
-    result.items = result.items.filter(
-      v => v.type.indexOf('credential.devops.kubesphere.io') > -1
+    result.items = result.items.filter(v =>
+      CREDENTIAL_TYPE_LIST.includes(v.type)
     )
 
     const dataList = result.items.map(v => {
@@ -138,7 +140,7 @@ export default class CredentialStore extends BaseStore {
     if (!isEmpty(typeDate) && isObject(typeDate)) {
       Object.keys(typeDate).forEach(key => {
         if (typeDate[key]) {
-          typeDate[key] = btoa(typeDate[key])
+          typeDate[key] = safeBtoa(typeDate[key])
         }
       })
     }
@@ -157,7 +159,11 @@ export default class CredentialStore extends BaseStore {
   }
 
   @action
-  async fetchDetail() {
+  async fetchDetail(params) {
+    if (!(isUndefined(params) || isEmpty(params))) {
+      this.params = params
+    }
+
     const { devops, credential_id, cluster } = this.params
     const result = await this.request.get(
       `${this.getResourceUrl({
@@ -167,14 +173,11 @@ export default class CredentialStore extends BaseStore {
       })}?content=1`
     )
 
-    const usage = await this.getUsageDetail()
     const data = this.mapper(result)
-
     data.display_name = data.name
     data.id = data.name
     data.type = CREDENTIAL_DISPLAY_KEY[data.type.split('/')[1]]
 
-    this.usage = usage
     this.detail = data
     this.isLoading = false
   }
@@ -183,11 +186,13 @@ export default class CredentialStore extends BaseStore {
   async getUsageDetail() {
     const { devops, credential_id, cluster } = this.params
 
-    return await this.request.get(
+    const usage = await this.request.get(
       `${this.getDevopsUrlV2({
         cluster,
       })}${devops}/credentials/${credential_id}/usage`
     )
+
+    this.usage = usage
   }
 
   @action
@@ -198,7 +203,7 @@ export default class CredentialStore extends BaseStore {
 
     if (JSON.stringify(data) !== '{}' && typeof data === 'object') {
       Object.keys(data).forEach(key => {
-        data[key] = btoa(data[key])
+        data[key] = safeBtoa(data[key])
       })
     }
 
@@ -216,13 +221,13 @@ export default class CredentialStore extends BaseStore {
   }
 
   @action
-  async delete(credential_id) {
+  async delete({ id }) {
     const { devops, cluster } = this.params
 
     return await this.request.delete(
       `${this.getResourceUrl({
         devops,
-        name: credential_id,
+        name: id,
         cluster,
       })}`
     )

@@ -1,25 +1,28 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
-import { get } from 'lodash'
+import { parse } from 'qs'
+import { debounce, get } from 'lodash'
 import { Link } from 'react-router-dom'
-import { Avatar, Status } from 'components/Base'
+import { Tooltip } from '@juanchi_xd/components'
+import { Status } from 'components/Base'
+import Avatar from 'apps/components/Avatar'
 import { withProjectList, ListPage } from 'components/HOCs/withList'
 import Table from 'components/Tables/List'
 
@@ -38,15 +41,13 @@ export default class OPApps extends React.Component {
 
   get prefix() {
     const { workspace, cluster, namespace } = this.props.match.params
-    return `/${workspace}/clusters/${cluster}/projects/${namespace}/applications/${
-      this.type
-    }`
+    return `/${workspace}/clusters/${cluster}/projects/${namespace}/applications/${this.type}`
   }
 
   get canCreate() {
     const { cluster, namespace } = this.props.match.params
     return (
-      globals.app.enableAppStore &&
+      globals.app.hasKSModule('openpitrix') &&
       globals.app.hasPermission({
         cluster,
         project: namespace,
@@ -57,7 +58,7 @@ export default class OPApps extends React.Component {
   }
 
   get itemActions() {
-    const { routing, trigger } = this.props
+    const { trigger, name } = this.props
     return [
       {
         key: 'edit',
@@ -67,7 +68,6 @@ export default class OPApps extends React.Component {
         onClick: item =>
           trigger('openpitrix.app.edit', {
             detail: item,
-            success: routing.query,
           }),
       },
       {
@@ -77,9 +77,8 @@ export default class OPApps extends React.Component {
         action: 'delete',
         onClick: item =>
           trigger('resource.delete', {
-            type: t(this.name),
+            type: t(name),
             detail: item,
-            success: routing.query,
           }),
       },
     ]
@@ -108,12 +107,7 @@ export default class OPApps extends React.Component {
         dataIndex: 'status',
         isHideable: true,
         width: '16%',
-        render: (status, record) => (
-          <Status
-            name={t(record.transition_status || status)}
-            type={record.transition_status || status}
-          />
-        ),
+        render: this.renderStatus,
       },
       {
         title: t('Application'),
@@ -145,6 +139,18 @@ export default class OPApps extends React.Component {
     ]
   }
 
+  renderStatus = (status, record) => {
+    if (record.additional_info) {
+      return (
+        <Tooltip content={record.additional_info}>
+          <Status name={t(status)} type={status} flicker />
+        </Tooltip>
+      )
+    }
+
+    return <Status name={t(status)} type={status} flicker />
+  }
+
   showDeploy = () => {
     const { match, module, projectStore, trigger } = this.props
     return this.props.trigger('app.deploy', {
@@ -152,7 +158,6 @@ export default class OPApps extends React.Component {
       namespace: match.params.namespace,
       cluster: match.params.cluster,
       workspace: get(projectStore, 'detail.workspace'),
-      runtime_id: get(projectStore, 'detail.opRuntime'),
       routing: this.props.rootStore.routing,
       trigger,
     })
@@ -176,7 +181,6 @@ export default class OPApps extends React.Component {
         ...tableProps.tableActions,
         actions,
         onCreate: null,
-        selectActions: [],
       },
       emptyProps: {
         desc: t('APP_DEPLOYMENT_DESC'),
@@ -185,10 +189,27 @@ export default class OPApps extends React.Component {
     }
   }
 
+  handleFetch = debounce(query => {
+    const { store, getData } = this.props
+    if (store.list.isLoading) {
+      return
+    }
+    const params = parse(location.search.slice(1))
+    return getData({ ...params, ...query, silent: true })
+  }, 1000)
+
+  handleWatch = message => {
+    if (message.object.kind === 'HelmRelease') {
+      if (['MODIFIED', 'DELETED', 'ADDED'].includes(message.type)) {
+        this.handleFetch()
+      }
+    }
+  }
+
   render() {
     const { bannerProps, tableProps, match } = this.props
     return (
-      <ListPage {...this.props}>
+      <ListPage {...this.props} onMessage={this.handleWatch}>
         <Banner {...bannerProps} match={match} type={this.type} />
         <Table
           {...tableProps}

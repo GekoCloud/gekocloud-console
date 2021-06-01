@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, has, isEmpty, groupBy, findKey } from 'lodash'
@@ -63,7 +63,7 @@ export default class GrayReleaseStore extends Base {
 
   @action
   fetchMetrics(
-    { cluster, namespace, hosts, newVersion, oldVersion, protocol },
+    { cluster, namespace, newWorkloadName, oldWorkloadName, protocol },
     options = {}
   ) {
     const queryTime = Math.floor(new Date().getTime() / 1000)
@@ -79,7 +79,6 @@ export default class GrayReleaseStore extends Base {
         'tcp_sent',
         'tcp_received',
       ],
-      'quantiles[]': [0.95],
       direction: 'inbound',
       reporter: 'destination',
       ...options,
@@ -94,14 +93,14 @@ export default class GrayReleaseStore extends Base {
         `kapis/servicemesh.kubesphere.io/v1alpha2${this.getPath({
           cluster,
           namespace,
-        })}/workloads/${hosts}-${newVersion}/metrics`,
+        })}/workloads/${newWorkloadName}/metrics`,
         metricsParams
       ),
       request.get(
         `kapis/servicemesh.kubesphere.io/v1alpha2${this.getPath({
           cluster,
           namespace,
-        })}/workloads/${hosts}-${oldVersion}/metrics`,
+        })}/workloads/${oldWorkloadName}/metrics`,
         metricsParams
       ),
     ])
@@ -109,7 +108,7 @@ export default class GrayReleaseStore extends Base {
 
   @action
   fetchHealth(
-    { cluster, namespace, hosts, newVersion, oldVersion },
+    { cluster, namespace, newWorkloadName, oldWorkloadName },
     options = {}
   ) {
     const healthParams = {
@@ -122,14 +121,14 @@ export default class GrayReleaseStore extends Base {
         `kapis/servicemesh.kubesphere.io/v1alpha2${this.getPath({
           cluster,
           namespace,
-        })}/workloads/${hosts}-${newVersion}/health`,
+        })}/workloads/${newWorkloadName}/health`,
         healthParams
       ),
       request.get(
         `kapis/servicemesh.kubesphere.io/v1alpha2${this.getPath({
           cluster,
           namespace,
-        })}/workloads/${hosts}-${oldVersion}/health`,
+        })}/workloads/${oldWorkloadName}/health`,
         healthParams
       ),
     ])
@@ -216,7 +215,7 @@ export default class GrayReleaseStore extends Base {
 
   @action
   update(
-    { name, cluster, namespace, hosts, newVersion, resourceVersion },
+    { name, cluster, namespace, newWorkloadName, newVersion, resourceVersion },
     data
   ) {
     const promises = []
@@ -244,7 +243,7 @@ export default class GrayReleaseStore extends Base {
             `apis/apps/v1${this.getPath({
               cluster,
               namespace,
-            })}/${module}/${hosts}-${newVersion}`
+            })}/${module}/${newWorkloadName}`
           ),
           request.post(
             `apis/apps/v1${this.getPath({ cluster, namespace })}/${module}`,

@@ -1,6 +1,6 @@
 @import '~scss/variables';
 
-.connects__colunm {
+.connects__column {
   vertical-align: top;
   // width: 35px;
   display: inline-block;
@@ -11,14 +11,13 @@
     width: 70px;
     overflow: visible;
   }
-
 }
 
 .editButton {
   &:hover {
     circle {
       cursor: pointer;
-      stroke: #F18918;
+      stroke: #329dce;
     }
   }
 }

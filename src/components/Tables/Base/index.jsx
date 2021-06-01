@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,21 +21,21 @@ import PropTypes from 'prop-types'
 import classnames from 'classnames'
 import isEqual from 'react-fast-compare'
 import { toJS } from 'mobx'
-import { get, find, isUndefined, isEmpty, trim } from 'lodash'
+import { get, isUndefined, isEmpty } from 'lodash'
 import {
   Icon,
   Table,
-  Dropdown,
-  Buttons,
   Level,
   LevelItem,
   LevelLeft,
   LevelRight,
+  Button,
+  InputSearch,
   Pagination,
-} from '@pitrix/lego-ui'
-import { Button, Search } from 'components/Base'
+} from '@juanchi_xd/components'
 import { safeParseJSON } from 'utils'
 import CustomColumns from './CustomColumns'
+import FilterInput from './FilterInput'
 import Empty from './Empty'
 
 import styles from './index.scss'
@@ -92,31 +92,7 @@ export default class WorkloadTable extends React.Component {
       []
     )
 
-    this.state = {
-      hideColumns,
-    }
-
-    this.hideableColumns = props.columns
-      .filter(column => column.isHideable)
-      .map(column => ({
-        label: column.title,
-        value: column.dataIndex || column.key,
-      }))
-
-    this.hideableColumnValues = this.hideableColumns.map(item => item.value)
-
-    this.suggestions = props.columns
-      .filter(column => column.search && column.dataIndex)
-      .map(column => ({
-        label: column.title,
-        key: column.dataIndex,
-        options:
-          column.filters &&
-          column.filters.map(filter => ({
-            label: filter.text,
-            key: filter.value,
-          })),
-      }))
+    this.state = { hideColumns }
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -124,7 +100,6 @@ export default class WorkloadTable extends React.Component {
       return true
     }
 
-    // new props ?
     if (
       nextProps.data !== this.props.data ||
       nextProps.columns.length !== this.props.columns.length ||
@@ -143,38 +118,24 @@ export default class WorkloadTable extends React.Component {
     return false
   }
 
-  componentDidMount() {
-    this.mounted = true
-  }
-
-  componentWillUnmount() {
-    this.mounted = false
-  }
-
-  get tags() {
-    const { filters } = this.props
-    if (typeof filters !== 'object') return []
-
-    return Object.keys(filters).map(n => {
-      const curFilter = find(this.suggestions, { key: n }) || {}
-      const curValue = curFilter.options
-        ? find(curFilter.options, { key: filters[n] }) || {}
-        : {}
-      return {
-        filter: n,
-        filterLabel: 'label' in curFilter ? curFilter.label : '',
-        value: filters[n],
-        valueLabel: 'label' in curValue ? curValue.label : filters[n],
-      }
-    })
-  }
-
   get showEmpty() {
-    const { filters, pagination } = this.props
-    return this.mounted && isEmpty(filters) && pagination.total === 0
+    const { filters, pagination, isLoading } = this.props
+
+    if ('showEmpty' in this.props) {
+      return this.props.showEmpty
+    }
+
+    return !isLoading && isEmpty(filters) && pagination.total === 0
   }
 
-  handleChange = (_, filters, sorter) => {
+  get filteredColumns() {
+    const { hideColumns } = this.state
+    return this.props.columns.filter(
+      clm => !hideColumns.includes(clm.key || clm.dataIndex)
+    )
+  }
+
+  handleChange = (filters, sorter) => {
     this.props.onFetch({
       sortBy: sorter.field || '',
       ascending: !(ORDER_MAP[sorter.order] || false),
@@ -198,9 +159,7 @@ export default class WorkloadTable extends React.Component {
   handleColumnsHide = columns => {
     this.setState(
       {
-        hideColumns: this.hideableColumnValues.filter(
-          value => !columns.includes(value)
-        ),
+        hideColumns: columns,
       },
       () => {
         if (this.props.tableId) {
@@ -219,14 +178,7 @@ export default class WorkloadTable extends React.Component {
     this.props.onSelectRowKeys([])
   }
 
-  handleFilterInput = tags => {
-    const filters = {}
-    tags.forEach(n => {
-      // transfer keyword to name
-      n.filter = n.filter === 'keyword' ? 'name' : n.filter
-      filters[n.filter] = trim(n.value)
-    })
-
+  handleFilterInput = filters => {
     if (!isEqual(filters, this.props.filters)) {
       this.props.onFetch(filters, true)
     }
@@ -253,7 +205,7 @@ export default class WorkloadTable extends React.Component {
 
     if (selectActions) {
       return (
-        <Buttons>
+        <div>
           {selectActions.map(action => (
             <Button
               key={action.key}
@@ -265,12 +217,12 @@ export default class WorkloadTable extends React.Component {
               {action.text}
             </Button>
           ))}
-        </Buttons>
+        </div>
       )
     }
 
     return (
-      <Buttons>
+      <div>
         {onDelete && (
           <Button
             type="danger"
@@ -281,12 +233,12 @@ export default class WorkloadTable extends React.Component {
             {t('Delete')}
           </Button>
         )}
-      </Buttons>
+      </div>
     )
   }
 
   renderSelectedTitle = () => (
-    <Level className={styles.selectTitle}>
+    <Level>
       <LevelLeft>{this.renderSelectActions()}</LevelLeft>
       <LevelRight>
         <Button
@@ -302,18 +254,18 @@ export default class WorkloadTable extends React.Component {
   )
 
   renderSearch() {
-    const { hideSearch, searchType, filters } = this.props
+    const { hideSearch, searchType, filters, columns } = this.props
 
     if (hideSearch) {
       return null
     }
 
     if (searchType) {
-      const placeholder = this.props.placeholder || t('Search by keyword')
+      const placeholder = this.props.placeholder || t('Search by name')
 
       return (
-        <Search
-          className={styles.keyword}
+        <InputSearch
+          className={styles.search}
           value={filters[searchType]}
           onSearch={this.handleSearch}
           placeholder={placeholder}
@@ -322,12 +274,11 @@ export default class WorkloadTable extends React.Component {
     }
 
     return (
-      <Table.FilterInput
-        placeholder={t('Enter query conditions to filter')}
-        tags={this.tags}
-        suggestions={this.suggestions}
+      <FilterInput
+        className={styles.search}
+        columns={columns}
+        filters={filters}
         onChange={this.handleFilterInput}
-        defaultKeywordLabel={t('Name')}
       />
     )
   }
@@ -366,32 +317,32 @@ export default class WorkloadTable extends React.Component {
   }
 
   renderNormalTitle() {
-    const { hideCustom, customFilter } = this.props
+    const { hideCustom, customFilter, columns } = this.props
+    const { hideColumns } = this.state
 
     return (
       <Level>
-        <LevelItem>
-          {customFilter}
-          {this.renderSearch()}
-        </LevelItem>
+        {customFilter && <LevelLeft>{customFilter}</LevelLeft>}
+        <LevelItem>{this.renderSearch()}</LevelItem>
         <LevelRight>
-          <Buttons>
+          <div>
             <Button
               type="flat"
               icon="refresh"
               onClick={this.handleRefresh}
               data-test="table-refresh"
             />
-            {!hideCustom && !isEmpty(this.hideableColumns) && (
-              <Dropdown
-                content={this.renderColumnsMenu()}
-                placement="bottomRight"
-              >
-                <Button type="flat" icon="cogwheel" data-test="table-columns" />
-              </Dropdown>
+            {!hideCustom && (
+              <CustomColumns
+                className={styles.columnMenu}
+                title={t('Custom Columns')}
+                columns={columns}
+                value={hideColumns}
+                onChange={this.handleColumnsHide}
+              />
             )}
             {this.renderActions()}
-          </Buttons>
+          </div>
         </LevelRight>
       </Level>
     )
@@ -405,30 +356,6 @@ export default class WorkloadTable extends React.Component {
     return this.renderNormalTitle()
   }
 
-  renderColumnsMenu = () => {
-    const { hideColumns } = this.state
-
-    const getHideColumnKeys = cols => {
-      const results = []
-      this.hideableColumns.forEach(item => {
-        if (cols.indexOf(item.value) === -1) {
-          results.push(item.value)
-        }
-      })
-      return results
-    }
-
-    return (
-      <CustomColumns
-        className={styles.columnMenu}
-        title={t('Custom Columns')}
-        options={this.hideableColumns}
-        value={getHideColumnKeys(hideColumns)}
-        onChange={this.handleColumnsHide}
-      />
-    )
-  }
-
   renderEmptyText() {
     return (
       this.props.emptyText || (
@@ -436,7 +363,7 @@ export default class WorkloadTable extends React.Component {
           <span className={styles.emptyTipIcon}>
             <Icon name="exclamation" size={48} />
           </span>
-          <div>{t('No resources matching the filter have been found yet')}</div>
+          <div>{t('No matching resources found.')}</div>
           <p>
             {t('You can try to')}
             <span
@@ -486,9 +413,9 @@ export default class WorkloadTable extends React.Component {
         )}
         <LevelRight>
           <Pagination
-            current={page}
+            page={page}
             total={total}
-            pageSize={limit}
+            limit={limit}
             onChange={this.handlePagination}
           />
         </LevelRight>
@@ -500,7 +427,6 @@ export default class WorkloadTable extends React.Component {
     const {
       className,
       data,
-      columns,
       isLoading,
       silentLoading,
       rowKey,
@@ -511,7 +437,6 @@ export default class WorkloadTable extends React.Component {
       extraProps,
       getCheckboxProps,
     } = this.props
-    const { hideColumns } = this.state
 
     if (this.showEmpty) {
       return this.renderEmpty()
@@ -520,22 +445,22 @@ export default class WorkloadTable extends React.Component {
     const props = {}
 
     if (!hideHeader) {
-      props.title = this.renderTableTitle
+      props.title = this.renderTableTitle()
     }
 
     if (!hideFooter) {
-      props.footer = this.props.footer || this.renderTableFooter
+      props.footer = this.renderTableFooter()
     }
 
     if (onSelectRowKeys) {
       props.rowSelection = {
         selectedRowKeys,
         getCheckboxProps,
-        onSelect: (record, checked, selectedRows) => {
-          onSelectRowKeys(selectedRows.map(row => row[rowKey]))
+        onSelect: (record, checked, rowKeys) => {
+          onSelectRowKeys(rowKeys)
         },
-        onSelectAll: (checked, selectedRows) => {
-          onSelectRowKeys(selectedRows.map(row => row[rowKey]))
+        onSelectAll: (checked, rowKeys) => {
+          onSelectRowKeys(rowKeys)
         },
       }
     }
@@ -544,11 +469,9 @@ export default class WorkloadTable extends React.Component {
       <Table
         className={classnames(styles.table, 'ks-table', className)}
         rowKey={rowKey}
-        columns={columns}
+        columns={this.filteredColumns}
         dataSource={toJS(data)}
         loading={silentLoading ? false : isLoading}
-        hiddenColumns={hideColumns}
-        onHideColumn={this.handleColumnsHide}
         onChange={this.handleChange}
         emptyText={this.renderEmptyText()}
         {...props}

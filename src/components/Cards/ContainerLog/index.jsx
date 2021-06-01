@@ -1,59 +1,54 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import { observer } from 'mobx-react'
 import { saveAs } from 'file-saver'
 import { get, isEmpty } from 'lodash'
+import AnsiUp from 'ansi_up'
 
 import { PATTERN_UTC_TIME } from 'utils/constants'
-import { Loading, Icon, Tooltip } from '@pitrix/lego-ui'
-import { Card, Notify, Empty } from 'components/Base'
+import { Icon, Loading, Notify, Tooltip } from '@juanchi_xd/components'
+import { Card, Empty } from 'components/Base'
 import ContainerStore from 'stores/container'
+import PodStore from 'stores/pod'
 
 import styles from './index.scss'
 
+const converter = new AnsiUp()
+
 @observer
 export default class ContainerLog extends React.Component {
-  static propTypes = {
-    title: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.node,
-      PropTypes.element,
-    ]),
-    store: PropTypes.object,
-  }
-
   constructor(props) {
     super(props)
 
     this.state = {
       loadingPrev: false,
       loadingNext: false,
-      isRealtime: false,
       isDownloading: false,
+      isRealtime: !!props.isRealtime,
     }
 
     this.tailLines = 1000
 
     this.store = new ContainerStore()
+    this.podStore = new PodStore()
 
     this.ref = React.createRef()
   }
@@ -62,28 +57,61 @@ export default class ContainerLog extends React.Component {
     this.getData({}, this.scrollToBottom)
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.podName && this.props.podName !== prevProps.podName) {
+      this.getData({}, this.scrollToBottom)
+    }
+  }
+
   componentWillUnmount() {
     this.store.stopWatchLogs()
   }
 
-  getData(params, callback) {
-    const { cluster, namespace, podName, containerName } = this.props
+  async getData(params, callback) {
+    const {
+      cluster,
+      namespace,
+      podName,
+      containerName,
+      previous = false,
+    } = this.props
 
     this.store.stopWatchLogs()
 
-    return this.store.watchLogs(
-      {
+    const result = await this.podStore.checkName({
+      cluster,
+      namespace,
+      name: podName,
+    })
+
+    let showPrevious = false
+    if (previous) {
+      showPrevious = await this.store.checkPreviousLog({
         cluster,
         namespace,
         podName,
         container: containerName,
-        tailLines: this.tailLines,
-        timestamps: true,
-        follow: this.state.isRealtime,
-        ...params,
-      },
-      callback
-    )
+        tailLines: 10,
+        previous: true,
+      })
+    }
+
+    if (result.exist) {
+      this.store.watchLogs(
+        {
+          cluster,
+          namespace,
+          podName,
+          container: containerName,
+          tailLines: this.tailLines,
+          timestamps: true,
+          follow: this.state.isRealtime,
+          previous: showPrevious,
+          ...params,
+        },
+        callback
+      )
+    }
   }
 
   scrollToBottom = () => {
@@ -138,7 +166,7 @@ export default class ContainerLog extends React.Component {
 
     if (!result) {
       Notify.info({
-        content: `${t('NO_RESOURCE', { resource: t('Log Data') })}!`,
+        content: `${t('NO_RESOURCE', { resource: t('Log Data') })}`,
       })
       return
     }
@@ -227,7 +255,14 @@ export default class ContainerLog extends React.Component {
           const match = text.match(PATTERN_UTC_TIME)
           const key = match ? match[0] : index
           const content = match ? text.replace(match[0], '') : text
-          return <p key={key} dangerouslySetInnerHTML={{ __html: content }} />
+          return (
+            <p
+              key={key}
+              dangerouslySetInnerHTML={{
+                __html: converter.ansi_to_html(content),
+              }}
+            />
+          )
         })}
         <div className={styles.loading}>
           <Loading spinning={loadingNext} size="small" />

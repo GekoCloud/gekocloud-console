@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, isEmpty, has } from 'lodash'
@@ -63,11 +63,6 @@ const updateS2iServiceParams = data => {
     ''
   )
   set(serviceData, 'spec.template.spec.imagePullSecrets[0].name', pullSecret)
-  set(
-    serviceData,
-    'spec.template.metadata.annotations["kubesphere.io/containerSecrets"]',
-    `{"${containerName}": "${pullSecret}"}`
-  )
   set(data, 'S2i.metadata.annotations.serviceName', serviceName)
   data.S2i.metadata.name = builderName
   set(serviceData, 'metadata.labels.s2ibuilder', builderName)

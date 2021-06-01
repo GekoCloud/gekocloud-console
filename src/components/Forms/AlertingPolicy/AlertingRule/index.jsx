@@ -1,209 +1,148 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
-import { computed } from 'mobx'
-import { observer } from 'mobx-react'
-import PropTypes from 'prop-types'
-import { isEmpty, get, set } from 'lodash'
+import { get, isEmpty } from 'lodash'
+import { Form, RadioGroup, RadioButton } from '@juanchi_xd/components'
 
-import { MODULE_KIND_MAP } from 'utils/constants'
-import TypesStore from 'stores/alerting/types'
-
-import { Form, Alert } from 'components/Base'
-import RuleList from './RuleList'
-import RuleFrom from './RuleForm'
+import MonitoringTarget from './MonitoringTarget'
+import RuleInput from './RuleInput'
+import CustomRule from './CustomRule'
+import QueryMonitor from './QueryMonitor'
 
 import styles from './index.scss'
 
-@observer
 export default class AlertingRule extends React.Component {
-  static childContextTypes = {
-    showFormError: PropTypes.func,
-    hideFormError: PropTypes.func,
-  }
-
-  getChildContext() {
-    return {
-      showFormError: this.showError,
-      hideFormError: this.hideError,
-    }
-  }
-
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      showRule: false,
-      selectRule: {},
-      isValid: true,
-      validMessage: '',
-    }
-
-    this.typesStore = new TypesStore()
-  }
-
-  get prefix() {
-    return ''
+  state = {
+    query: get(this.props.formTemplate, 'query'),
+    ruleType: get(this.props.formTemplate, 'ruleType', 'template'),
   }
 
   get namespace() {
-    return get(this.formTemplate, 'metadata.namespace')
-  }
-
-  get formTemplate() {
-    const { formTemplate, module } = this.props
-    return get(formTemplate, MODULE_KIND_MAP[module], formTemplate)
+    return get(this.props.formTemplate, 'namespace')
   }
 
   get resourceType() {
-    return get(this.formTemplate, 'resource_filter.resource_type')
+    return this.namespace ? 'workload' : 'node'
   }
 
-  get workloadKind() {
-    return get(
-      this.formTemplate,
-      'resource_filter.rs_filter_param.workload_kind',
-      'deployment'
-    )
-  }
-
-  @computed
-  get metricTypes() {
-    return this.typesStore.metricTypes
-  }
-
-  componentDidMount() {
-    this.fetchMetricTypes()
-  }
-
-  fetchMetricTypes = () => {
-    const { cluster } = this.props
-    const rs_type_id = get(this.formTemplate, 'resource_filter.rs_type_id')
-    this.typesStore.fetchMetricTypes({ rs_type_id, cluster })
-  }
-
-  showRule = data => {
-    this.setState({
-      showRule: true,
-      selectRule: data || {},
+  handleTypeChange = ruleType => {
+    this.setState({ ruleType }, () => {
+      this.props.formTemplate.ruleType = ruleType
     })
   }
 
-  hideRule = () => {
-    this.setState({
-      showRule: false,
-      selectRule: {},
-    })
+  handleQueryChange = query => {
+    this.setState({ query })
   }
 
-  showError = ({ message = '' }) => {
-    this.setState({ isValid: false, validMessage: message })
-  }
+  ruleValidator = (rule, value, callback) => {
+    if (!value) {
+      return callback()
+    }
 
-  hideError = () => {
-    this.setState({ isValid: true })
-  }
-
-  rulesValidator = (rule, value, callback) => {
-    if (isEmpty(value)) {
-      this.showError({ message: t('Please add at least one rule') })
-      return callback('')
+    if (isEmpty(value.thresholds)) {
+      return callback({
+        message: t('Please add at least one rule'),
+        field: rule.field,
+      })
     }
 
     callback()
   }
 
-  handleRule = data => {
-    const rules = get(this.formTemplate, `${this.prefix}rules`, [])
-    const newRules = [...rules]
-
-    const isExist = rules.some((rule, index) => {
-      if (rule.rule_name === data.rule_name) {
-        set(newRules, `[${index}]`, data)
-        return true
-      }
-      return false
-    })
-
-    if (!isExist) {
-      newRules.push(data)
-    }
-
-    set(this.formTemplate, `${this.prefix}rules`, newRules)
-    this.hideRule()
-
-    if (!isEmpty(newRules)) {
-      this.hideError()
-    }
-  }
-
-  renderRuleForm(data) {
-    const { module } = this.props
-    const type = !data.rule_name ? 'Add' : 'Edit'
-    const currentRules = get(this.formTemplate, `${this.prefix}rules`, [])
-
+  renderTemplates() {
+    const { cluster, formTemplate } = this.props
     return (
-      <RuleFrom
-        type={type}
-        resourceType={this.resourceType}
-        workloadKind={this.workloadKind}
-        metricTypes={this.metricTypes}
-        module={module}
-        namespace={this.namespace}
-        data={data}
-        onSave={this.handleRule}
-        onCancel={this.hideRule}
-        currentRules={currentRules}
-      />
+      <div>
+        <MonitoringTarget
+          namespace={this.namespace}
+          cluster={cluster}
+          formTemplate={formTemplate}
+        />
+        <Form.Item
+          label={t('Alerting Rules')}
+          rules={[
+            { required: true, message: t('Please add at least one rule') },
+            { validator: this.ruleValidator },
+          ]}
+        >
+          <RuleInput name="rules[0]" resourceType={this.resourceType} />
+        </Form.Item>
+      </div>
     )
   }
 
-  renderRuleList() {
-    const { formRef } = this.props
-
+  renderCustomRule() {
+    const { cluster, namespace, store, formTemplate } = this.props
     return (
-      <Form data={this.formTemplate} ref={formRef}>
-        <Form.Item rules={[{ validator: this.rulesValidator }]}>
-          <RuleList
-            resourceType={this.resourceType}
-            name={`${this.prefix}rules`}
-            onShow={this.showRule}
+      <>
+        <Form.Item
+          label={t('Rule Expression')}
+          desc={t.html('ALERT_RULE_EXPRESSION_DESC')}
+          rules={[
+            { required: true, message: t('Please input the rule expression') },
+          ]}
+        >
+          <CustomRule
+            name="query"
+            store={store}
+            cluster={cluster}
+            namespace={namespace}
+            onChange={this.handleQueryChange}
           />
         </Form.Item>
-      </Form>
+        <div className="margin-t12">
+          <QueryMonitor
+            query={this.state.query}
+            duration={formTemplate.duration}
+            store={store}
+            cluster={cluster}
+            namespace={namespace}
+          />
+        </div>
+      </>
     )
   }
 
   render() {
-    const { showRule, selectRule, isValid, validMessage } = this.state
-
-    if (showRule) {
-      return this.renderRuleForm(selectRule)
-    }
+    const { ruleType } = this.state
+    const { formRef, formTemplate } = this.props
 
     return (
-      <div>
-        {this.renderRuleList()}
-        {!isValid && (
-          <Alert type="error" className={styles.alert} message={validMessage} />
-        )}
-      </div>
+      <Form data={formTemplate} ref={formRef}>
+        <RadioGroup
+          mode="button"
+          buttonWidth={155}
+          value={ruleType}
+          onChange={this.handleTypeChange}
+        >
+          <RadioButton value="template">{t('Rule Templates')}</RadioButton>
+          <RadioButton value="custom">{t('Custom Rule')}</RadioButton>
+        </RadioGroup>
+        <div className={styles.content}>
+          <div className={styles.contentWrapper}>
+            {ruleType === 'template'
+              ? this.renderTemplates()
+              : this.renderCustomRule()}
+          </div>
+        </div>
+      </Form>
     )
   }
 }

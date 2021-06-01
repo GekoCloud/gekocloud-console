@@ -1,28 +1,29 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { cloneDeep } from 'lodash'
-import { Modal, Notify } from 'components/Base'
+import { Notify } from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 import EnableForm from 'components/Forms/LoggingCollection/Status'
-import ESForm from 'src/components/Forms/Elasticsearch/Settings'
-import KafkaForm from 'src/components/Forms/KafkaForm/Settings'
-import FluentdForm from 'src/components/Forms/Fluentd/Settings'
+import ESForm from 'components/Forms/Elasticsearch/Settings'
+import KafkaForm from 'components/Forms/KafkaForm/Settings'
+import FluentdForm from 'components/Forms/Fluentd/Settings'
 
 export default {
   'log.collection.active.switch': {
@@ -38,7 +39,7 @@ export default {
           })
           Modal.close(modal)
           success && success()
-          Notify.success({ content: `${t('Updated Successfully')}!` })
+          Notify.success({ content: `${t('Updated Successfully')}` })
         },
         modal: Modal.Form,
         store,
@@ -70,7 +71,7 @@ export default {
           })
           Modal.close(modal)
           success && success()
-          Notify.success({ content: `${t('Updated Successfully')}!` })
+          Notify.success({ content: `${t('Updated Successfully')}` })
         },
         modal: Modal.Form,
         data,

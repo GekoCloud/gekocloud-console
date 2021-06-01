@@ -1,26 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 import React, { Component } from 'react'
 import { set } from 'lodash'
 import { toJS } from 'mobx'
 import { inject, observer, Provider } from 'mobx-react'
 
-import { Loading } from '@pitrix/lego-ui'
+import { Loading } from '@juanchi_xd/components'
 
 import { renderRoutes } from 'utils/router.config'
 
@@ -72,9 +72,9 @@ export default class App extends Component {
     await this.props.rootStore.getRules(params)
 
     globals.app.cacheHistory(this.props.match.url, {
-      type: 'Project',
+      type: 'Multi-cluster Project',
       name: this.store.detail.name,
-      description: this.store.detail.description,
+      aliasName: this.store.detail.aliasName,
       isFedManaged: true,
     })
 

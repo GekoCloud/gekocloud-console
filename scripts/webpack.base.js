@@ -1,48 +1,46 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 const { resolve } = require('path')
 const autoprefixer = require('autoprefixer')
 const HappyPack = require('happypack')
 const WebpackBar = require('webpackbar')
+const WebpackAssetsManifest = require('webpack-assets-manifest')
 
 const root = path => resolve(__dirname, `../${path}`)
+
+const isDev = process.env.NODE_ENV === 'development'
 
 module.exports = {
   entry: {
     main: './src/core/index.js',
+    terminalEntry:'./src/core/terminal.js'
   },
   moduleRules: [
     {
       test: /\.jsx?$/,
-      include: [root('src'), root('common')],
+      include: root('src'),
       use: 'happypack/loader?id=jsx',
-    },
-    {
-      test: /\.jsx?$/,
-      include: root('node_modules'),
-      use: 'cache-loader',
     },
     {
       test: /\.svg$/,
       issuer: { test: /\.jsx?$/ },
       use: [
-        { loader: 'cache-loader' },
         { loader: '@svgr/webpack', options: { icon: true } },
       ],
     },
@@ -56,21 +54,24 @@ module.exports = {
     extensions: ['.js', '.jsx', '.scss'],
     symlinks: false,
     modules: [root('src'), root('src/pages'), 'node_modules'],
-    alias: {
-      src: root('src'),
-      scss: root('src/scss'),
-      core: root('src/core'),
-      configs: root('src/configs'),
-      components: root('src/components'),
-      layouts: root('src/layouts'),
-      stores: root('src/stores'),
-      utils: root('src/utils'),
-    },
   },
   plugins: [
     new HappyPack({
       id: 'jsx',
-      loaders: ['babel-loader?cacheDirectory'],
+      loaders: [
+        {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+            plugins: isDev ? [require.resolve('react-refresh/babel')] : [],
+          },
+        },
+      ],
+    }),
+    new WebpackAssetsManifest({
+      entrypoints: true,
+      writeToDisk: true,
+      output: '../dist/manifest.json',
     }),
     new WebpackBar(),
   ],
@@ -82,7 +83,6 @@ module.exports = {
         browsers: ['>1%', 'last 4 versions', 'Firefox ESR', 'not ie < 9'],
         flexbox: 'no-2009',
       }),
-      require('postcss-remove-google-fonts'),
     ],
   },
 }

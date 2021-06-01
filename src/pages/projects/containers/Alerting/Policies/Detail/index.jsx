@@ -1,56 +1,70 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { get, isEmpty } from 'lodash'
-import { Loading } from '@pitrix/lego-ui'
+import { Loading, Tag } from '@juanchi_xd/components'
+
+import { Status } from 'components/Base'
 
 import { getDisplayName, getLocalTime } from 'utils'
 import { trigger } from 'utils/action'
+import { SEVERITY_LEVEL } from 'configs/alerting/metrics/rule.config'
 import AlertingPolicyStore from 'stores/alerting/policy'
 
-import DetailPage from 'projects/containers/Base/Detail'
+import DetailPage from 'clusters/containers/Base/Detail'
 
-import routes from './routes'
+import Health from './Health'
+
+import getRoutes from './routes'
 
 @inject('rootStore')
 @observer
 @trigger
 export default class AlertPolicyDetail extends React.Component {
-  store = new AlertingPolicyStore('workload')
+  store = new AlertingPolicyStore()
 
   componentDidMount() {
     this.fetchData()
   }
 
   get module() {
-    return 'alert-policies'
+    return 'alert-rules'
   }
 
   get name() {
     return 'alerting policy'
   }
 
+  get type() {
+    return this.props.match.url.indexOf('alert-rules/builtin') > 0
+      ? 'builtin'
+      : ''
+  }
+
   get listUrl() {
-    const { workspace, cluster, namespace } = this.props.match.params
-    return `/${workspace}/clusters/${cluster}/projects/${namespace}/alert-policies`
+    const { cluster, namespace, workspace } = this.props.match.params
+    const type = this.type
+    return `${workspace ? `/${workspace}` : ''}/clusters/${cluster}${
+      namespace ? `/projects/${namespace}` : ''
+    }/alert-rules${type ? `?type=${type}` : ''}`
   }
 
   get routing() {
@@ -60,7 +74,13 @@ export default class AlertPolicyDetail extends React.Component {
   fetchData = params => {
     const { cluster, namespace, name } = this.props.match.params
     if (this.store.fetchDetail) {
-      this.store.fetchDetail({ cluster, namespace, name, ...params })
+      this.store.fetchDetail({
+        cluster,
+        namespace,
+        name,
+        type: this.type,
+        ...params,
+      })
     }
   }
 
@@ -68,24 +88,15 @@ export default class AlertPolicyDetail extends React.Component {
     {
       key: 'edit',
       icon: 'pen',
-      text: t('Edit Info'),
+      text: t('Edit'),
       type: 'control',
       action: 'edit',
       onClick: () =>
-        this.trigger('alerting.policy.edit', {
-          type: t(this.name),
-          detail: toJS(this.store.ksFormatDetail),
-          success: this.fetchData,
-        }),
-    },
-    {
-      key: 'changeStatus',
-      icon: 'pen',
-      text: t('Change Status'),
-      action: 'edit',
-      onClick: () =>
-        this.trigger('alerting.status.edit', {
-          detail: this.store.detail,
+        this.trigger('alerting.policy.create', {
+          detail: toJS(this.store.detail),
+          module: this.store.module,
+          cluster: this.props.match.params.cluster,
+          title: `${t('Edit ')}${t('alerting policy')}`,
           success: this.fetchData,
         }),
     },
@@ -110,19 +121,42 @@ export default class AlertPolicyDetail extends React.Component {
     if (isEmpty(detail)) {
       return
     }
+    const severity = get(detail, 'labels.severity')
+    const level = SEVERITY_LEVEL.find(item => item.value === severity)
+    const alerts = get(detail, 'alerts', [])
+    const time = get(alerts, `${alerts.length - 1}.activeAt`)
 
     return [
       {
         name: t('Status'),
-        value: detail.disabled ? t('disabled') : t('active'),
+        value: (
+          <Status
+            type={detail.state}
+            name={t(`ALERT_RULE_${detail.state.toUpperCase()}`, {
+              defaultValue: detail.state,
+            })}
+          />
+        ),
       },
       {
-        name: t('Created Time'),
-        value: getLocalTime(detail.createTime).format('YYYY-MM-DD HH:mm:ss'),
+        name: t('Alerting Type'),
+        value: level ? (
+          <Tag type={level.type}>{t(level.label)}</Tag>
+        ) : (
+          <Tag>{severity}</Tag>
+        ),
       },
       {
-        name: t('Creator'),
-        value: get(detail, 'creator', t('unknown')),
+        name: t('Health Status'),
+        value: <Health detail={detail} />,
+      },
+      {
+        name: t('Alerting Duration'),
+        value: detail.duration,
+      },
+      {
+        name: t('Alert Active Time'),
+        value: time ? getLocalTime(time).format('YYYY-MM-DD HH:mm:ss') : '-',
       },
     ]
   }
@@ -137,8 +171,8 @@ export default class AlertPolicyDetail extends React.Component {
     const sideProps = {
       module: this.module,
       name: getDisplayName(this.store.detail),
-      desc: this.store.detail.desc,
-      operations: this.getOperations(),
+      desc: this.store.detail.description,
+      operations: this.type === 'builtin' ? [] : this.getOperations(),
       attrs: this.getAttrs(),
       breadcrumbs: [
         {
@@ -148,6 +182,12 @@ export default class AlertPolicyDetail extends React.Component {
       ],
     }
 
-    return <DetailPage stores={stores} routes={routes} {...sideProps} />
+    return (
+      <DetailPage
+        stores={stores}
+        routes={getRoutes(this.props.match.path)}
+        {...sideProps}
+      />
+    )
   }
 }

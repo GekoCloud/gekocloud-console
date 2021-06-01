@@ -1,33 +1,48 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { observable, action, computed } from 'mobx'
 import { get, assign } from 'lodash'
+import { compareVersion } from 'utils'
 
 export default class TerminalStore {
   username = get(globals, 'user.username', '')
 
   @computed
   get kubeWebsocketUrl() {
-    const { cluster, namespace, pod, container, shell = 'sh' } = this.kubectl
+    const {
+      cluster,
+      clusterVersion,
+      namespace,
+      pod,
+      container,
+      shell = 'sh',
+    } = this.kubectl
+
+    if (compareVersion(clusterVersion, 'v3.1.0') < 0) {
+      return `kapis/terminal.kubesphere.io/v1alpha2${this.getClusterPath({
+        cluster,
+      })}/namespaces/${namespace}/pods/${pod}?container=${container}&shell=${shell}`
+    }
+
     return `kapis/terminal.kubesphere.io/v1alpha2${this.getClusterPath({
       cluster,
-    })}/namespaces/${namespace}/pods/${pod}?container=${container}&shell=${shell}`
+    })}/namespaces/${namespace}/pods/${pod}/exec?container=${container}&shell=${shell}`
   }
 
   @observable
@@ -55,7 +70,7 @@ export default class TerminalStore {
   }
 
   @action
-  async fetchKubeCtl({ cluster }) {
+  async fetchKubeCtl({ cluster, clusterVersion }) {
     this.kubectl.isLoading = true
     const result = await request.get(
       `kapis/resources.kubesphere.io/v1alpha2${this.getClusterPath({
@@ -65,8 +80,10 @@ export default class TerminalStore {
       null,
       this.reject
     )
+
     this.kubectl = {
       cluster,
+      clusterVersion,
       ...result,
       isLoading: false,
     }

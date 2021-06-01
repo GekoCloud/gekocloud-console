@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 const testUser = 'e2e-regular'
@@ -89,7 +89,7 @@ describe('The Workspace Overview Page', function() {
       cy.get('[data-test="search"] input').type(`${testUser}{enter}`)
       cy.wait('@getUsers')
 
-      cy.get('[data-test="search"] .qicon-close').click()
+      cy.get('[data-test="search"] .kubed-icon-close').click()
       cy.wait('@getUsers')
 
       cy.get(`[data-user="${testUser}"] button`).click()
@@ -105,13 +105,13 @@ describe('The Workspace Overview Page', function() {
 
     // modify role
     {
-      cy.get(`[data-row-key="${testUser}"] button .qicon-more`).click()
+      cy.get(`[data-row-key="${testUser}"] button .kubed-icon-more`).click()
       cy.get(
         `[data-row-key="${testUser}"] [data-test="table-item-modify"]`
       ).click()
 
       cy.get('.select-control').click()
-      cy.get('.select-menu-outer')
+      cy.get('.select-options')
         .contains('workspace-viewer')
         .click()
 
@@ -123,7 +123,7 @@ describe('The Workspace Overview Page', function() {
 
     // delete member
     {
-      cy.get(`[data-row-key="${testUser}"] button .qicon-more`).click()
+      cy.get(`[data-row-key="${testUser}"] button .kubed-icon-more`).click()
       cy.get(
         `[data-row-key="${testUser}"] [data-test="table-item-delete"]`
       ).click()

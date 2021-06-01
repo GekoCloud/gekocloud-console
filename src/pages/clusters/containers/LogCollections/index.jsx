@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -23,8 +23,8 @@ import classnames from 'classnames'
 import { get } from 'lodash'
 
 import { Link } from 'react-router-dom'
-import { Loading, Icon } from '@pitrix/lego-ui'
-import { Button, Text, Panel } from 'components/Base'
+import { Button, Loading, Icon } from '@juanchi_xd/components'
+import { Text, Panel } from 'components/Base'
 import Banner from 'components/Cards/Banner'
 import CreateLogCollectionModal from 'components/Modals/LogCollectionCreate'
 import OutputStore from 'stores/logging/collection/output'
@@ -149,7 +149,7 @@ export default class LogCollection extends React.Component {
         disabled={this.store.list.isLoading}
         onClick={this.showCreateModal}
       >
-        {t('Add Log Collector')}
+        {t('Add Log Receiver')}
       </Button>
     )
   }

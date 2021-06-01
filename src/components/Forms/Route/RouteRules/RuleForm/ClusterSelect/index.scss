@@ -8,17 +8,16 @@
       margin-right: 12px;
       border-radius: 2px;
       background-color: $light-color03;
-
-      &::before {
-        top: 6px;
-      }
     }
 
     label.checkbox.checked {
       background-color: $dark-color07;
-      color: #fff;
 
-      .qicon {
+      .label-value {
+        color: #fff;
+      }
+
+      .kubed-icon {
         color: rgba(255,255,255,0.9);
         fill: rgba(255,255,255,0.4);
       }

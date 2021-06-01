@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -52,17 +52,13 @@ export default class App extends React.Component {
     }
 
     const groupedNodes = groupBy(data.nodes, item => {
-      if (item.data.isGroup === 'app') {
-        return 'group'
-      }
-
       return item.data.nodeType === 'unknown' ? 'app' : item.data.nodeType
     })
 
-    const isGroup = get(groupedNodes, 'group.length') > 0
+    const isGroup = get(groupedNodes, 'service.length') > 0
     const workloadStatuses = get(data, 'health.workloadStatuses', [])
     const podNums = workloadStatuses.reduce(
-      (prev, cur) => prev + cur.replicas,
+      (prev, cur) => prev + (cur.replicas || cur.availableReplicas || 0),
       0
     )
     const workloadsHealth = get(data, 'health.workloads', {})

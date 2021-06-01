@@ -1,31 +1,30 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
-import { Icon, Progress } from '@pitrix/lego-ui'
+import { Icon, Notify, Progress } from '@juanchi_xd/components'
 import Upload from 'components/Base/Upload'
-import Notify from 'components/Base/Notify'
 import { isNumber, get, set } from 'lodash'
 import classnames from 'classnames'
 import { formatSize } from 'utils'
 import { B2I_SUPPORTED_TYPES } from 'utils/constants'
 
-import BuilderStore from 'src/stores/s2i/builder'
+import BuilderStore from 'stores/s2i/builder'
 import styles from './index.scss'
 
 const headers = {
@@ -199,6 +198,7 @@ class Uploader extends React.Component {
           </span>
         </p>
         <Progress
+          status="primary"
           className={styles.progress}
           percent={file.percentage}
           strokeWidth={8}
@@ -223,6 +223,7 @@ class Uploader extends React.Component {
           </span>
         </p>
         <Progress
+          status="primary"
           className={styles.progress}
           percent={100}
           strokeWidth={8}
@@ -255,9 +256,7 @@ class Uploader extends React.Component {
               name={this.filesType}
               type="coloured"
             />
-            <p className={styles.title}>
-              {t('Click to select the artifact file to upload')}
-            </p>
+            <p className={styles.title}>{t('Click to upload an artifact')}</p>
             <p className={styles.desc}>
               {t(`${this.filesType.toUpperCase() || 'B2I_DEFAULT'}_DESC`)}
             </p>

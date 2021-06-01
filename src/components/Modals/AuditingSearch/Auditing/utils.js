@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export const httpcodes = {
@@ -140,49 +140,49 @@ export const getSecond = step => {
 export const supportQueryParams = [
   {
     icon: 'appcenter',
-    title: t('Search Auditing by', { field: t('Workspace') }),
+    title: t('Search Auditing Logs by', { field: t('Workspace') }),
     tips: t('Workspace Auditing Query Tip'),
     key: 'workspace_filter',
   },
   {
     icon: 'project',
-    title: t('Search Auditing by', { field: t('Project') }),
+    title: t('Search Auditing Logs by', { field: t('Project') }),
     tips: t('Project Auditing Query Tip'),
     key: 'objectref_namespace_filter',
   },
   {
     icon: 'resource',
-    title: t('Search Auditing by', { field: t('Resource Type') }),
+    title: t('Search Auditing Logs by', { field: t('Resource Type') }),
     tips: t('Resource Type Auditing Query Tip'),
     key: 'objectref_resource_filter',
   },
   {
     icon: 'strategy-group',
-    title: t('Search Auditing by', { field: t('Resource Name') }),
+    title: t('Search Auditing Logs by', { field: t('Resource Name') }),
     tips: t('Resource Name Auditing Query Tip'),
     key: 'objectref_name_filter',
   },
   {
     icon: 'wrench',
-    title: t('Search Auditing by', { field: t('verb') }),
+    title: t('Search Auditing Logs by', { field: t('verb') }),
     tips: t('Verb Auditing Query Tip'),
     key: 'verb_filter',
   },
   {
     icon: 'logout',
-    title: t('Search Auditing by', { field: t('Status Code') }),
+    title: t('Search Auditing Logs by', { field: t('Status Code') }),
     tips: t('Status Code Auditing Query Tip'),
     key: 'response_code_filter',
   },
   {
     icon: 'human',
-    title: t('Search Auditing by', { field: t('Operation Account') }),
+    title: t('Search Auditing Logs by', { field: t('Operation Account') }),
     tips: t('Operation Account Auditing Query Tip'),
     key: 'user_filter',
   },
   {
     icon: 'ip',
-    title: t('Search Auditing by', { field: t('Source IP') }),
+    title: t('Search Auditing Logs by', { field: t('Source IP') }),
     tips: t('Source IP Auditing Query Tip'),
     key: 'source_ip_search',
   },

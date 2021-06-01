@@ -1,31 +1,37 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 const isEmpty = require('lodash/isEmpty')
-const SvgCaptchaFactory = require('svg-captcha')
-
-const { login, oAuthLogin } = require('../services/session')
-const { renderLogin } = require('./view')
+const jwtDecode = require('jwt-decode')
+const {
+  login,
+  oAuthLogin,
+  getNewToken,
+  createUser,
+} = require('../services/session')
 const {
   isValidReferer,
   isAppsRoute,
   decryptPassword,
+  safeParseJSON,
 } = require('../libs/utils')
+
+const { send_gateway_request } = require('../libs/request')
 
 const handleLogin = async ctx => {
   const params = ctx.request.body
@@ -36,33 +42,17 @@ const handleLogin = async ctx => {
   const error = {}
   let user = null
 
-  if (!ctx.session.errorCount) {
-    ctx.session.errorCount = 0
-  }
-
   if (isEmpty(params) || !params.username || !params.encrypt) {
     Object.assign(error, {
       status: 400,
       reason: 'Invalid Login Params',
       message: 'invalid login params',
     })
-  } else if (ctx.session.errorCount > 2) {
-    if (
-      !ctx.session.captcha ||
-      (params.captcha || '').toLowerCase() !==
-        ctx.session.captcha.text.toLowerCase()
-    ) {
-      Object.assign(error, {
-        status: 400,
-        reason: 'Captcha Not Match',
-        message: 'Please input the correct captcha',
-      })
-    }
   }
 
   if (isEmpty(error)) {
     try {
-      params.password = decryptPassword(params.encrypt, ctx.session.salt)
+      params.password = decryptPassword(params.encrypt, 'kubesphere')
 
       user = await login(params, { 'x-client-ip': ctx.request.ip })
       if (!user) {
@@ -77,7 +67,6 @@ const handleLogin = async ctx => {
 
       switch (err.code) {
         case 401:
-          ctx.session.errorCount += 1
           Object.assign(error, {
             status: err.code,
             reason: 'User Not Match',
@@ -116,43 +105,69 @@ const handleLogin = async ctx => {
   }
 
   if (!isEmpty(error) || !user) {
-    ctx.session.captcha = SvgCaptchaFactory.create({
-      size: 5,
-      noise: 1,
-    })
-
-    ctx.request.error = error
-    return await renderLogin(ctx)
+    ctx.body = error
+    return
   }
 
-  const lastUser = ctx.cookies.get('currentUser')
+  const lastToken = ctx.cookies.get('token')
 
-  ctx.session = {}
   ctx.cookies.set('token', user.token)
   ctx.cookies.set('expire', user.expire)
   ctx.cookies.set('refreshToken', user.refreshToken)
-  ctx.cookies.set('currentUser', user.username, { httpOnly: false })
   ctx.cookies.set('referer', null)
 
-  if (lastUser && lastUser !== user.username) {
-    return ctx.redirect('/')
+  if (user.username === 'system:pre-registration') {
+    ctx.cookies.set('defaultUser', user.extraname)
+    ctx.cookies.set('defaultEmail', user.email)
+    return ctx.redirect('/login/confirm')
+  }
+
+  if (!user.initialized) {
+    return ctx.redirect('/password/confirm')
+  }
+
+  if (lastToken) {
+    const { username } = jwtDecode(lastToken)
+    if (username && username !== user.username) {
+      return ctx.redirect('/')
+    }
   }
 
   ctx.redirect(isValidReferer(referer) ? referer : '/')
 }
 
 const handleLogout = async ctx => {
+  const oAuthLoginInfo = safeParseJSON(
+    decodeURIComponent(ctx.cookies.get('oAuthLoginInfo'))
+  )
+
   ctx.cookies.set('token', null)
   ctx.cookies.set('expire', null)
   ctx.cookies.set('refreshToken', null)
-  ctx.cookies.set('currentUser', null)
+  ctx.cookies.set('oAuthLoginInfo', null)
 
-  const { origin = '', referer = '' } = ctx.headers
-  const refererPath = referer.replace(origin, '')
-  if (isAppsRoute(refererPath)) {
-    ctx.redirect(refererPath)
+  if (
+    !isEmpty(oAuthLoginInfo) &&
+    oAuthLoginInfo.type &&
+    oAuthLoginInfo.type === 'OIDCIdentityProvider' &&
+    oAuthLoginInfo.endSessionURL
+  ) {
+    const url = `${oAuthLoginInfo.endSessionURL}`
+    ctx.body = { data: { url }, success: true }
   } else {
-    ctx.redirect('/login')
+    const { origin = '', referer = '' } = ctx.headers
+    const refererPath = referer.replace(origin, '')
+
+    await send_gateway_request({
+      method: 'GET',
+      url: '/oauth/logout',
+    })
+
+    if (isAppsRoute(refererPath)) {
+      ctx.redirect(refererPath)
+    } else {
+      ctx.redirect('/login')
+    }
   }
 }
 
@@ -161,7 +176,7 @@ const handleOAuthLogin = async ctx => {
   const error = {}
 
   try {
-    user = await oAuthLogin(ctx.query)
+    user = await oAuthLogin({ ...ctx.query, oauthName: ctx.params.name })
   } catch (err) {
     ctx.app.emit('error', err)
     Object.assign(error, {
@@ -172,18 +187,44 @@ const handleOAuthLogin = async ctx => {
   }
 
   if (!isEmpty(error) || !user) {
-    ctx.body = error.message
+    ctx.body = error
     return
   }
 
   ctx.cookies.set('token', user.token)
-  ctx.cookies.set('currentUser', user.username)
+  ctx.cookies.set('expire', user.expire)
+  ctx.cookies.set('refreshToken', user.refreshToken)
 
-  ctx.body = `<script>self.close();</script>`
+  if (user.username === 'system:pre-registration') {
+    ctx.cookies.set('defaultUser', user.extraname)
+    ctx.cookies.set('defaultEmail', user.email)
+    return ctx.redirect('/login/confirm')
+  }
+
+  ctx.redirect('/')
+}
+
+const handleLoginConfirm = async ctx => {
+  const token = ctx.cookies.get('token')
+  const params = ctx.request.body
+
+  await createUser(params, token)
+
+  const data = await getNewToken(ctx)
+  if (data.token) {
+    ctx.cookies.set('token', data.token)
+    ctx.cookies.set('expire', data.expire)
+    ctx.cookies.set('refreshToken', data.refreshToken)
+
+    ctx.cookies.set('defaultUser', null)
+    ctx.cookies.set('defaultEmail', null)
+    ctx.redirect('/')
+  }
 }
 
 module.exports = {
   handleLogin,
   handleLogout,
   handleOAuthLogin,
+  handleLoginConfirm,
 }

@@ -1,30 +1,29 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, unset, isEmpty, omitBy, has } from 'lodash'
 import React from 'react'
-import { safeParseJSON } from 'utils'
 import { MODULE_KIND_MAP } from 'utils/constants'
 
 import ConfigMapStore from 'stores/configmap'
 import SecretStore from 'stores/secret'
 
-import { Form } from 'components/Base'
+import { Form } from '@juanchi_xd/components'
 import ReplicasControl from 'components/Forms/Workload/ContainerSettings/ReplicasControl'
 import UpdateStrategy from 'components/Forms/Workload/ContainerSettings/UpdateStrategy'
 
@@ -52,7 +51,6 @@ export default class ContainerSetting extends React.Component {
     const { formRef } = this.props
 
     this.fetchData()
-    this.checkPullSecret()
     if (this.props.withService) {
       this.initService(this.formTemplate)
     }
@@ -75,31 +73,6 @@ export default class ContainerSetting extends React.Component {
   get formTemplate() {
     const { formTemplate, module } = this.props
     return get(formTemplate, MODULE_KIND_MAP[module], formTemplate)
-  }
-
-  get containerSecretPath() {
-    return `${
-      this.prefix
-    }metadata.annotations["kubesphere.io/containerSecrets"]`
-  }
-
-  checkPullSecret() {
-    const containers = get(
-      this.formTemplate,
-      `${this.prefix}spec.containers`,
-      []
-    )
-    const containerSecretMap = safeParseJSON(
-      get(this.formTemplate, this.containerSecretPath, '')
-    )
-
-    if (!isEmpty(containerSecretMap)) {
-      containers.forEach(container => {
-        if (containerSecretMap[container.name]) {
-          container.pullSecret = containerSecretMap[container.name]
-        }
-      })
-    }
   }
 
   initService() {
@@ -133,30 +106,23 @@ export default class ContainerSetting extends React.Component {
 
   updatePullSecrets = formData => {
     const pullSecrets = {}
-    const containerSecretMap = {}
 
-    const containerSecretPath = this.containerSecretPath
     const imagePullSecretsPath = `${this.prefix}spec.imagePullSecrets`
 
     const containers = get(formData, `${this.prefix}spec.containers`, [])
     containers.forEach(container => {
       if (container.pullSecret) {
         pullSecrets[container.pullSecret] = ''
-        containerSecretMap[container.name] = container.pullSecret
       }
     })
 
-    if (!isEmpty(pullSecrets)) {
-      set(
-        formData,
-        imagePullSecretsPath,
-        Object.keys(pullSecrets).map(key => ({ name: key }))
-      )
-      set(formData, containerSecretPath, JSON.stringify(containerSecretMap))
-    } else {
-      set(formData, imagePullSecretsPath, null)
-      set(formData, containerSecretPath, null)
-    }
+    set(
+      formData,
+      imagePullSecretsPath,
+      !isEmpty(pullSecrets)
+        ? Object.keys(pullSecrets).map(key => ({ name: key }))
+        : null
+    )
   }
 
   updateService = formData => {
@@ -204,6 +170,7 @@ export default class ContainerSetting extends React.Component {
 
     // update image pull secrets
     this.updatePullSecrets(this.formTemplate)
+
     if (this.props.withService) {
       this.updateService(this.formTemplate)
     }

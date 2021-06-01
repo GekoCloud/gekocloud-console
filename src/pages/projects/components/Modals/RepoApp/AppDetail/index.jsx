@@ -1,32 +1,32 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import { observer } from 'mobx-react'
 import PropTypes from 'prop-types'
 import { get } from 'lodash'
+import moment from 'moment-mini'
 
-import { Columns, Column } from '@pitrix/lego-ui'
+import { Button, RadioGroup, Columns, Column } from '@juanchi_xd/components'
 
-import { Button, RadioGroup } from 'components/Base'
-import AppPreview from 'appStore/components/AppPreview'
-import AppBase from 'appStore/components/AppBase'
-import VersionSelect from 'apps/components/VersionSelect'
+import { TypeSelect } from 'components/Base'
+import AppPreview from 'apps/components/AppPreview'
+import AppBase from 'apps/components/AppBase'
 
 import AppStore from 'stores/openpitrix/app'
 import VersionStore from 'stores/openpitrix/version'
@@ -92,6 +92,15 @@ class AppDetail extends Component {
     ]
   }
 
+  get versionOptions() {
+    const versions = this.versionStore.list.data
+    return versions.map(({ version_id, name, create_time }) => ({
+      label: name,
+      description: moment(create_time).format(t('YYYY-MM-DD')),
+      value: version_id,
+    }))
+  }
+
   fetchVersions = async (params = {}) => {
     await this.versionStore.fetchList({
       ...params,
@@ -122,11 +131,14 @@ class AppDetail extends Component {
 
   renderVersionList() {
     return (
-      <VersionSelect
-        versionStore={this.versionStore}
-        selectVersion={this.state.selectAppVersion}
-        handleChangeVersion={this.handleChangeAppVersion}
-      />
+      <div className="margin-b12">
+        <div className="h6 margin-b12">{t('Versions')}</div>
+        <TypeSelect
+          value={this.state.selectAppVersion}
+          options={this.versionOptions}
+          onChange={this.handleChangeAppVersion}
+        />
+      </div>
     )
   }
 
@@ -145,24 +157,25 @@ class AppDetail extends Component {
         />
         <div className={styles.bar}>
           <RadioGroup
+            mode="button"
             value={tab}
             options={this.tabs}
             onChange={this.handleTabChange}
           />
-          <Button type="control" onClick={this.showDeploy} noShadow>
+          <Button type="control" onClick={this.showDeploy}>
             {t('Deploy')}
           </Button>
         </div>
         <div className={styles.content}>
           <Columns>
-            <Column className="is-9">
+            <Column>
               <AppPreview
                 appId={this.appId}
                 versionId={selectAppVersion}
                 currentTab={tab}
               />
             </Column>
-            <Column>
+            <Column className="is-narrow">
               {this.renderVersionList()}
               <AppBase app={detail} />
             </Column>

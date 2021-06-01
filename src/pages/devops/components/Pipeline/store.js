@@ -1,25 +1,24 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { action, observable, computed, toJS } from 'mobx'
-import { get, set, unset, isObject, isEmpty } from 'lodash'
-import { Message } from '@pitrix/lego-ui'
-import Notify from 'components/Base/Notify'
+import { get, set, unset, isObject, isEmpty, isArray } from 'lodash'
+import { Notify } from '@juanchi_xd/components'
 
 import CredentialStore from 'stores/devops/credential'
 import BaseStore from 'stores/devops/base'
@@ -48,6 +47,21 @@ const formatPipeLineJson = json => {
 
   if (isObject(json.pipeline.parameters) && isEmpty(json.pipeline.parameters)) {
     delete json.pipeline.parameters
+  } else {
+    const parameters = get(json, 'pipeline.parameters.parameters', [])
+    if (!isEmpty(parameters) && isArray(parameters)) {
+      parameters.forEach(item => {
+        const args = get(item, 'arguments', [])
+        if (!isEmpty(parameters) && isArray(args)) {
+          args.forEach(arg => {
+            const value = get(arg, 'value.value')
+            if (!value && arg.key) {
+              set(arg, 'value.value', '')
+            }
+          })
+        }
+      })
+    }
   }
 
   return json
@@ -68,6 +82,7 @@ export default class Store extends BaseStore {
           steps: [],
         },
       ],
+      agent: { type: 'none' },
       name: `stage-${generateId(5)}`,
     }
   }
@@ -88,7 +103,7 @@ export default class Store extends BaseStore {
     if (!this.stages[this.activeLineIndex].parallel) {
       return this.stages[this.activeLineIndex]
     }
-    return this.stages[this.activeLineIndex].parallel[this.activeColunmIndex]
+    return this.stages[this.activeLineIndex].parallel[this.activeColumnIndex]
   }
 
   @observable
@@ -98,7 +113,7 @@ export default class Store extends BaseStore {
   activeLineIndex = ''
 
   @observable
-  activeColunmIndex = ''
+  activeColumnIndex = ''
 
   @observable
   isAddingStep = false
@@ -108,6 +123,9 @@ export default class Store extends BaseStore {
 
   @observable
   params = {}
+
+  @observable
+  labelDataList = []
 
   @observable
   credentialsList = { data: [] }
@@ -142,28 +160,28 @@ export default class Store extends BaseStore {
   }
 
   @action
-  insertColunm(index) {
+  insertColumn(index) {
     this.jsonData.json.pipeline.stages.splice(index, 0, this.newStage)
   }
 
   @action
-  setFocus(lineIndex, colunmIndex) {
+  setFocus(lineIndex, columnIndex) {
     if (this.activeLineIndex !== '') {
-      this.setActive(this.activeLineIndex, this.activeColunmIndex, undefined)
+      this.setActive(this.activeLineIndex, this.activeColumnIndex, undefined)
     }
     this.activeLineIndex = lineIndex
-    this.activeColunmIndex = colunmIndex
-    this.setActive(lineIndex, colunmIndex, true)
+    this.activeColumnIndex = columnIndex
+    this.setActive(lineIndex, columnIndex, true)
   }
 
   @action
-  setActive(lineIndex, colunmIndex, value) {
+  setActive(lineIndex, columnIndex, value) {
     if (
       this.jsonData.json.pipeline.stages[lineIndex] &&
       this.jsonData.json.pipeline.stages[lineIndex].parallel
     ) {
-      this.jsonData.json.pipeline.stages[lineIndex].parallel[colunmIndex] = {
-        ...this.jsonData.json.pipeline.stages[lineIndex].parallel[colunmIndex],
+      this.jsonData.json.pipeline.stages[lineIndex].parallel[columnIndex] = {
+        ...this.jsonData.json.pipeline.stages[lineIndex].parallel[columnIndex],
         ...{ isActive: value },
       }
     } else {
@@ -190,10 +208,10 @@ export default class Store extends BaseStore {
   @action
   clearFocus() {
     if (this.activeLineIndex !== '') {
-      this.setActive(this.activeLineIndex, this.activeColunmIndex, undefined)
+      this.setActive(this.activeLineIndex, this.activeColumnIndex, undefined)
     }
     this.activeLineIndex = ''
-    this.activeColunmIndex = ''
+    this.activeColumnIndex = ''
     this.edittingData = {}
     this.isAddingStep = false
   }
@@ -213,20 +231,20 @@ export default class Store extends BaseStore {
       ) {
         this.jsonData.json.pipeline.stages[
           this.activeLineIndex
-        ].parallel.splice(this.activeColunmIndex, 1)
+        ].parallel.splice(this.activeColumnIndex, 1)
         this.jsonData.json.pipeline.stages[
           this.activeLineIndex
         ] = this.jsonData.json.pipeline.stages[this.activeLineIndex].parallel[0]
       } else {
         this.jsonData.json.pipeline.stages[
           this.activeLineIndex
-        ].parallel.splice(this.activeColunmIndex, 1)
+        ].parallel.splice(this.activeColumnIndex, 1)
       }
     } else {
       this.jsonData.json.pipeline.stages.splice(this.activeLineIndex, 1)
     }
     this.activeLineIndex = ''
-    this.activeColunmIndex = ''
+    this.activeColumnIndex = ''
     this.handleSetInLocalStorage()
   }
 
@@ -234,7 +252,7 @@ export default class Store extends BaseStore {
   setValue(stage) {
     if (this.jsonData.json.pipeline.stages[this.activeLineIndex].parallel) {
       this.jsonData.json.pipeline.stages[this.activeLineIndex].parallel.splice(
-        this.activeColunmIndex,
+        this.activeColumnIndex,
         1,
         stage
       )
@@ -295,7 +313,6 @@ export default class Store extends BaseStore {
                 return
               }
 
-              Message.error({ content: error.error })
               Notify.error({
                 title: t('pipeline syntax error'),
                 content: t(error.error),
@@ -350,7 +367,29 @@ export default class Store extends BaseStore {
   }
 
   @action
+  createCredential = async (data, params) => {
+    await this.credentialStore.handleCreate(data, params)
+  }
+
+  @action
   async handleConfirm() {
     await this.convertJsonToJenkinsFile()
+  }
+
+  @action
+  async fetchLabel({ devops }) {
+    const url = `${this.getDevopsUrlV2()}${devops}/jenkins/labelsdashboard/labelsData`
+    const result = await this.request.get(url, {}, {}, () => {
+      this.labelDataList = []
+    })
+
+    if (result && result.status === 'ok' && isArray(result.data)) {
+      const labelDataList = result.data.map(item => {
+        return { label: item.label, value: item.label }
+      })
+      this.labelDataList = labelDataList
+    } else {
+      this.labelDataList = []
+    }
   }
 }

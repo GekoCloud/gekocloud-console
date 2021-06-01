@@ -16,7 +16,6 @@
       padding-top: 12px;
       padding-bottom: 12px;
       border-bottom: solid 1px #d8dee5;
-      box-shadow: 0 1px 0 0 #d8dee5, 0 -1px 0 0 #d8dee5;
     }
     .pane__pagination {
       background-color: $lightest;
@@ -30,7 +29,7 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 66px;
-  color: #3563AD;
+  color: #242e42;
 }
 
 .toolbar {
@@ -45,6 +44,7 @@
     }
     .toolbar_filter {
       float: left;
+      display: flex;
     }
     .sort_button {
       display: inline-block;
@@ -79,7 +79,7 @@
   .rankList_row {
     h3 {
       font-size: 14px;
-      color: #3563AD;
+      color: #242e42;
       font-weight: bold;
     }
     td,
@@ -97,7 +97,7 @@
       border-radius: 0 4px 4px 0;
     }
     td.rankCol {
-      background: #FDF3E7;
+      background: #dbefe2;
     }
   }
 }

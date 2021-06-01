@@ -1,24 +1,24 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, uniq, isArray, intersection } from 'lodash'
 import { observable, action } from 'mobx'
-import { Notify } from 'components/Base'
+import { Notify } from '@juanchi_xd/components'
 import { safeParseJSON } from 'utils'
 import ObjectMapper from 'utils/object.mapper'
 import cookie from 'utils/cookie'
@@ -28,6 +28,10 @@ import List from './base.list'
 
 export default class UsersStore extends Base {
   records = new List()
+
+  ingroup = new List()
+
+  notingroup = new List()
 
   @observable
   roles = []
@@ -223,6 +227,17 @@ export default class UsersStore extends Base {
   }
 
   @action
+  async jsonPatch({ name }, data) {
+    await this.submitting(
+      request.patch(`apis/iam.kubesphere.io/v1alpha2/users/${name}`, data, {
+        headers: {
+          'content-type': 'application/json-patch+json',
+        },
+      })
+    )
+  }
+
+  @action
   async modifyPassword({ name }, data) {
     return this.submitting(
       request.put(`${this.getDetailUrl({ name })}/password`, data)
@@ -282,5 +297,33 @@ export default class UsersStore extends Base {
       page: Number(params.page) || 1,
       isLoading: false,
     })
+  }
+
+  @action
+  async confirm(data) {
+    return await this.submitting(request.post(`login/confirm`, data))
+  }
+
+  @action
+  async fetchGroupUser({ type, more, ...params } = {}) {
+    this[type].isLoading = true
+    if (!params.sortBy && params.ascending === undefined) {
+      params.sortBy = 'createTime'
+    }
+    const result = await request.get(this.getResourceUrl(params), params)
+    const data = get(result, 'items', []).map(item => ({
+      ...this.mapper(item),
+    }))
+
+    this[type].update({
+      data: more ? [...this[type].data, ...data] : data,
+      total: result.totalItems || 0,
+      ...params,
+      limit: Number(params.limit) || 10,
+      page: Number(params.page) || 1,
+      isLoading: false,
+      ...(this[type].silent ? {} : { selectedRowKeys: [] }),
+    })
+    return data
   }
 }

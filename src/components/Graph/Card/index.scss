@@ -43,13 +43,6 @@
   }
 }
 
-.componentName {
-  margin-top: 8px;
-  font-family: $font-family-id;
-  font-weight: $font-bold;
-  line-height: 1.67;
-}
-
 .gatewayName {
   font-family: $font-family-id;
   font-weight: $font-bold;
@@ -60,8 +53,9 @@
   }
 }
 
-.version {
+.workload {
   display: inline-block;
+  margin-top: 12px;
   padding: 2px 8px 2px 2px;
   border-radius: 3px;
   background-color: $bg-color;
@@ -74,7 +68,7 @@
     padding: 0 6px;
     margin-right: 6px;
     border-radius: 1px;
-    background-color: #3563AD;
+    background-color: #36435c;
     text-shadow: 0 2px 4px rgba(36, 46, 66, 0.1);
     font-weight: $font-bold;
     line-height: 16px;
@@ -92,7 +86,7 @@
   line-height: 1.67;
   color: #fff;
   border-radius: 16px;
-  background-color: #3563AD;
+  background-color: #242e42;
   transform: translateX(-50%);
   text-align: center;
 

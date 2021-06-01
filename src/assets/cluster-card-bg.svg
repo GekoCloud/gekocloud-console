@@ -2,15 +2,15 @@
     <defs>
         <linearGradient id="prefix__c" x1="50%" x2="50%" y1=".193%" y2="100%">
             <stop offset="0%" stop-color="#EDF2F7"/>
-            <stop offset="100%" stop-color="#F9CE9F"/>
+            <stop offset="100%" stop-color="#B6C2CD"/>
         </linearGradient>
         <linearGradient id="prefix__d" x1="50%" x2="50%" y1="0%" y2="99.916%">
-            <stop offset="0%" stop-color="#F9CE9F"/>
-            <stop offset="99.958%" stop-color="#C0690C"/>
+            <stop offset="0%" stop-color="#B6C2CD"/>
+            <stop offset="99.958%" stop-color="#324558"/>
         </linearGradient>
         <linearGradient id="prefix__e" x1="50%" x2="50%" y1="0%" y2="100%">
             <stop offset=".193%" stop-color="#EDF2F7"/>
-            <stop offset="100%" stop-color="#F9CE9F"/>
+            <stop offset="100%" stop-color="#B6C2CD"/>
         </linearGradient>
         <rect id="prefix__a" width="326" height="108" x="0" y="0" rx="2"/>
     </defs>
@@ -18,7 +18,7 @@
         <mask id="prefix__b" fill="#fff">
             <use xlink:href="#prefix__a"/>
         </mask>
-        <use fill="#3563AD" fill-rule="nonzero" xlink:href="#prefix__a"/>
+        <use fill="#242E42" fill-rule="nonzero" xlink:href="#prefix__a"/>
         <g style="mix-blend-mode:multiply" mask="url(#prefix__b)">
             <g>
                 <path fill="url(#prefix__c)" d="M0 110.48L63.989 147.433 64.196 73.903 0.21 36.949z" transform="translate(222.098)"/>

@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,19 +21,25 @@ import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { parse } from 'qs'
 import { omit } from 'lodash'
-import { Icon } from '@pitrix/lego-ui'
+import { Icon } from '@juanchi_xd/components'
 import { formatSize } from 'utils'
 
-import EmptyCard from '../../EmptyCard'
-import Table from '../../Table'
+import Table from 'components/Tables/List'
+import EmptyCard from 'devops/components/Cards/EmptyCard'
 
-@inject('rootStore')
+@inject('rootStore', 'detailStore')
 @observer
 export default class Artifacts extends React.Component {
-  constructor(props) {
-    super(props)
-    this.name = 'Artifacts'
-    this.store = props.detailStore || {}
+  name = 'Artifacts'
+
+  store = this.props.detailStore || {}
+
+  get routing() {
+    return this.props.rootStore.routing
+  }
+
+  get prefix() {
+    return this.props.match.url
   }
 
   componentDidMount() {
@@ -61,21 +67,12 @@ export default class Artifacts extends React.Component {
     this.routing.query(params, refresh)
   }
 
-  get routing() {
-    return this.props.rootStore.routing
-  }
-
-  get prefix() {
-    return this.props.match.url
-  }
-
   getDownloadUrl = url => {
     const { params } = this.props.match
+
     return params.cluster === 'default' || !params.cluster
-      ? `/kapis/devops.kubesphere.io/v1alpha2/jenkins${url}`
-      : `/kapis/clusters/${
-          params.cluster
-        }/devops.kubesphere.io/v1alpha2/jenkins${url}`
+      ? `/kapis/devops.kubesphere.io/v1alpha2/devops/${params.devops}/jenkins${url}`
+      : `/kapis/clusters/${params.cluster}/devops.kubesphere.io/v1alpha2/devops/${params.devops}/jenkins${url}`
   }
 
   getFilteredValue = dataIndex => this.store.list.filters[dataIndex]
@@ -90,6 +87,7 @@ export default class Artifacts extends React.Component {
           href={this.getDownloadUrl(record.url)}
           target="_blank"
           download={true}
+          rel="noreferrer noopener"
         >
           {path}
         </a>
@@ -110,6 +108,7 @@ export default class Artifacts extends React.Component {
           href={this.getDownloadUrl(record.url)}
           target="_blank"
           download={true}
+          rel="noreferrer noopener"
         >
           <Icon name="download" />
         </a>
@@ -121,10 +120,8 @@ export default class Artifacts extends React.Component {
     const { data, filters, isLoading, total, page, limit } = toJS(
       this.store.artifactsList
     )
-
-    const isEmptyList = isLoading === false && total === 0
-
-    const omitFilters = omit(filters, 'page')
+    const isEmptyList = total === 0
+    const omitFilters = omit(filters, 'page', 'workspace')
 
     if (isEmptyList && !filters.page) {
       return <EmptyCard desc={t('No artifacts records')} />
@@ -141,7 +138,7 @@ export default class Artifacts extends React.Component {
         pagination={pagination}
         isLoading={isLoading}
         onFetch={this.handleFetch}
-        disableSearch
+        hideSearch
       />
     )
   }

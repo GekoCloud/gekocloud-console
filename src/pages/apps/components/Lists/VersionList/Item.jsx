@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,12 +21,11 @@ import { toJS } from 'mobx'
 import PropTypes from 'prop-types'
 import classnames from 'classnames'
 import { inject } from 'mobx-react'
-import { Icon, Tabs } from '@pitrix/lego-ui'
+import { Button, Notify, Icon, Tabs } from '@juanchi_xd/components'
 import { capitalize } from 'lodash'
 
-import { Button, Notify } from 'components/Base'
 import DeleteModal from 'components/Modals/Delete'
-import Confirm from 'apps/components/Confirm'
+import Confirm from 'apps/components/Modals/Confirm'
 import VersionStatus from 'apps/components/VersionStatus'
 import ConfigFile from 'apps/components/Cards/ConfigFile'
 import AuditRecord from 'apps/components/Lists/AuditRecord'
@@ -66,7 +65,7 @@ export default class VersionItem extends React.PureComponent {
   }
 
   static defaultProps = {
-    isAdmin: true,
+    isAdmin: false,
     appDetail: {},
     detail: {},
     params: {},
@@ -141,7 +140,7 @@ export default class VersionItem extends React.PureComponent {
     this.store.delete({ app_id, version_id }).then(() => {
       this.hideHandleModal()
       Notify.success({
-        content: `${t('Delete Successfully')}!`,
+        content: `${t('Delete Successfully')}`,
       })
       this.store.fetchList({ app_id })
     })
@@ -161,7 +160,7 @@ export default class VersionItem extends React.PureComponent {
       const type = HANDLE_TYPE_TO_SHOW[handleType] || handleType
       this.hideHandleModal()
       Notify.success({
-        content: `${t(`${capitalize(type)} Successfully`)}!`,
+        content: `${t(`${capitalize(type)} Successfully`)}`,
       })
       const status = isAdmin ? STORE_QUERY_STATUS : this.store.defaultStatus
 
@@ -232,7 +231,7 @@ export default class VersionItem extends React.PureComponent {
         )}
         {!isAdmin && (
           <Button onClick={this.showDeploy} type="default">
-            {t('Test Deploy')}
+            {t('Test Deployment')}
           </Button>
         )}
         {handleType && (
@@ -245,16 +244,12 @@ export default class VersionItem extends React.PureComponent {
   }
 
   renderExtraContent() {
-    const { detail, appDetail } = this.props
+    const { detail, appDetail, clusters } = this.props
     const { tab } = this.state
 
     return (
       <div className={styles.itemExtra}>
-        <Tabs
-          className="tabs-new"
-          activeName={tab}
-          onChange={this.handleTabChange}
-        >
+        <Tabs type="button" activeName={tab} onChange={this.handleTabChange}>
           <TabPanel label={t('Chart Files')} name="configFile">
             <ConfigFile
               appId={detail.app_id}
@@ -267,10 +262,12 @@ export default class VersionItem extends React.PureComponent {
           </TabPanel>
           <TabPanel label={t('Deployed Instances')} name="deployInstances">
             <InstanceList
+              title={t('Deployed Instances')}
+              className={styles.instances}
               appId={appDetail.app_id}
               versionId={detail.version_id}
-              hideHeader
-              hideFooter
+              workspace={appDetail.workspace}
+              clusters={clusters}
             />
           </TabPanel>
         </Tabs>

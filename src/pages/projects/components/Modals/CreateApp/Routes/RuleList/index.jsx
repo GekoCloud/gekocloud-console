@@ -1,29 +1,27 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import { get, isEmpty, keyBy } from 'lodash'
-import { Alert } from '@pitrix/lego-ui'
-import { Text } from 'components/Base'
-import ObjectMapper from 'utils/object.mapper'
+import { get } from 'lodash'
 
-import Item from './Item'
+import { Text } from 'components/Base'
+import Item from 'components/Forms/Route/RouteRules/RuleList/Item'
 
 import styles from './index.scss'
 
@@ -45,26 +43,10 @@ export default class RuleList extends React.Component {
   }
 
   renderContent() {
-    const { data, onAdd, onDelete, isFederated, gateway } = this.props
-    let rules = get(data, 'spec.rules', [])
-    let tls = get(data, 'spec.tls[0]', {})
+    const { data, onAdd, onDelete, projectDetail } = this.props
 
-    if (isFederated) {
-      const { projectDetail } = this.props
-      const clusters = keyBy(projectDetail.clusters, 'name')
-      const result = ObjectMapper.federated(ObjectMapper.ingresses)(data)
-      if (result && result.clusterTemplates) {
-        rules = Object.keys(result.clusterTemplates).map(cluster => ({
-          ...get(result.clusterTemplates[cluster], 'spec.rules[0]', {}),
-          cluster: clusters[cluster],
-        }))
-
-        tls = Object.keys(result.clusterTemplates).map(cluster => ({
-          ...get(result.clusterTemplates[cluster], 'spec.tls[0]', {}),
-          cluster: clusters[cluster],
-        }))
-      }
-    }
+    const rules = get(data, 'spec.rules', [])
+    const tls = get(data, 'spec.tls', [])
 
     return (
       <ul>
@@ -75,33 +57,26 @@ export default class RuleList extends React.Component {
               key={`${rule.host}-${index}`}
               rule={rule}
               tls={tls}
+              index={index}
               onEdit={onAdd}
               onDelete={onDelete}
+              projectDetail={projectDetail}
             />
           ))}
-        {(!isEmpty(gateway) || isFederated) && (
-          <div className={styles.add} onClick={this.handleAdd}>
-            <Text
-              title={t('Add Route Rule')}
-              description={t('Add Internet access rule for the application')}
-            />
-          </div>
-        )}
+        <div className={styles.add} onClick={this.handleAdd}>
+          <Text
+            title={t('Add Route Rule')}
+            description={t('Add an Internet access rule for the application')}
+          />
+        </div>
       </ul>
     )
   }
 
   render() {
-    const { gateway, isFederated, error } = this.props
+    const { error } = this.props
     return (
       <div className={styles.wrapper}>
-        {isEmpty(gateway) && !isFederated && (
-          <Alert
-            className="margin-b12"
-            description={t.html('NO_INTERNET_ACCESS_TIP')}
-            type="warning"
-          />
-        )}
         {this.renderContent()}
         {error && <p className={styles.error}>{error}</p>}
       </div>

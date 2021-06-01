@@ -1,29 +1,36 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { get, isEmpty } from 'lodash'
-import { generateId } from 'utils'
+import { generateId, parseDockerImage } from 'utils'
 
 import { PATTERN_NAME } from 'utils/constants'
 
-import { Input, Select, Columns, Column } from '@pitrix/lego-ui'
-import { Form, Tag, Alert } from 'components/Base'
+import {
+  Form,
+  Tag,
+  Alert,
+  Input,
+  Select,
+  Columns,
+  Column,
+} from '@juanchi_xd/components'
 import { ResourceLimit } from 'components/Inputs'
 import ToggleView from 'components/ToggleView'
 
@@ -57,14 +64,31 @@ export default class ContainerSetting extends React.Component {
       const auths = get(item, 'data[".dockerconfigjson"].auths', {})
       const url = Object.keys(auths)[0] || ''
       const username = get(auths[url], 'username')
+      const cluster = item.isFedManaged
+        ? get(item, 'clusters[0].name')
+        : item.cluster
 
       return {
         url,
         username,
         label: item.name,
         value: item.name,
+        cluster,
       }
     })
+  }
+
+  getFormTemplate(data, imageRegistries) {
+    if (data && data.image && !data.pullSecret) {
+      const { registry } = parseDockerImage(data.image)
+      if (registry) {
+        const reg = imageRegistries.find(({ url }) => url.endsWith(registry))
+        if (reg) {
+          data.pullSecret = reg.value
+        }
+      }
+    }
+    return data
   }
 
   valueRenderer = option => (
@@ -78,16 +102,16 @@ export default class ContainerSetting extends React.Component {
 
   renderImageForm = () => {
     const { data, namespace } = this.props
-    const cluster = get(this.props.imageRegistries, '[0].cluster')
+    const imageRegistries = this.imageRegistries
+    const formTemplate = this.getFormTemplate(data, imageRegistries)
 
     return (
       <ImageInput
+        className={styles.imageSearch}
         name="image"
         namespace={namespace}
-        cluster={cluster}
-        className={styles.imageSearch}
-        formTemplate={data}
-        imageRegistries={this.imageRegistries}
+        formTemplate={formTemplate}
+        imageRegistries={imageRegistries}
       />
     )
   }
@@ -107,7 +131,7 @@ export default class ContainerSetting extends React.Component {
                   { required: true, message: t('Please input name') },
                   {
                     pattern: PATTERN_NAME,
-                    message: `${t('Invalid name')}, ${t('NAME_DESC')}`,
+                    message: t('Invalid name', { message: t('NAME_DESC') }),
                   },
                 ]}
               >

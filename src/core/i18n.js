@@ -1,36 +1,30 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import moment from 'moment-mini'
-import { locale } from '@pitrix/lego-ui'
+import { LocaleProvider } from '@juanchi_xd/components'
 import get from 'lodash/get'
 import cookie from 'utils/cookie'
-import { lazy, getBrowserLang } from 'utils'
+import { getBrowserLang } from 'utils'
 
-const getLocales = {
-  tc: lazy(() => import(/* webpackChunkName: "locales-tc" */ `../locales/tc`)),
-  zh: lazy(() => import(/* webpackChunkName: "locales-zh" */ `../locales/zh`)),
-  en: lazy(() => import(/* webpackChunkName: "locales-en" */ `../locales/en`)),
-  es: lazy(() => import(/* webpackChunkName: "locales-es" */ `../locales/es`)),
-}
+const { locale } = LocaleProvider
 
 const init = async () => {
-  const supportLangs = globals.config.supportLangs.map(item => item.value)
   const userLang = get(globals.user, 'lang') || getBrowserLang()
   if (userLang && cookie('lang') !== userLang) {
     cookie('lang', userLang)
@@ -58,16 +52,11 @@ const init = async () => {
   }
 
   const locales = {}
-
-  await Promise.all(
-    supportLangs.map(async item => {
-      const modules = await getLocales[item]()
-      locales[item] = Object.assign(
-        {},
-        ...modules.default.map(_item => _item.default)
-      )
-    })
-  )
+  const localePath = globals.localeManifest[`locale-${userLang}.json`]
+  if (userLang && localePath) {
+    const data = await request.get(`dist/${localePath}`)
+    locales[userLang] = data
+  }
 
   return { locales }
 }

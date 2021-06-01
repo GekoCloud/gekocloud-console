@@ -1,28 +1,28 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-import { getIndexRoute } from 'utils/router.config'
 
 import ListLayout from '../containers/Base/List'
 
 import BaseInfo from '../containers/BaseInfo'
+import QuotaManage from '../containers/QuotaManage'
 import Roles from '../containers/Roles'
 import Members from '../containers/Members'
+import Groups from '../containers/Groups'
 import Projects from '../containers/Projects'
 import FedProjects from '../containers/FedProjects'
 import DevOps from '../containers/DevOps'
@@ -72,6 +72,11 @@ export default [
         exact: true,
       },
       {
+        path: `${PATH}/quota`,
+        component: QuotaManage,
+        exact: true,
+      },
+      {
         path: `${PATH}/roles`,
         component: Roles,
         exact: true,
@@ -81,8 +86,11 @@ export default [
         component: Members,
         exact: true,
       },
-      getIndexRoute({ path: PATH, to: `${PATH}/overview`, exact: true }),
-      getIndexRoute({ path: '*', to: '/404', exact: true }),
+      {
+        path: `${PATH}/groups`,
+        component: Groups,
+        exact: true,
+      },
     ],
   },
 ]

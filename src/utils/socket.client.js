@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get } from 'lodash'
@@ -21,13 +21,12 @@ import { getWebSocketProtocol } from 'utils'
 
 const readyStates = ['connecting', 'open', 'closing', 'closed']
 const defaultOptions = {
-  reopenLimit: 3,
+  reopenLimit: 5,
   onopen() {},
   onmessage() {},
   onclose() {},
   onerror() {},
 }
-let reopenCount = 0
 
 export default class SocketClient {
   static composeEndpoint = (socketUrl, suffix = '') => {
@@ -45,6 +44,7 @@ export default class SocketClient {
     if (!this.endpoint) {
       throw Error(`invalid websocket endpoint: ${this.endpoint}`)
     }
+    this.reopenCount = 0
     this.setUp()
   }
 
@@ -91,9 +91,9 @@ export default class SocketClient {
 
     this.client.onclose = ev => {
       // if socket will close, try to keep alive
-      if (!this.immediately && reopenCount < this.options.reopenLimit) {
-        setTimeout(this.setUp.bind(this), 1000)
-        reopenCount++
+      if (!this.immediately && this.reopenCount < this.options.reopenLimit) {
+        setTimeout(this.setUp.bind(this), 1000 * 2 ** this.reopenCount)
+        this.reopenCount++
       }
 
       onclose && onclose(ev)

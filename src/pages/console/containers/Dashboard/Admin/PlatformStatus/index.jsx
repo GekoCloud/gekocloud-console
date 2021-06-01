@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
@@ -47,7 +47,7 @@ export default class PlatformStatus extends Component {
         icon: 'appcenter',
         name: 'App Templates',
         link: '/apps',
-        hide: !globals.app.hasKSModule('openpitrix'),
+        hide: !globals.app.enableAppStore,
         metric: 'kubesphere_app_template_count',
       },
     ]
@@ -65,7 +65,7 @@ export default class PlatformStatus extends Component {
           <Text
             icon="blockchain"
             title={getLocalTime(Date.now()).format('YYYY-MM-DD HH:mm:ss')}
-            description={t('As of Date')}
+            description={t('Data Updated')}
           />
         </div>
         {this.resources.map(resource => {

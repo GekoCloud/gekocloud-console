@@ -1,3 +1,3 @@
-# Smartkube Code of Conduct
+# SmartKube Code of Conduct
 
-Please refer to [Smartkube Code of Conduct](https://github.com/kubesphere/kubesphere/blob/master/docs/code-of-conduct.md)
+Please refer to [SmartKube Code of Conduct](https://github.com/kubesphere/kubesphere/blob/master/docs/code-of-conduct.md)

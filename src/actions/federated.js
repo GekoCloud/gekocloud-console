@@ -1,23 +1,24 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, unset, cloneDeep, uniqBy } from 'lodash'
-import { Modal, Notify } from 'components/Base'
+import { Notify } from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 import FedProjectCreateModal from 'components/Modals/FedProjectCreate'
 import DeleteModal from 'components/Modals/Delete'
 import FORM_TEMPLATES from 'utils/form.templates'
@@ -51,6 +52,7 @@ export default {
             'metadata.labels["kubesphere.io/kubefed-host-namespace"]',
             'true'
           )
+          set(hostData, 'metadata.labels["kubefed.io/managed"]', 'false')
           unset(hostData, 'spec.placement')
           unset(hostData, 'metadata.annotations')
           await store.create(hostData, { workspace })
@@ -59,7 +61,7 @@ export default {
           })
 
           Modal.close(modal)
-          Notify.success({ content: `${t('Created Successfully')}!` })
+          Notify.success({ content: `${t('Created Successfully')}` })
           success && success()
         },
         cluster,
@@ -79,7 +81,7 @@ export default {
         onOk: () => {
           projectStore.delete({ name: detail.name }).then(() => {
             Modal.close(modal)
-            Notify.success({ content: `${t('Deleted Successfully')}!` })
+            Notify.success({ content: `${t('Deleted Successfully')}` })
             success && success()
           })
         },
@@ -113,7 +115,7 @@ export default {
           await Promise.all(reqs)
 
           Modal.close(modal)
-          Notify.success({ content: `${t('Deleted Successfully')}!` })
+          Notify.success({ content: `${t('Deleted Successfully')}` })
           store.setSelectRowKeys([])
           success && success()
         },

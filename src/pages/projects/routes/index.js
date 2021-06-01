@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { getIndexRoute } from 'utils/router.config'
@@ -37,6 +37,7 @@ import Volumes from '../containers/Volumes'
 import VolumeSnapshots from '../containers/VolumeSnapshots'
 import BaseInfo from '../containers/BaseInfo'
 import ConfigMaps from '../containers/ConfigMaps'
+import ServiceAccounts from '../containers/ServiceAccounts'
 import Secrets from '../containers/Secrets'
 import Roles from '../containers/Roles'
 import Members from '../containers/Members'
@@ -117,17 +118,22 @@ export default [
         exact: true,
       },
       { path: `${PATH}/configmaps`, component: ConfigMaps, exact: true },
+      {
+        path: `${PATH}/serviceaccounts`,
+        component: ServiceAccounts,
+        exact: true,
+      },
       { path: `${PATH}/secrets`, component: Secrets, exact: true },
       { path: `${PATH}/roles`, component: Roles, exact: true },
       { path: `${PATH}/members`, component: Members, exact: true },
       { path: `${PATH}/advanced`, component: AdvancedSettings, exact: true },
       {
-        path: `${PATH}/alert-policies`,
+        path: `${PATH}/alert-rules`,
         component: AlertingPolicies,
         exact: true,
       },
       {
-        path: `${PATH}/alert-messages`,
+        path: `${PATH}/alerts`,
         component: AlertingMessages,
         exact: true,
       },
@@ -153,5 +159,5 @@ export default [
 ]
 
 function getDefaultAppType() {
-  return globals.app.enableAppStore ? 'template' : 'composing'
+  return globals.app.hasKSModule('openpitrix') ? 'template' : 'composing'
 }

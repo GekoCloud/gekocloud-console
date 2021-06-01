@@ -1,81 +1,62 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
-
-import { Avatar, Notify } from 'components/Base'
+import { Text } from 'components/Base'
 import Banner from 'components/Cards/Banner'
 import withList, { ListPage } from 'components/HOCs/withList'
 import Table from 'components/Tables/List'
-import { getLocalTime } from 'utils'
-import { ICON_TYPES } from 'utils/constants'
-import MonitoringDashboard from 'stores/customMonitorDashboard'
 
-import EditModal from './EditDashborad'
-import CreateModal from './CreateDashborad'
+import { getLocalTime, getDisplayName } from 'utils'
+
+import Dashboard from 'stores/dashboard'
 
 import styles from './index.scss'
 
 @withList({
-  store: new MonitoringDashboard(),
+  store: new Dashboard(),
   module: 'dashboards',
   authKey: 'custom-monitoring',
   name: 'CustomMonitorDashboard',
 })
 export default class CustomMonitoringDashboards extends React.Component {
-  state = {
-    createModalVisiable: false,
-    editModalVisiable: false,
-    editData: {},
-  }
-
-  getData = (params = {}) => {
-    const { cluster, namespace } = this.props.match.params
-    this.props.store.fetchList({ cluster, namespace, ...params })
-  }
-
   getColumns() {
-    const { getSortOrder, module } = this.props
     return [
       {
         title: t('Name'),
         dataIndex: 'title',
-        sortOrder: getSortOrder('name'),
-        render: (title, { name, _originData, description }) => (
-          <Avatar
-            icon={ICON_TYPES[module]}
-            iconSize={40}
+        render: (_, record) => (
+          <Text
             title={
               <div
-                className={styles.link}
-                onClick={this.openDashboard(_originData)}
+                className={styles.title}
+                onClick={() => this.showEdit(record)}
               >
-                {name} {title && `(${title})`}
+                {getDisplayName(record)}
               </div>
             }
-            desc={description}
+            description={record.description || '-'}
           />
         ),
       },
       {
         title: t('Created Time'),
-        dataIndex: 'creationTimestamp',
-        isHideable: true,
+        dataIndex: 'createTime',
         width: 150,
         render: time => getLocalTime(time).format('YYYY-MM-DD HH:mm:ss'),
       },
@@ -83,8 +64,18 @@ export default class CustomMonitoringDashboards extends React.Component {
   }
 
   get itemActions() {
-    const { name, trigger, routing } = this.props
+    const { name, trigger } = this.props
     return [
+      {
+        key: 'edit',
+        icon: 'pen',
+        text: t('Edit'),
+        action: 'edit',
+        onClick: item =>
+          trigger('resource.baseinfo.edit', {
+            detail: item,
+          }),
+      },
       {
         key: 'editYaml',
         icon: 'pen',
@@ -93,7 +84,6 @@ export default class CustomMonitoringDashboards extends React.Component {
         onClick: item =>
           trigger('resource.yaml.edit', {
             detail: item,
-            success: routing.query,
           }),
       },
       {
@@ -105,113 +95,41 @@ export default class CustomMonitoringDashboards extends React.Component {
           trigger('resource.delete', {
             type: t(name),
             detail: item,
-            success: () => this.getData({ page: 1 }),
           }),
       },
     ]
   }
 
-  get tableActions() {
-    const { name, tableProps, trigger } = this.props
-    return {
-      ...tableProps.tableActions,
-      selectActions: [
-        {
-          key: 'delete',
-          type: 'danger',
-          text: t('Delete'),
-          action: 'delete',
-          onClick: () =>
-            trigger('resource.batch.delete', {
-              type: t(name),
-              rowKey: 'name',
-              success: () => this.getData({ page: 1 }),
-            }),
-        },
-      ],
-    }
-  }
-
-  showCreateModal = () => {
-    this.setState({ createModalVisiable: true })
-  }
-
-  openDashboard(_originData) {
-    return () => {
-      this.setState({
-        editModalVisiable: true,
-        editData: _originData,
-      })
-    }
-  }
-
-  hideCreateModal = () => {
-    this.setState({ createModalVisiable: false })
-  }
-
-  hideEditModal = () => {
-    this.setState({ editModalVisiable: false, editData: {} })
-  }
-
-  createDashboard = async params => {
-    await this.props.store.create({
+  showCreate = () => {
+    this.props.trigger('custom.monitoring.create', {
       ...this.props.match.params,
-      ...params,
+      module: 'dashboards',
     })
-    this.hideCreateModal()
-    this.getData()
   }
 
-  editDashboard = async params => {
-    const result = await this.props.store.edit({
+  showEdit = detail => {
+    this.props.trigger('custom.monitoring.edit', {
       ...this.props.match.params,
-      ...params,
+      readOnly: !this.props.tableProps.enabledActions.includes('edit'),
+      detail,
     })
-    this.setState({ editData: result })
-
-    this.getData()
-    Notify.success({ content: `${t('Updated Successfully')}!` })
   }
 
   render() {
     const { bannerProps, tableProps } = this.props
-    const { createModalVisiable, editModalVisiable, editData } = this.state
-    const { cluster, namespace } = this.props.match.params
 
     return (
       <div>
-        <ListPage {...this.props} getData={this.getData}>
+        <ListPage {...this.props}>
           <Banner {...bannerProps} tabs={this.tabs} />
           <Table
             {...tableProps}
             itemActions={this.itemActions}
-            tableActions={this.tableActions}
             columns={this.getColumns()}
-            onCreate={this.showCreateModal}
+            onCreate={this.showCreate}
             searchType="name"
           />
         </ListPage>
-
-        {createModalVisiable && (
-          <CreateModal
-            store={this.props.store}
-            cluster={cluster}
-            namespace={namespace}
-            isSaving={this.props.store.isSubmitting}
-            onCancel={this.hideCreateModal}
-            onSave={this.createDashboard}
-          />
-        )}
-        {editModalVisiable && (
-          <EditModal
-            data={editData}
-            cluster={cluster}
-            isSaving={this.props.store.isSubmitting}
-            onCancel={this.hideEditModal}
-            onSave={this.editDashboard}
-            readOnly={!tableProps.enabledActions.includes('edit')}
-          />
-        )}
       </div>
     )
   }

@@ -11,7 +11,7 @@
   line-height: 20px;
   font-size: 14px;
   font-weight: 600;
-  color: #3563AD;
+  color: #242e42;
   box-shadow: 0 1px 0 0 $light-color07;
 }
 
@@ -41,7 +41,7 @@
   cursor: pointer;
   @include ellipsis;
   :global {
-    .cicd_status_icon {
+    .pipeline_status_icon {
       width: 12px;
       height: 12px;
       background-size: 12px;
@@ -77,7 +77,7 @@
   height: 450px;
   padding: 12px;
   border-radius: 4px;
-  background-color: #3563AD;
+  background-color: #242e42;
   color: white;
   overflow-y: auto;
 }
@@ -93,15 +93,15 @@
   height: 36px;
   line-height: 36px;
   border-radius: 4px;
-  background-color: #3563AD;
+  background-color: #36435c;
   cursor: pointer;
   :global {
     .icon {
       display: inline-block;
       vertical-align: top;
-      margin: 10px 15px 0 0;
+      margin: 5px 15px 0 0;
     }
-    .qicon {
+    .kubed-icon {
       color: white;
     }
   }
@@ -112,7 +112,7 @@
   margin-right: 20px;
   color: #79879c;
   :global {
-    .cicd_status_icon {
+    .pipeline_status_icon {
       margin-left: 15px;
       width: 12px;
       height: 12px;
@@ -124,6 +124,6 @@
 .LogItem_content {
   padding-left: 60px;
   line-height: 22px;
-  background-color: #3563AD;
+  background-color: #242e42;
   color: white;
 }

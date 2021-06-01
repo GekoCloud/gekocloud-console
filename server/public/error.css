@@ -20,18 +20,18 @@ html, body, h1, h2, h3, h4, h5, h6, a, p {
 svg {
   height: 20px;
   width: 20px;
-    color: #C0690C;
-    fill: #F9CE9F;
+    color: #324558;
+    fill: #b6c2cd;
 }
 
 ::selection {
   color: #fff;
-  background: #369a6a;
+  background: #65a428;
 }
 
 ::-moz-selection { 
   color: #fff;
-  background: #369a6a; 
+  background: #65a428; 
 } 
 
 .wrapper {
@@ -59,11 +59,11 @@ p {
   font-size: 20px;
   font-weight: 600;
   line-height: 1.4;
-  color: #3563AD;
+  color: #242e42;
 }
 
 a {
   margin-left: 4px;
-  color: #F18918;
+  color: #329dce;
   text-decoration: none;
 }

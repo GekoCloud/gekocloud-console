@@ -1,5 +1,5 @@
 import React from 'react'
-import { Icon } from '@pitrix/lego-ui'
+import { Icon } from '@juanchi_xd/components'
 
 import styles from './index.scss'
 

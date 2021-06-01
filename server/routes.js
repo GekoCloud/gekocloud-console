@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 const Router = require('koa-router')
@@ -36,13 +36,15 @@ const {
   handleLogin,
   handleLogout,
   handleOAuthLogin,
+  handleLoginConfirm,
 } = require('./controllers/session')
 
 const {
   renderView,
+  renderTerminal,
   renderLogin,
+  renderLoginConfirm,
   renderMarkdown,
-  renderCaptcha,
 } = require('./controllers/view')
 
 const parseBody = convert(
@@ -57,26 +59,27 @@ const router = new Router()
 
 router
   .use(proxy('/devops_webhook/(.*)', devopsWebhookProxy))
-  .get('/captcha', renderCaptcha)
-
-  .all('/(k)?api(s)?/(.*)', checkToken, checkIfExist)
-
-  .use(proxy('/(k)?api(s)?/(.*)', k8sResourceProxy))
   .use(proxy('/b2i_download/(.*)', b2iFileProxy))
   .get('/dockerhub/(.*)', parseBody, handleDockerhubProxy)
+  .get('/blank_md', renderMarkdown)
+
+  .all('/(k)?api(s)?/(.*)', checkToken, checkIfExist)
+  .use(proxy('/(k)?api(s)?/(.*)', k8sResourceProxy))
 
   .get('/sample/:app', parseBody, handleSampleData)
 
   // session
   .post('/login', parseBody, handleLogin)
-  .post('/logout', handleLogout)
   .get('/login', renderLogin)
+  .post('/login/confirm', parseBody, handleLoginConfirm)
+  .get('/login/confirm', renderLoginConfirm)
+  .post('/logout', handleLogout)
 
-  .get('/oauth/redirect', handleOAuthLogin)
+  // oauth
+  .get('/oauth/redirect/:name', handleOAuthLogin)
 
-  // markdown template
-  .get('/blank_md', renderMarkdown)
-
+  // terminal
+  .get('/terminal*', renderTerminal)
   // page entry
   .all('*', renderView)
 

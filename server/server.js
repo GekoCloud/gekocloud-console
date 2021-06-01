@@ -1,45 +1,33 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-const argv = require('yargs').argv
-const semver = require('semver')
-
-// check runtime
-if (semver.lt(process.version, '7.6.0')) {
-  console.error('Node Version should be greater than 7.6.0')
-  process.exit(-1)
-}
-
-global.ARGV = argv || {}
-global.MODE_DEV = process.env.NODE_ENV === 'development'
 
 const Koa = require('koa')
 const path = require('path')
-
-global.APP_ROOT = path.resolve(__dirname, '../')
-
-const { getServerConfig } = require('./libs/utils')
 
 Koa.prototype.apply = function(module, ...rest) {
   module(this, ...rest)
   return this
 }
 
+global.MODE_DEV = process.env.NODE_ENV === 'development'
+global.APP_ROOT = path.resolve(__dirname, '../')
+
+const { getServerConfig } = require('./libs/utils')
 const boot = require('./components/boot')
 const locale = require('./components/locale')
 const logging = require('./components/logging')

@@ -1,37 +1,28 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 import React from 'react'
 import { observer, inject } from 'mobx-react'
 import { translateTimeAlias } from 'utils/time'
-import { Icon } from '@pitrix/lego-ui'
+import { Icon } from '@juanchi_xd/components'
 
 import Select from '../components/DarkThemeSelect'
 
 import { refreshInterval as refreshOpts } from '../options'
-
-function generateOptions(opts) {
-  return opts.map(interval => ({
-    label: interval
-      ? `${t('Interval')} ${translateTimeAlias(interval)}`
-      : t('No Refreshing'),
-    value: interval,
-  }))
-}
 
 @inject('monitoringStore')
 @observer
@@ -40,7 +31,12 @@ class RefreshIntervalSelector extends React.Component {
     this.props.monitoringStore.changeRefreshInterval(value)
   }
 
-  options = generateOptions(refreshOpts)
+  options = refreshOpts.map(interval => ({
+    label: interval
+      ? `${t('Interval')} ${translateTimeAlias(interval)}`
+      : t('No Refreshing'),
+    value: interval,
+  }))
 
   render() {
     const { monitoringStore } = this.props

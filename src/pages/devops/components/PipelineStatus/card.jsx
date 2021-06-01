@@ -1,26 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import classNames from 'classnames'
 import PropTypes from 'prop-types'
 import { get } from 'lodash'
-import { Button } from 'components/Base'
+import { Button } from '@juanchi_xd/components'
 import { getPipelineStatus } from 'utils/status'
 import Status from 'devops/components/Status'
 
@@ -144,6 +144,9 @@ export default class PipelineCard extends React.Component {
           </div>
         )
       }
+
+      const hasAuthority = get(hasInputStep, 'aprovable')
+
       return (
         <div
           className={classNames(
@@ -172,6 +175,7 @@ export default class PipelineCard extends React.Component {
                     type="primary"
                     loading={this.state.runLoading}
                     onClick={this.handleProceed(hasInputStep, node.id)}
+                    disabled={!hasAuthority}
                   >
                     {t(get(hasInputStep, 'input.ok') || 'Proceed')}
                   </Button>
@@ -180,6 +184,7 @@ export default class PipelineCard extends React.Component {
                     type="danger"
                     loading={this.state.runLoading}
                     onClick={this.handleBreak(hasInputStep, node.id)}
+                    disabled={!hasAuthority}
                   >
                     {t('Break')}
                   </Button>
@@ -267,16 +272,16 @@ export default class PipelineCard extends React.Component {
     if (Array.isArray(nodes)) {
       return (
         <div className={style.pipeline_column}>
-          {nodes.map((node, columeIndex) => (
+          {nodes.map((node, columnIndex) => (
             <div
               key={JSON.stringify(node)}
               ref={dom => {
-                columeIndex
-                  ? (this.domTree[columeIndex] = dom)
+                columnIndex
+                  ? (this.domTree[columnIndex] = dom)
                   : (this.domTree = [dom])
               }}
             >
-              {this.renderCard(node, columeIndex)}
+              {this.renderCard(node, columnIndex)}
             </div>
           ))}
         </div>

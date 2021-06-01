@@ -1,34 +1,32 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { isEmpty } from 'lodash'
 import React from 'react'
 import { toJS, when } from 'mobx'
 import { observer, inject } from 'mobx-react'
-import { parse } from 'qs'
 import { joinSelector } from 'utils'
 
-import { Select } from '@pitrix/lego-ui'
-import { Button } from 'components/Base'
+import { Button, Icon, Select } from '@juanchi_xd/components'
 import TracingCard from 'projects/components/Cards/Tracing'
 import TracingDetail from 'projects/components/Modals/TracingDetail'
 
-import ServiceSelect from './ServiceSelect'
+import ServiceStore from 'stores/service'
 
 import styles from './index.scss'
 
@@ -40,7 +38,7 @@ export default class Tracing extends React.Component {
 
     this.detailStore = props.detailStore
 
-    const query = parse(location.search.slice(1))
+    this.serviceStore = new ServiceStore()
 
     this.state = {
       showDetailModal: false,
@@ -50,7 +48,6 @@ export default class Tracing extends React.Component {
         lookback: '1h',
         limit: 5,
       },
-      defaultService: query.service,
     }
   }
 
@@ -88,6 +85,14 @@ export default class Tracing extends React.Component {
     ]
   }
 
+  get services() {
+    return this.serviceStore.list.data.map(item => ({
+      label: item.name,
+      value: item.name,
+      type: item.type,
+    }))
+  }
+
   getData() {
     const { selector, cluster, namespace } = toJS(this.detailStore.detail)
     if (selector) {
@@ -97,8 +102,8 @@ export default class Tracing extends React.Component {
         labelSelector: joinSelector(selector),
       }
 
-      this.detailStore.serviceStore.fetchListByK8s(params).then(() => {
-        const components = toJS(this.detailStore.serviceStore.list.data)
+      this.serviceStore.fetchListByK8s(params).then(() => {
+        const components = toJS(this.serviceStore.list.data)
         if (components.length > 0) {
           this.setState({ serviceName: components[0].name }, () =>
             this.fetchTracing()
@@ -127,8 +132,8 @@ export default class Tracing extends React.Component {
     this.setState({ showDetailModal: false, selectItem: {} })
   }
 
-  handleServiceChange = service => {
-    this.setState({ serviceName: service.name }, () => {
+  handleServiceChange = value => {
+    this.setState({ serviceName: value }, () => {
       this.fetchTracing()
     })
   }
@@ -155,22 +160,23 @@ export default class Tracing extends React.Component {
     )
   }
 
-  renderServices() {
-    const { isLoading, data } = this.detailStore.serviceStore.list
-    return (
-      <ServiceSelect
-        defaultService={this.state.defaultService}
-        options={toJS(data)}
-        isLoading={isLoading}
-        onChange={this.handleServiceChange}
-      />
-    )
-  }
+  serviceRenderer = option => (
+    <span>
+      {t('Service')}: {option.label}
+    </span>
+  )
 
   renderOperations() {
     const { query } = this.state
     return (
       <div className={styles.operations}>
+        <Select
+          options={this.services}
+          value={this.state.serviceName}
+          prefixIcon={<Icon name="appcenter" />}
+          onChange={this.handleServiceChange}
+          valueRenderer={this.serviceRenderer}
+        />
         <Select
           value={query.lookback}
           options={this.lookbackOptions}
@@ -188,7 +194,7 @@ export default class Tracing extends React.Component {
 
   renderTracing() {
     const { tracing, isTracingLoading } = this.detailStore
-    const { isLoading, data } = this.detailStore.serviceStore.list
+    const { isLoading, data } = this.serviceStore.list
 
     if (!isLoading && isEmpty(data)) {
       return null
@@ -207,7 +213,6 @@ export default class Tracing extends React.Component {
   render() {
     return (
       <div>
-        {this.renderServices()}
         {this.renderTracing()}
         <TracingDetail
           detail={this.state.selectItem}

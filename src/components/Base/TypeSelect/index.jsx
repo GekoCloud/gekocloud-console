@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,7 +21,7 @@ import PropTypes from 'prop-types'
 import { debounce, isEmpty, isUndefined, isString } from 'lodash'
 import isEqual from 'react-fast-compare'
 import classNames from 'classnames'
-import { Icon } from '@pitrix/lego-ui'
+import { Icon } from '@juanchi_xd/components'
 
 import styles from './index.scss'
 
@@ -49,6 +49,12 @@ export default class TypeSelect extends React.Component {
     }
 
     this.optionsRef = React.createRef()
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.value !== prevState.value) {
+      this.setState({ value: this.props.value })
+    }
   }
 
   componentWillUnmount() {
@@ -132,7 +138,7 @@ export default class TypeSelect extends React.Component {
         <Icon
           className={styles.leftIcon}
           name={option.icon}
-          size={32}
+          size={40}
           type="dark"
         />
       )
@@ -162,12 +168,11 @@ export default class TypeSelect extends React.Component {
   }
 
   renderControl() {
-    const { value, defaultValue, placeholder, options, disabled } = this.props
-
-    const _value = value || defaultValue
+    const { placeholder, options, disabled } = this.props
+    const { value } = this.state
 
     const option =
-      options.find(item => isEqual(item.value, _value)) || placeholder || {}
+      options.find(item => isEqual(item.value, value)) || placeholder || {}
 
     return (
       <div

@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,7 +21,7 @@ import { action, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import moment from 'moment-mini'
 import classnames from 'classnames'
-import { Icon, Loading, Select } from '@pitrix/lego-ui'
+import { Icon, Loading, Select } from '@juanchi_xd/components'
 
 import TimeBar from 'components/Charts/Bar/TimeBar'
 import LogStatisticsStore from 'stores/logging/statistics'
@@ -55,31 +55,31 @@ export default class HomeModal extends React.Component {
   supportQueryParams = [
     {
       icon: 'magnifier',
-      title: t('Search Log by', { field: t('Keyword') }),
+      title: t('Search Logs by', { field: t('Keyword') }),
       tips: t('KeyWord Log Query Tip'),
       key: 'log_query',
     },
     {
       icon: 'project',
-      title: t('Search Log by', { field: t('Project') }),
+      title: t('Search Logs by', { field: t('Project') }),
       tips: t('Project Log Query Tip'),
       key: 'namespace_query',
     },
     {
       icon: 'backup',
-      title: t('Search Log by', { field: t('Workload') }),
+      title: t('Search Logs by', { field: t('Workload') }),
       tips: t('Workload Log Query Tip'),
       key: 'workload_query',
     },
     {
       icon: 'pod',
-      title: t('Search Log by', { field: t('Pods') }),
+      title: t('Search Logs by', { field: t('Pods') }),
       tips: t('Pod Log Query Tip'),
       key: 'pod_query',
     },
     {
       icon: 'docker',
-      title: t('Search Log by', { field: t('Container') }),
+      title: t('Search Logs by', { field: t('Container') }),
       tips: t('Container Log Query Tip'),
       key: 'container_query',
     },
@@ -217,9 +217,7 @@ export default class HomeModal extends React.Component {
         <div className={classnames(styles.card, styles.recent)}>
           <div className={styles.recentSummary}>
             <h2 className={styles.count}>{this.histogramStore.logsCount}</h2>
-            <p>
-              {t('Trends in the total number of logs in the last 12 hours')}
-            </p>
+            <p>{t('Log trends in the last 12 hours')}</p>
           </div>
           <div className={styles.chart}>
             <TimeBar

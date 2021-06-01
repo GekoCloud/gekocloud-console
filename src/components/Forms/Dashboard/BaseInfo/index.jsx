@@ -1,30 +1,28 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { observer } from 'mobx-react'
-import { get } from 'lodash'
-import { Columns, Column, Input } from '@pitrix/lego-ui'
-import { PATTERN_NAME, MODULE_KIND_MAP } from 'utils/constants'
-import { Form, TextArea } from 'components/Base'
+import { get, set } from 'lodash'
+import { Column, Columns, Form, Input, TextArea } from '@juanchi_xd/components'
 import CardSelect from 'components/Inputs/CardSelect'
-import tempalteSettings from 'stores/monitoring/custom/template.json'
-import ItemContianer from 'components/Modals/CustomMonitoring/components/Form/ItemContianer'
+import { PATTERN_NAME, MODULE_KIND_MAP } from 'utils/constants'
+import templateSettings from 'stores/monitoring/custom/template.json'
 
 import styles from './index.scss'
 
@@ -35,7 +33,7 @@ export default class BaseInfo extends React.Component {
     return get(formTemplate, MODULE_KIND_MAP[module], formTemplate)
   }
 
-  tempalteSettingsOpts = Object.entries(tempalteSettings).map(
+  templateSettingsOpts = Object.entries(templateSettings).map(
     ([key, configs]) => ({
       value: key,
       image: configs.logo,
@@ -63,6 +61,10 @@ export default class BaseInfo extends React.Component {
       })
   }
 
+  handleTemplateChange = key => {
+    set(this.formTemplate, 'spec', get(templateSettings, `${key}.settings`, {}))
+  }
+
   render() {
     const { formRef } = this.props
 
@@ -77,7 +79,7 @@ export default class BaseInfo extends React.Component {
                 { required: true, message: t('Please input name') },
                 {
                   pattern: PATTERN_NAME,
-                  message: `${t('Invalid name')}, ${t('NAME_DESC')}`,
+                  message: t('Invalid name', { message: t('NAME_DESC') }),
                 },
                 { validator: this.nameValidator },
               ]}
@@ -85,10 +87,12 @@ export default class BaseInfo extends React.Component {
               <Input name="metadata.name" autoFocus={true} maxLength={63} />
             </Form.Item>
           </Column>
-
           <Column>
             <Form.Item label={t('Description')} desc={t('DESCRIPTION_DESC')}>
-              <TextArea name="spec.description" maxLength={256} />
+              <TextArea
+                name="metadata.annotations['kubesphere.io/description']"
+                maxLength={256}
+              />
             </Form.Item>
           </Column>
         </Columns>
@@ -100,18 +104,12 @@ export default class BaseInfo extends React.Component {
             </div>
           }
         >
-          <ItemContianer name={'spec'}>
-            {({ value, onChange }) => (
-              <CardSelect
-                value={value.title}
-                className={styles.templateList}
-                onChange={key =>
-                  onChange((tempalteSettings[key] || {}).settings)
-                }
-                options={this.tempalteSettingsOpts}
-              />
-            )}
-          </ItemContianer>
+          <CardSelect
+            name="spec.title"
+            className={styles.templateList}
+            options={this.templateSettingsOpts}
+            onChange={this.handleTemplateChange}
+          />
         </Form.Item>
       </Form>
     )

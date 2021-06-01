@@ -1,65 +1,80 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get } from 'lodash'
-import { Modal, Notify } from 'components/Base'
+import { cloneDeep, set, unset } from 'lodash'
+import { Notify } from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 
 import CreateModal from 'components/Modals/Create'
-import EditBasicInfoModal from 'components/Modals/EditBasicInfo'
-import ChangeStatusModal from 'components/Modals/Alerting/PolicyStatus'
-import CommentModal from 'components/Modals/Alerting/Comment'
 import { MODULE_KIND_MAP } from 'utils/constants'
 import FORM_TEMPLATES from 'utils/form.templates'
 import formPersist from 'utils/form.persist'
+import { getQuery } from 'utils/alerting'
 
 import FORM_STEPS from 'configs/steps/alerting.policy'
 
 export default {
   'alerting.policy.create': {
-    on({ store, cluster, namespace, workspace, module, success, ...props }) {
+    on({ store, cluster, namespace, module, success, detail, ...props }) {
       const kind = MODULE_KIND_MAP[module]
-      const formTemplate = {
-        [kind]: FORM_TEMPLATES[module]({
-          namespace,
-          workspace,
-        }),
-      }
+      const formTemplate = detail
+        ? cloneDeep(detail)
+        : FORM_TEMPLATES[module]({ namespace })
 
       const modal = Modal.open({
-        onOk: newObject => {
-          let data = newObject
-
+        onOk: async data => {
           if (!data) {
             return
           }
 
-          if (kind) {
-            if (Object.keys(newObject).length === 1 && newObject[kind]) {
-              data = newObject[kind]
-            }
+          const {
+            ruleType = 'template',
+            resources,
+            rules,
+            namespace: ns,
+            kind: resourceKind = 'Node',
+            ...params
+          } = data
+
+          if (ruleType === 'template') {
+            params.query = rules
+              .map(rule => getQuery({ kind: resourceKind, rule, resources }))
+              .join(' or ')
+            set(params, 'annotations.kind', resourceKind)
+            set(params, 'annotations.resources', JSON.stringify(resources))
+            set(params, 'annotations.rules', JSON.stringify(rules))
+          } else {
+            unset(params, 'annotations.kind')
+            unset(params, 'annotations.resources')
+            unset(params, 'annotations.rules')
           }
 
-          store.create(data, { cluster, namespace }).then(() => {
-            Modal.close(modal)
-            Notify.success({ content: `${t('Created Successfully')}!` })
-            success && success()
-            formPersist.delete(`${module}_create_form`)
-          })
+          if (detail) {
+            await store.update(detail, params)
+            Notify.success({ content: `${t('Updated Successfully')}` })
+          } else {
+            await store.create(params, { cluster, namespace })
+            Notify.success({ content: `${t('Created Successfully')}` })
+          }
+
+          Modal.close(modal)
+          success && success()
+          formPersist.delete(`${module}_create_form`)
         },
         module,
         cluster,
@@ -69,80 +84,8 @@ export default {
         modal: CreateModal,
         steps: FORM_STEPS,
         noCodeEdit: true,
-        store,
-        ...props,
-      })
-    },
-  },
-  'alerting.policy.edit': {
-    on({ store, detail, cluster, success, ...props }) {
-      const modal = Modal.open({
-        onOk: newObect => {
-          const data = {
-            policy_name: get(
-              newObect,
-              'metadata.annotations["kubesphere.io/alias-name"]',
-              ''
-            ),
-            policy_description: get(
-              newObect,
-              'metadata.annotations["kubesphere.io/description"]',
-              ''
-            ),
-          }
-
-          store.patchBasicInfo(detail, data).then(() => {
-            Modal.close(modal)
-            Notify.success({ content: `${t('Updated Successfully')}!` })
-            success && success()
-          })
-        },
-        detail,
-        modal: EditBasicInfoModal,
-        store,
-        ...props,
-      })
-    },
-  },
-  'alerting.status.edit': {
-    on({ store, detail, success, ...props }) {
-      const modal = Modal.open({
-        onOk: newObject => {
-          newObject.disabled = newObject.disabled === 'true'
-
-          store.patch(detail, newObject).then(() => {
-            Modal.close(modal)
-            Notify.success({ content: `${t('Updated Successfully')}!` })
-            success && success()
-          })
-        },
-        detail,
-        modal: ChangeStatusModal,
-        store,
-        ...props,
-      })
-    },
-  },
-  'alerting.message.comment': {
-    on({ store, detail, success, ...props }) {
-      const modal = Modal.open({
-        onOk: newData => {
-          const { cluster, id, comment = '' } = newData || {}
-          const addresser = get(globals, 'user.email')
-          const data = {
-            history_id: id,
-            addresser,
-            content: comment,
-          }
-
-          store.createComment({ cluster }, data).then(() => {
-            Modal.close(modal)
-            Notify.success({ content: `${t('Updated Successfully')}!` })
-            success && success()
-          })
-        },
-        detail,
-        modal: CommentModal,
+        isEdit: !!detail,
+        okBtnText: detail ? t('Update') : t('Create'),
         store,
         ...props,
       })

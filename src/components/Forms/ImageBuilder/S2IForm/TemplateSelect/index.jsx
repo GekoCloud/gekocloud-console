@@ -1,25 +1,25 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { get, set } from 'lodash'
-import { Form, TypeSelect } from 'components/Base'
-import { Loading } from '@pitrix/lego-ui'
+import { TypeSelect } from 'components/Base'
+import { Form, Loading } from '@juanchi_xd/components'
 
 import cookie from 'utils/cookie'
 
@@ -29,12 +29,6 @@ export default class TemplateSelect extends React.PureComponent {
   static defaultProps = {
     builderTemplate: [],
     onEnvironmentChange: () => {},
-  }
-
-  componentDidUpdate() {
-    const defaultValue = this.getDefaultValue()
-
-    defaultValue && this.handleTemplateChange(defaultValue)
   }
 
   get isB2i() {
@@ -48,10 +42,6 @@ export default class TemplateSelect extends React.PureComponent {
 
   get languageType() {
     return get(this.props.formTemplate, 'metadata.annotations.languageType')
-  }
-
-  get builderImage() {
-    return get(this.props.formTemplate, 'spec.config.builderImage')
   }
 
   get containerList() {
@@ -104,9 +94,7 @@ export default class TemplateSelect extends React.PureComponent {
 
     return get(
       builderTemplate.find(
-        template =>
-          get(template, 'spec.codeFramework') === this.languageType &&
-          get(template, 'spec.config.builderImage') === this.builderImage
+        template => get(template, 'spec.codeFramework') === this.languageType
       ),
       'spec.defaultBaseImage',
       ''
@@ -136,6 +124,7 @@ export default class TemplateSelect extends React.PureComponent {
 
   render() {
     const { loading } = this.props
+
     if (loading) {
       return (
         <Form.Item>

@@ -1,77 +1,131 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-import { get } from 'lodash'
 
 import { ALL_METRICS_CONFIG } from 'configs/alerting/metrics'
 
-/**
- * Get monitoring rule info from metrics
- * @param {Array} metrics
- */
-export const getMonitoringRuleInfo = (metrics = []) => {
-  const result = {}
+export const getQuery = ({ kind, rule, resources }) => {
+  let query = ''
+  const { _metricType: metric, thresholds, condition_type } = rule
 
-  metrics.forEach(metric => {
-    const config = ALL_METRICS_CONFIG[metric]
+  switch (kind) {
+    case 'Node':
+      query = metric.replace(
+        '$1',
+        `node=${resources.length > 1 ? '~' : ''}"${resources.join('|')}"`
+      )
+      break
+    case 'Deployment':
+    case 'StatefulSet':
+    case 'DaemonSet':
+      query = metric
+        .replace(
+          '$1',
+          `workload=${resources.length > 1 ? '~' : ''}"${resources
+            .map(resource => `${kind}:${resource}`)
+            .join('|')}"`
+        )
+        .replace('$2', kind.toLowerCase())
+      break
+    case 'Pod':
+      break
+    default:
+  }
 
-    if (config) {
-      const icon = config.prefixIcon
-      const item = result[icon]
-      if (item) {
-        item.push(config.label)
-      } else {
-        result[icon] = [config.label]
+  let thresholdValue = thresholds
+  const metricLabel = ALL_METRICS_CONFIG[metric]
+  const tresholdLabel = metricLabel.ruleConfig.find(
+    item => item.name === 'thresholds'
+  )
+  if (tresholdLabel && tresholdLabel.converter) {
+    thresholdValue = tresholdLabel.converter(thresholds)
+  }
+
+  query += ` ${condition_type} ${thresholdValue}`
+
+  return query
+}
+
+const KIND_MODULE = {
+  Deployment: 'deployments',
+  StatefulSet: 'statefulsets',
+  DaemonSet: 'daemonsets',
+  Pod: 'pods',
+}
+
+export const getAlertingResource = (labels = {}) => {
+  if (labels.node) {
+    return {
+      module: 'nodes',
+      name: labels.node,
+    }
+  }
+
+  if (labels.namespace) {
+    if (labels.workload) {
+      return {
+        module: KIND_MODULE[labels.owner_kind],
+        name: labels.workload.replace(`${labels.owner_kind}:`, ''),
+        namespace: labels.namespace,
       }
     }
-  })
 
-  return result
-}
+    if (labels.pod) {
+      return {
+        module: 'pods',
+        name: labels.pod,
+        namespace: labels.namespace,
+      }
+    }
 
-export const getAlertMessageDesc = ({
-  resourceName,
-  metricName,
-  condition_type,
-  thresholds,
-  unit,
-} = {}) => {
-  const metricLabel = get(ALL_METRICS_CONFIG[metricName], 'label') || ''
+    if (labels.deployment) {
+      return {
+        module: 'deployments',
+        name: labels.deployment,
+        namespace: labels.namespace,
+      }
+    }
 
-  return resourceName
-    ? `${resourceName} ${t(metricLabel)} ${condition_type} ${thresholds}${unit}`
-    : '-'
-}
+    if (labels.statefulset) {
+      return {
+        module: 'statefulsets',
+        name: labels.statefulset,
+        namespace: labels.namespace,
+      }
+    }
 
-export const compareByCondition = (first = 0, second = 0, condition = '>') => {
-  const _first = Number(first) || 0
-  const _second = Number(second) || 0
+    if (labels.daemonset) {
+      return {
+        module: 'daemonsets',
+        name: labels.daemonset,
+        namespace: labels.namespace,
+      }
+    }
 
-  switch (condition) {
-    case '>':
-      return _first > _second
-    case '>=':
-      return _first >= _second
-    case '<':
-      return _first < _second
-    case '<=':
-      return _first <= _second
-    default:
-      return false
+    if (labels.service) {
+      return {
+        module: 'services',
+        name: labels.service,
+        namespace: labels.namespace,
+      }
+    }
   }
+
+  return {}
 }
+
+export const ALERTING_STATUS = ['inactive', 'pending', 'firing']

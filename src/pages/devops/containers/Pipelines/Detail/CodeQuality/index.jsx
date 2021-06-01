@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -22,11 +22,11 @@ import { observer, inject } from 'mobx-react'
 import CodeQualityResult from 'devops/components/Cards/CodeQualityResult'
 import CodeQualityIssues from 'devops/components/Cards/CodeQualityIssues'
 
-@inject('rootStore')
+@inject('rootStore', 'sonarqubeStore')
 @observer
 export default class CodeQuality extends React.Component {
   componentDidMount() {
-    const { detail, isLoading } = this.props.sonarqubeStore
+    const { detail = {}, isLoading } = this.props.sonarqubeStore
 
     if (!detail.totalStatus && !isLoading) {
       this.props.rootStore.routing.push('./activity')
@@ -36,11 +36,11 @@ export default class CodeQuality extends React.Component {
   renderResult = () => {
     const { detail = {}, isLoading } = this.props.sonarqubeStore
 
-    return <CodeQualityResult data={detail} loading={isLoading} />
+    return <CodeQualityResult detail={detail} loading={isLoading} />
   }
 
   renderIssues = () => {
-    const { detail, isLoading } = this.props.sonarqubeStore
+    const { detail = {}, isLoading } = this.props.sonarqubeStore
 
     return (
       <CodeQualityIssues

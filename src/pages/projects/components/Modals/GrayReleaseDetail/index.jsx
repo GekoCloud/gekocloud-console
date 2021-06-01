@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, unset, isEmpty, keyBy, throttle } from 'lodash'
@@ -22,8 +22,15 @@ import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import { toJS, reaction } from 'mobx'
 import { inject, observer } from 'mobx-react'
-import { Loading, Columns, Column, Alert, Icon } from '@pitrix/lego-ui'
-import { Button, Modal, NotifyConfirm } from 'components/Base'
+import {
+  Button,
+  Loading,
+  Columns,
+  Column,
+  Alert,
+  Icon,
+} from '@juanchi_xd/components'
+import { Modal, NotifyConfirm } from 'components/Base'
 import { TrafficSlider } from 'components/Inputs'
 
 import GrayReleaseStore from 'stores/grayrelease'
@@ -346,21 +353,22 @@ export default class GatewaySettingModal extends React.Component {
   handleOffline = () => {
     const {
       type,
-      hosts,
       cluster,
       namespace,
       governor,
       oldVersion,
-      newVersion,
+      oldWorkloadName,
+      newWorkloadName,
     } = toJS(this.store.detail)
 
     if (governor) {
       const { onDelete } = this.props
-      const version = governor === oldVersion ? newVersion : oldVersion
+      const workloadName =
+        governor === oldVersion ? newWorkloadName : oldWorkloadName
 
-      if (version) {
+      if (workloadName) {
         this.workloadStore.delete({
-          name: `${hosts}-${version}`,
+          name: workloadName,
           cluster,
           namespace,
         })
@@ -371,10 +379,9 @@ export default class GatewaySettingModal extends React.Component {
 
     if (type === 'Mirror') {
       const { onDelete } = this.props
-      const version = newVersion
-      if (version) {
+      if (newWorkloadName) {
         this.workloadStore.delete({
-          name: `${hosts}-${version}`,
+          name: newWorkloadName,
           cluster,
           namespace,
         })
@@ -426,9 +433,7 @@ export default class GatewaySettingModal extends React.Component {
             {t('Grayscale Release Strategy')}: <strong>{t(cate.title)}</strong>
           </p>
         </div>
-        <Button noShadow onClick={this.handleOffline}>
-          {t('Job offline')}
-        </Button>
+        <Button onClick={this.handleOffline}>{t('Job offline')}</Button>
       </div>
     )
   }
@@ -690,9 +695,7 @@ export default class GatewaySettingModal extends React.Component {
                 </div>
                 <p>{t('Has taken over all traffic')}</p>
                 <div>
-                  <Button noShadow onClick={this.handleRecover}>
-                    {t('Recover')}
-                  </Button>
+                  <Button onClick={this.handleRecover}>{t('Recover')}</Button>
                 </div>
               </div>
             </div>
@@ -734,7 +737,7 @@ export default class GatewaySettingModal extends React.Component {
             </Column>
             <Column className="is-narrow">
               <div className={styles.matchArrow}>
-                <Icon name="update" color={{ primary: '#F18918' }} size={24} />
+                <Icon name="update" color={{ primary: '#329dce' }} size={24} />
               </div>
             </Column>
             <Column className="is-narrow">

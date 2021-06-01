@@ -1,50 +1,39 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
-import { Loading } from '@pitrix/lego-ui'
-import { Button } from 'components/Base'
+import { Button, Loading } from '@juanchi_xd/components'
 import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
-import { get, isEmpty, debounce } from 'lodash'
+import { isEmpty, debounce } from 'lodash'
 
-import ParamsModal from 'components/Forms/CICDs/paramsModal'
 import PipelineContent from 'devops/components/Pipeline'
 
-import JenkinsEdit from './jenkinsEdit'
-import EmptyCard from '../../EmptyCard'
-import PipelineModal from '../../Modals/pipelineEditModal'
+import { trigger } from 'utils/action'
+import EmptyCard from 'devops/components/Cards/EmptyCard'
+
 import style from './index.scss'
 
-@inject('rootStore')
+@inject('rootStore', 'detailStore')
 @observer
+@trigger
 export default class Pipeline extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      showEditPipeline: false,
-      showToken: false,
-      showParamsModal: false,
-      showEditJenkinsFile: false,
-      isSubmitting: false,
-      isSaveJenkinsLoading: false,
-    }
-  }
+  store = this.props.detailStore || {}
 
   get enabledActions() {
     const { cluster, devops } = this.props.match.params
@@ -56,104 +45,91 @@ export default class Pipeline extends React.Component {
     })
   }
 
-  get isMutiBranch() {
+  get isMultibranch() {
     const { detailStore } = this.props
     const scmSource = toJS(detailStore.detail.scmSource)
     return !isEmpty(scmSource)
   }
 
-  get sourceBranch() {
-    const { detail } = this.props.detailStore
-    if (get(detail, 'branchNames', []).length) {
-      if (detail.branchNames.indexOf('master')) {
-        return 'master'
-      }
-      return detail.branchNames[0]
-    }
-    return ''
+  handlePipelineModal = () => {
+    const { pipelineJsonData } = this.store
+    const { params } = this.props.match
+
+    this.trigger('pipeline.pipeline', {
+      store: this.store,
+      jsonData: toJS(pipelineJsonData.pipelineJson),
+      params,
+      success: () => {
+        const { devops, name } = params
+        localStorage.removeItem(`${globals.user.username}-${devops}-${name}`)
+        this.handleRefresh()
+      },
+    })
   }
 
-  showEditPipeline = () => {
-    this.setState({ showEditPipeline: true })
-  }
+  handleJenkinsFileModal = () => {
+    const { jenkinsfile } = this.store
+    const { params } = this.props.match
 
-  showEditJenkinsFile = () => {
-    this.setState({ showEditJenkinsFile: true })
-  }
-
-  hideEditPipeline = () => {
-    this.setState({ showEditPipeline: false })
-  }
-
-  hideEditJenkins = () => {
-    this.setState({ showEditJenkinsFile: false })
+    this.trigger('pipeline.jenkins', {
+      store: this.store,
+      defaultValue: toJS(jenkinsfile),
+      params,
+      success: () => {
+        const { devops, name } = params
+        localStorage.removeItem(`${globals.user.username}-${devops}-${name}`)
+        this.handleRefresh()
+      },
+    })
   }
 
   getData = async () => {
     const { params } = this.props.match
 
-    await this.props.detailStore.getJenkinsFile(params)
+    await this.store.getJenkinsFile(params)
 
-    this.props.detailStore.getActivities(params)
+    this.store.getActivities(params)
   }
 
-  handleFresh = () => {
+  handleRefresh = () => {
     const { params } = this.props.match
-    this.props.detailStore.getJenkinsFile(params)
+    this.store.getJenkinsFile(params)
   }
 
   componentDidMount() {
-    if (this.isMutiBranch || !this.enabledActions.includes('edit')) {
+    if (this.isMultibranch || !this.enabledActions.includes('edit')) {
       this.props.rootStore.routing.push('./activity')
       return
     }
     this.getData()
   }
 
-  handleEnterFullScreen = () => {
-    const { isFullScreen } = this.state
-    if (!isFullScreen) {
-      this.setState({ isFullScreen: true })
-    }
-  }
-
-  handleParamsCancel = () => {
-    this.setState({ showParamsModal: false })
-  }
-
-  handleOk = async jenkinsFile => {
-    const { params } = this.props.match
-    if (!jenkinsFile) {
-      return
-    }
-    this.setState({ isSubmitting: true })
-    await this.props.detailStore
-      .updateJenkinsFile(jenkinsFile, params)
-      .finally(() => {
-        this.setState({ isSubmitting: false })
-      })
-    this.setState({ showEditPipeline: false }, () => {
-      this.handleFresh()
-    })
-    const { devops, name } = params
-    localStorage.removeItem(`${globals.user.username}-${devops}-${name}`)
-  }
-
-  handleRun = debounce(() => {
-    const { detail } = this.props.detailStore
-    const isMutibranch = detail.branchNames
+  handleRunning = debounce(() => {
+    const { detail } = this.store
+    const isMultibranch = detail.branchNames
     const hasParameters = detail.parameters && detail.parameters.length
-    if (isMutibranch || hasParameters) {
-      this.setState({ showParamsModal: true })
+    const { params } = this.props.match
+
+    if (isMultibranch || hasParameters) {
+      this.trigger('pipeline.params', {
+        devops: params.devops,
+        cluster: params.cluster,
+        params,
+        branches: toJS(detail.branchNames),
+        parameters: toJS(detail.parameters),
+        success: () => {
+          this.props.rootStore.routing.push('./activity')
+        },
+      })
     } else {
-      this.handleRunOk()
+      this.handleRunSubmit()
     }
   }, 500)
 
-  handleRunOk = async (parameters, branch) => {
-    const { detail } = this.props.detailStore
+  handleRunSubmit = async (parameters, branch) => {
+    const { detail } = this.store
     const { devops, cluster } = this.props.match.params
-    await this.props.detailStore.runBranch({
+    await this.store.runBranch({
       name: detail.name,
       branch,
       parameters,
@@ -163,38 +139,23 @@ export default class Pipeline extends React.Component {
     this.props.rootStore.routing.push('./activity')
   }
 
-  handleEditOk = () => {
-    this.handleBranchCancel()
-  }
-
-  handleSaveJenkinsFile = async jenkinsFile => {
-    const { params } = this.props.match
-
-    this.setState({ isSaveJenkinsLoading: true })
-    await this.props.detailStore
-      .updateJenkinsFile(jenkinsFile, params)
-      .finally(() => {
-        this.setState({ isSaveJenkinsLoading: false })
-      })
-    this.setState({ showEditJenkinsFile: false })
-    this.handleFresh()
-  }
-
   renderBtnGroup() {
     const editable = this.enabledActions.includes('edit')
 
     return (
       <div className={style.pipelineCard__btnGroup}>
         {editable && (
-          <Button onClick={this.showEditJenkinsFile}>
+          <Button onClick={this.handleJenkinsFileModal}>
             {t('Edit Jenkinsfile')}
           </Button>
         )}
         {editable && (
-          <Button onClick={this.showEditPipeline}>{t('Edit Pipeline')}</Button>
+          <Button onClick={this.handlePipelineModal}>
+            {t('Edit Pipeline')}
+          </Button>
         )}
         {editable && (
-          <Button type="control" onClick={this.handleRun}>
+          <Button type="control" onClick={this.handleRunning}>
             {t('Run')}
           </Button>
         )}
@@ -203,7 +164,7 @@ export default class Pipeline extends React.Component {
   }
 
   renderPipeLineContent() {
-    const { pipelineJson, isLoading } = this.props.detailStore.pipelineJsonData
+    const { pipelineJson, isLoading } = this.store.pipelineJsonData
 
     const editable = this.enabledActions.includes('edit')
 
@@ -219,12 +180,12 @@ export default class Pipeline extends React.Component {
       return (
         <EmptyCard desc={t('PIPELINE_NO_CONFIG')}>
           {editable && (
-            <Button type="control" onClick={this.showEditPipeline}>
+            <Button type="control" onClick={this.handlePipelineModal}>
               {t('Edit Pipeline')}
             </Button>
           )}
           {editable && (
-            <Button onClick={this.showEditJenkinsFile}>
+            <Button onClick={this.handleJenkinsFileModal}>
               {t('Edit Jenkinsfile')}
             </Button>
           )}
@@ -236,12 +197,12 @@ export default class Pipeline extends React.Component {
       return (
         <EmptyCard desc={t('NOT_VALID_JENKINS_FILE')}>
           {editable && (
-            <Button onClick={this.showEditJenkinsFile}>
+            <Button onClick={this.handleJenkinsFileModal}>
               {t('Edit Jenkinsfile')}
             </Button>
           )}
           {editable && (
-            <Button type="control" onClick={this.handleRun}>
+            <Button type="control" onClick={this.handleRunning}>
               {t('Run')}
             </Button>
           )}
@@ -262,39 +223,6 @@ export default class Pipeline extends React.Component {
   }
 
   render() {
-    const { showEditPipeline, isSubmitting } = this.state
-    const { params } = this.props.match
-    const { pipelineJsonData, jenkinsfile, detail } = this.props.detailStore
-
-    return (
-      <React.Fragment>
-        {this.renderPipeLineContent()}
-        <PipelineModal
-          jsonData={toJS(pipelineJsonData.pipelineJson)}
-          visible={showEditPipeline}
-          onOk={this.handleOk}
-          onCancel={this.hideEditPipeline}
-          params={params}
-          projectName={detail.name}
-          isSubmitting={isSubmitting}
-        />
-        <JenkinsEdit
-          params={params}
-          defaultValue={toJS(jenkinsfile)}
-          visible={this.state.showEditJenkinsFile}
-          onOk={this.handleSaveJenkinsFile}
-          onCancel={this.hideEditJenkins}
-          isSubmitting={this.state.isSaveJenkinsLoading}
-        />
-        <ParamsModal
-          branches={toJS(detail.branchNames)}
-          visible={this.state.showParamsModal}
-          parameters={toJS(detail.parameters)}
-          onCancel={this.handleParamsCancel}
-          onOk={this.handleRunOk}
-          params={params}
-        />
-      </React.Fragment>
-    )
+    return <div>{this.renderPipeLineContent()}</div>
   }
 }

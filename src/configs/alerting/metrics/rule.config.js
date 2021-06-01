@@ -1,70 +1,20 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-const PERIOD_OPTIONS = [
-  {
-    label: 'PERIOD_OPTIONS',
-    value: 1,
-  },
-  {
-    label: 'PERIOD_OPTIONS',
-    value: 5,
-  },
-  {
-    label: 'PERIOD_OPTIONS',
-    value: 15,
-  },
-  {
-    label: 'PERIOD_OPTIONS',
-    value: 30,
-  },
-  {
-    label: 'PERIOD_OPTIONS',
-    value: 60,
-  },
-]
-
-const CONSECUTIVE_OPTIONS = [
-  {
-    label: 'CONSECUTIVE_OPTIONS',
-    value: 1,
-  },
-  {
-    label: 'CONSECUTIVE_OPTIONS',
-    value: 2,
-  },
-  {
-    label: 'CONSECUTIVE_OPTIONS',
-    value: 3,
-  },
-  {
-    label: 'CONSECUTIVE_OPTIONS',
-    value: 4,
-  },
-  {
-    label: 'CONSECUTIVE_OPTIONS',
-    value: 5,
-  },
-  {
-    label: 'CONSECUTIVE_OPTIONS',
-    value: 10,
-  },
-]
 
 const CONDITION_OPTIONS = [
   {
@@ -97,44 +47,28 @@ export const SEVERITY_LEVEL = [
     value: 'critical',
   },
   {
-    type: 'major',
+    type: 'error',
     prefixIcon: 'information',
     color: {
       primary: '#fae7e5',
       secondary: '#f5a623',
     },
-    label: 'Major Alert',
-    value: 'major',
+    label: 'Error Alert',
+    value: 'error',
   },
   {
-    type: 'minor',
+    type: 'warning',
     prefixIcon: 'information',
     color: {
       primary: '#fae7e5',
       secondary: '#79879c',
     },
-    label: 'Minor Alert',
-    value: 'minor',
+    label: 'Warning Alert',
+    value: 'warning',
   },
 ]
 
-export const getBaseRuleConfig = ({
-  periods = {},
-  consecutive = {},
-  condition = {},
-  thresholds = {},
-  severity = {},
-} = {}) => [
-  {
-    name: 'monitor_periods',
-    options: PERIOD_OPTIONS,
-    ...periods,
-  },
-  {
-    name: 'consecutive_count',
-    options: CONSECUTIVE_OPTIONS,
-    ...consecutive,
-  },
+export const getBaseRuleConfig = ({ condition = {}, thresholds = {} } = {}) => [
   {
     name: 'condition_type',
     options: CONDITION_OPTIONS,
@@ -146,49 +80,54 @@ export const getBaseRuleConfig = ({
     placeholder: 'Threshold',
     ...thresholds,
   },
-  {
-    name: 'severity',
-    options: SEVERITY_LEVEL,
-    ...severity,
-  },
 ]
 
 export const BASE_RULE_CONFIG = getBaseRuleConfig()
 
 export const PERCENT_RULE_CONFIG = getBaseRuleConfig({
   thresholds: {
-    min: 1,
+    min: 0,
     max: 100,
     unit: '%',
+    converter: value => value / 100,
   },
 })
 
 export const CPU_RULE_CONFIG = getBaseRuleConfig({
   thresholds: {
     unit: 'core',
+    min: 0,
   },
 })
 
 export const MEMORY_RULE_CONFIG = getBaseRuleConfig({
   thresholds: {
     unit: 'Mi',
+    min: 0,
+    converter: value => value * 1024 ** 2,
   },
 })
 
 export const DISK_RULE_CONFIG = getBaseRuleConfig({
   thresholds: {
     unit: 'GB',
+    min: 0,
+    converter: value => value * 1000 ** 3,
   },
 })
 
 export const THROUGHPUT_RULE_CONFIG = getBaseRuleConfig({
   thresholds: {
     unit: 'KB/s',
+    min: 0,
+    converter: value => value * 1000,
   },
 })
 
 export const BANDWIDTH_RULE_CONFIG = getBaseRuleConfig({
   thresholds: {
     unit: 'Mbps',
+    min: 0,
+    converter: value => value * (1024 ** 2 / 8),
   },
 })

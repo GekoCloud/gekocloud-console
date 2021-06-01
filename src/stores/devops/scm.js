@@ -1,33 +1,34 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { action, observable, toJS } from 'mobx'
+import { action, observable } from 'mobx'
 import { isArray, get, isEmpty, set } from 'lodash'
 import { parseUrl, getQueryString, generateId } from 'utils'
-import { CREDENTIAL_DISPLAY_KEY } from 'utils/constants'
 
 import BaseStore from 'stores/devops/base'
+import qs from 'qs'
 import CredentialStore from './credential'
 
 export default class SCMStore extends BaseStore {
   constructor(props) {
     super(props)
 
+    this.credentialStore = new CredentialStore()
     this.verifyAccessErrorHandle = {
       github: (resp, error) => {
         const errorBody = error.headers ? resp : error
@@ -75,9 +76,10 @@ export default class SCMStore extends BaseStore {
         return Promise.reject(errorBody)
       },
     }
-
-    this.credentialStore = new CredentialStore()
   }
+
+  @observable
+  isAccessTokenWrong = false
 
   @observable
   credentials = {
@@ -101,9 +103,6 @@ export default class SCMStore extends BaseStore {
   formData = {}
 
   @observable
-  githubCredentialId = ''
-
-  @observable
   creatBitBucketServersError = {}
 
   @action
@@ -117,9 +116,12 @@ export default class SCMStore extends BaseStore {
         'github'}/organizations/?${getQueryString(params, false)}`
     )
 
-    isArray(result) ? (this.orgList.data = result) : null
+    if (isArray(result)) {
+      this.orgList.data = result
+    }
 
     this.orgList.isLoading = false
+    return this.orgList
   }
 
   @action
@@ -128,32 +130,38 @@ export default class SCMStore extends BaseStore {
   }
 
   @action
-  async getRepoList({ activeRepoIndex, cluster }) {
-    activeRepoIndex =
-      activeRepoIndex !== undefined ? activeRepoIndex : this.activeRepoIndex
+  handleChangeAccessTokenWrong() {
+    this.isAccessTokenWrong = false
+  }
 
-    this.getRepoListLoading = true
+  @action
+  async getRepoList({ activeRepoIndex, cluster }) {
+    const _activeRepoIndex =
+      activeRepoIndex !== undefined
+        ? activeRepoIndex
+        : this.activeRepoIndex === ''
+        ? 0
+        : this.activeRepoIndex
 
     const scmType = this.scmType || 'github'
     const pageNumber =
-      get(this.orgList.data[activeRepoIndex], 'repositories.nextPage') || 1
+      get(this.orgList.data[_activeRepoIndex], 'repositories.nextPage') || 1
 
     const organizationName =
-      this.orgList.data[activeRepoIndex].key ||
-      this.orgList.data[activeRepoIndex].name
+      scmType === 'bitbucket-server'
+        ? this.orgList.data[_activeRepoIndex].key
+        : this.orgList.data[_activeRepoIndex].name
+
+    this.getRepoListLoading = true
 
     const result = await this.request.get(
       `${this.getBaseUrlV2({
         cluster,
-      })}scms/${scmType}/organizations/${
-        scmType === 'bitbucket-server'
-          ? `~${organizationName}`
-          : organizationName
-      }/repositories/?${getQueryString(
+      })}scms/${scmType}/organizations/${organizationName}/repositories/?${getQueryString(
         {
           ...this.orgParams,
           pageNumber,
-          pageSize: 20,
+          pageSize: 100,
         },
         false
       )}`,
@@ -161,7 +169,7 @@ export default class SCMStore extends BaseStore {
       null,
       (res, err) => {
         this.getRepoListLoading = false
-        set(this.orgList, `data[${activeRepoIndex}].repositories.item`, [])
+        set(this.orgList, `data[${_activeRepoIndex}].repositories.item`, [])
         if (window.onunhandledrejection) {
           window.onunhandledrejection(err)
         }
@@ -172,7 +180,7 @@ export default class SCMStore extends BaseStore {
     if (result.repositories) {
       const currentRepository = get(
         this.orgList,
-        `data[${activeRepoIndex}].repositories`,
+        `data[${_activeRepoIndex}].repositories`,
         {}
       )
       // insert new repolist in current orglist
@@ -184,15 +192,17 @@ export default class SCMStore extends BaseStore {
       } else {
         set(
           this.orgList,
-          `data[${activeRepoIndex}].repositories`,
+          `data[${_activeRepoIndex}].repositories`,
           result.repositories
         )
       }
     }
     this.getRepoListLoading = false
+    return this.orgList
   }
 
-  async putAccessToken({ token, cluster, devops }) {
+  async putAccessToken({ token, cluster }) {
+    this.isAccessTokenWrong = false
     const result = await this.verifyAccessForRepo({
       accessToken: token,
       scmType: 'github',
@@ -200,27 +210,6 @@ export default class SCMStore extends BaseStore {
     })
 
     if (result && result.credentialId) {
-      this.githubCredentialId = `github-${token.slice(0, 6)}-${generateId(5)}`
-
-      const data = {
-        id: this.githubCredentialId,
-        type: CREDENTIAL_DISPLAY_KEY['basic-auth'],
-        description: t('Automatically generated by github'),
-        [CREDENTIAL_DISPLAY_KEY['basic-auth']]: {
-          id: this.githubCredentialId,
-          password: token,
-          login: 'github',
-        },
-      }
-
-      const hasCredential = this.credentialStore.list.data.find(
-        v => v.name === this.githubCredentialId
-      )
-
-      if (!hasCredential) {
-        this.createCredential(data, { devops, cluster })
-      }
-
       this.getOrganizationList(
         { credentialId: result.credentialId },
         'github',
@@ -230,19 +219,17 @@ export default class SCMStore extends BaseStore {
   }
 
   async verifyAccessForRepo({ scmType, cluster, devops, ...rest }) {
+    let _type = scmType
+
+    if (/https:\/\/bitbucket.org\/?/gm.test(`${rest.apiUrl}`)) {
+      _type = 'bitbucket_cloud'
+    }
+
     return await this.request.post(
-      `${this.getBaseUrlV2({ cluster })}scms/${scmType}/verify/`,
+      `${this.getBaseUrlV2({ cluster })}scms/${_type}/verify/`,
       rest,
       null,
       this.verifyAccessErrorHandle[scmType]
-    )
-  }
-
-  async createCredential(data, { devops, cluster }, rejected) {
-    return this.credentialStore.handleCreate(
-      data,
-      { devops, cluster },
-      rejected
     )
   }
 
@@ -253,7 +240,16 @@ export default class SCMStore extends BaseStore {
       ...params,
     })
     this.credentials = this.credentialStore.list
-    window.pipelineCredentials = toJS(this.credentials) // cache in gloable varibles
+    this.credentials.loading = false
+  }
+
+  getCredentialDetail = async params => {
+    await this.credentialStore.fetchDetail(params)
+    return this.credentialStore.detail
+  }
+
+  createCredential = async (data, params) => {
+    await this.credentialStore.handleCreate(data, params)
   }
 
   @action
@@ -261,11 +257,12 @@ export default class SCMStore extends BaseStore {
     username,
     password,
     apiUrl,
+    credentialId,
     cluster,
-    devops,
   }) => {
     this.creatBitBucketServersError = {}
-    this.tokenFormData = { username, password, apiUrl }
+    this.tokenFormData = { username, password, apiUrl, credentialId }
+
     if (isEmpty(parseUrl(apiUrl))) {
       this.creatBitBucketServersError = {
         apiUrl: {
@@ -275,17 +272,19 @@ export default class SCMStore extends BaseStore {
       return
     }
 
-    this.bitbucketCredentialId = `bitbucket-${username}-${generateId(5)}`
+    let result = { id: generateId(4) }
 
-    const result = await this.request.post(
-      `${this.getBaseUrlV2({ cluster })}scms/bitbucket-server/servers`,
-      {
-        apiUrl,
-        name: this.bitbucketCredentialId,
-      },
-      null,
-      this.verifyAccessErrorHandle['bitbucket-server']
-    )
+    if (!/https:\/\/bitbucket.org\/?/gm.test(`${apiUrl}`)) {
+      result = await this.request.post(
+        `${this.getBaseUrlV2({ cluster })}scms/bitbucket-server/servers`,
+        {
+          apiUrl,
+          name: credentialId,
+        },
+        null,
+        this.verifyAccessErrorHandle['bitbucket-server']
+      )
+    }
 
     if (!result || !result.id) {
       return
@@ -301,26 +300,6 @@ export default class SCMStore extends BaseStore {
 
     if (verifyResult && verifyResult.credentialId) {
       this.orgList.isLoading = false
-
-      const data = {
-        id: this.bitbucketCredentialId,
-        type: CREDENTIAL_DISPLAY_KEY['basic-auth'],
-        description: t(`Automatically generated by bitbucket(${username})`),
-        [CREDENTIAL_DISPLAY_KEY['basic-auth']]: {
-          id: this.bitbucketCredentialId,
-          username,
-          password,
-        },
-      }
-
-      const hasCredential = this.credentialStore.list.data.find(
-        v => v.name === this.bitbucketCredentialId
-      )
-
-      if (!hasCredential) {
-        this.createCredential(data, { devops, cluster })
-      }
-
       this.getOrganizationList(
         {
           credentialId: `bitbucket-server:${result.id}`,
@@ -337,6 +316,22 @@ export default class SCMStore extends BaseStore {
     this.creatBitBucketServersError = {}
   }
 
+  getBitbucketList = async ({ cluster }) => {
+    const result = await this.request.get(
+      `${this.getBaseUrlV2({ cluster })}scms/bitbucket-server/servers`
+    )
+
+    let bitbucketServerList = []
+
+    if (!isEmpty(result) && isArray(result)) {
+      bitbucketServerList = result.map(item => {
+        return { label: item.apiUrl, value: item.apiUrl }
+      })
+    }
+
+    return bitbucketServerList
+  }
+
   @action
   resetStore = () => {
     this.orgList = {
@@ -344,7 +339,7 @@ export default class SCMStore extends BaseStore {
       data: [],
     }
     this.activeRepoIndex = ''
-    this.githubCredentialId = ''
+    this.isAccessTokenWrong = false
     this.formData = {}
     this.tokenFormData = {}
     this.creatBitBucketServersError = {}
@@ -356,7 +351,51 @@ export default class SCMStore extends BaseStore {
       `${this.getDevopsUrlV2({ cluster })}${devops}/checkCron`,
       {
         cron: script,
-        pipelineName: pipeline,
+        name: pipeline,
       }
     )
+
+  @action
+  fetchGitLabServerList = async ({ cluster, devops }) => {
+    const url = `${this.getDevopsUrlV2({
+      cluster,
+    })}${devops}/jenkins/gitlab/serverList`
+
+    const result = await this.request.post(url, {}, {}, () => {
+      return []
+    })
+
+    let serverList = []
+
+    if (result.status === 'ok' && isArray(result.data)) {
+      serverList = result.data.map(item => {
+        return { label: item.name, value: item.name }
+      })
+    }
+
+    return serverList
+  }
+
+  @action
+  fetchGitLabProjectList = async ({ cluster, devops, server, owner }) => {
+    let url = `${this.getDevopsUrlV2({
+      cluster,
+    })}${devops}/jenkins/gitlab/projectList`
+
+    url += `?${qs.stringify({ server, owner })}`
+
+    const result = await this.request.post(url, {}, {}, () => {
+      return []
+    })
+
+    let projectList = []
+
+    if (result.status === 'ok' && isArray(result.data)) {
+      projectList = result.data.map(item => {
+        return { label: item, value: item }
+      })
+    }
+
+    return projectList
+  }
 }

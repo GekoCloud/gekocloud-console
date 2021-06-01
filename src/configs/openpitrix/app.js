@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export const DEFAULT_QUERY_STATUS = 'draft|active|suspended|passed'
@@ -24,12 +24,13 @@ export const MAX_LIMIT = 200
 export const STORE_APP_LIMIT = 12
 
 export const REVIEW_QUERY_STATUS = {
-  all: 'submitted|admin-rejected|admin-passed',
-  processed: 'admin-rejected|admin-passed',
+  all: 'active|rejected|passed|submitted|suspended',
+  processed: 'active|rejected|passed|suspended',
   unprocessed: 'submitted',
 }
 
-export const CLUSTER_QUERY_STATUS = 'active|stopped|pending|suspended'
+export const CLUSTER_QUERY_STATUS =
+  'creating|active|failed|deleting|upgrading|created|upgraded'
 
 export const UPLOAD_STATUS_WORD = {
   init: 'UPLOAD_SUPPORT_FORMAT',
@@ -38,6 +39,8 @@ export const UPLOAD_STATUS_WORD = {
 }
 
 export const CATEGORY_ICONS = [
+  'database',
+  'export',
   'documentation',
   'mail',
   'calendar',
@@ -72,7 +75,7 @@ export const CATEGORY_ICONS = [
 
 export const OPENPITRIX_LINKS = {
   helm_developer_guide:
-    'https://openpitrix.io/docs/v0.4/zh-CN/developer-guide/helm-developer-guide',
+    'https://kubesphere.io/docs/application-store/app-developer-guide/helm-specification/',
 }
 
 export const UPLOAD_CHECK_RULES = {
@@ -95,7 +98,5 @@ export const UPLOAD_FILE_TYPES = {
   icon: 'image/png,image/jpg,image/jpeg',
   screenshot: 'image/png,image/jpg,image/jpeg',
 }
-
-export const WORKSPACE_REPO_ID = 'repo-helm'
 
 export const SCREENSHOTS_LIMIT = 6

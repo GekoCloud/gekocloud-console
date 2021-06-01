@@ -1,26 +1,27 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { Alert } from '@pitrix/lego-ui'
-import { Form, Modal } from 'components/Base'
+import { Alert, Form } from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
+import { get, isEmpty } from 'lodash'
 import TaintInput from './TaintInput'
 
 import styles from './index.scss'
@@ -56,12 +57,30 @@ export default class TaintManagementModal extends React.Component {
   }
 
   handleSubmit = data => {
-    this.props.onOk(data)
+    const tainValueList = get(data, 'spec.taints')
+
+    if (!isEmpty(tainValueList)) {
+      const isValueMap = {}
+      let isSumbit = true
+
+      tainValueList.forEach(element => {
+        if (isValueMap[element.key]) {
+          isSumbit = false
+        } else {
+          isValueMap[element.key] = 1
+        }
+      })
+
+      if (isSumbit) {
+        this.props.onOk(data)
+      }
+    } else {
+      this.props.onOk(data)
+    }
   }
 
   render() {
-    const { value, ...rest } = this.props
-
+    const { value, onOk, ...rest } = this.props
     return (
       <Modal.Form
         width={1162}
@@ -70,6 +89,7 @@ export default class TaintManagementModal extends React.Component {
         icon="wrench"
         okText={t('Save')}
         data={this.state.formData}
+        onOk={this.handleSubmit}
         {...rest}
       >
         <div className={styles.wrapper}>

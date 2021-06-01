@@ -1,25 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
- * * Smartkube Console is free software: you can redistribute it and/or modify
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
+ * * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
-* Smartkube Console is distributed in the hope that it will be useful,
+* SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
   You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import { observer, inject } from 'mobx-react'
-import { computed } from 'mobx'
+import { computed, toJS } from 'mobx'
 
-import { Form, TypeSelect } from 'components/Base'
+import { Form } from '@juanchi_xd/components'
+import { TypeSelect } from 'components/Base'
 import { MONITOR_GRAPH_COLORS } from 'utils/constants'
 
 import EditMonitorFormLayou from '../components/EditMonitorFormLayout'
@@ -32,7 +33,7 @@ import ErrorContainer from '../components/ErrorContainer'
 import FormGroupCard from '../components/FormGroupCard'
 import GraphForm from '../components/Form/Graph'
 
-@inject('monitoringStore')
+@inject('monitoringStore', 'labelStore')
 @observer
 export default class GraphMonitorForm extends Component {
   @computed
@@ -48,7 +49,6 @@ export default class GraphMonitorForm extends Component {
   get supportMetrics() {
     return this.props.monitoringStore.targetsMetadata.map(metadata => ({
       value: metadata.metric,
-      label: metadata.metric,
       desc: metadata.help,
       type: metadata.type,
     }))
@@ -58,11 +58,26 @@ export default class GraphMonitorForm extends Component {
     return this.monitor.timeRange
   }
 
+  handleLabelSearch = metric => {
+    const { cluster, namespace } = this.props.monitoringStore
+    const { from, to } = this.props.monitoringStore.getTimeRange()
+
+    this.props.labelStore.fetchLabelSets({
+      cluster,
+      namespace,
+      metric,
+      start: Math.floor(from.valueOf() / 1000),
+      end: Math.floor(to.valueOf() / 1000),
+    })
+  }
+
   render() {
     const { title, lines, bars, stack, description } = this.monitor.config
     const { errorMessage } = this.monitor
 
     const legends = this.monitor.legends
+
+    const labelsets = toJS(this.props.labelStore.labelsets)
 
     return (
       <EditMonitorFormLayou
@@ -133,7 +148,13 @@ export default class GraphMonitorForm extends Component {
             </FormGroupCard>
           </>
         }
-        main={<GraphForm supportMetrics={this.supportMetrics} />}
+        main={
+          <GraphForm
+            supportMetrics={this.supportMetrics}
+            labelsets={labelsets}
+            onLabelSearch={this.handleLabelSearch}
+          />
+        }
       />
     )
   }

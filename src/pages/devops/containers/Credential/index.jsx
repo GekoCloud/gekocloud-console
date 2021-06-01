@@ -1,61 +1,59 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { observer, inject } from 'mobx-react'
-import { Link } from 'react-router-dom'
+
 import { toJS } from 'mobx'
 import { parse } from 'qs'
 import { omit } from 'lodash'
 
 import CredentialStore from 'stores/devops/credential'
+import { trigger } from 'utils/action'
 import { getLocalTime } from 'utils'
 
+import { Avatar } from 'components/Base'
 import Banner from 'components/Cards/Banner'
 import Table from 'components/Tables/Base'
 
-import CreateModal from './credentialModal'
 import styles from './index.scss'
 
 @inject('rootStore', 'devopsStore')
 @observer
+@trigger
 class Credential extends React.Component {
   constructor(props) {
     super(props)
 
     this.store = new CredentialStore()
-
     this.formTemplate = {}
-
-    this.state = {
-      showCreate: false,
-      showEdit: false,
-      showDelete: false,
-      showBranchModal: false,
-      configFormData: {},
-      selectPipeline: {},
-    }
   }
 
   componentDidMount() {
     this.unsubscribe = this.routing.history.subscribe(location => {
       const params = parse(location.search.slice(1))
-      this.getData(params)
+      const { devops, cluster } = this.props.match.params
+
+      this.store.fetchList({
+        devops,
+        cluster,
+        ...params,
+      })
     })
   }
 
@@ -71,12 +69,14 @@ class Credential extends React.Component {
     })
   }
 
-  getData(params) {
+  getData() {
     const { devops, cluster } = this.props.match.params
+    const query = parse(location.search.slice(1))
+
     this.store.fetchList({
       devops,
       cluster,
-      ...params,
+      ...query,
     })
   }
 
@@ -103,36 +103,26 @@ class Credential extends React.Component {
     return 'Credentials'
   }
 
-  showCreate = () => {
-    this.setState({ showCreate: true })
-  }
-
-  hideCreate = () => {
-    this.setState({ showCreate: false })
-  }
-
-  hideDelete = () => {
-    this.setState({ showDelete: false })
-  }
-
   handleCreate = () => {
-    this.setState({ showCreate: false, showEdit: true })
-    this.getData()
+    const { devops, cluster } = this.props.match.params
+    this.trigger('devops.credential.create', {
+      devops,
+      cluster,
+      success: () => {
+        this.getData()
+      },
+    })
   }
 
   getColumns = () => [
     {
       title: t('Name'),
       dataIndex: 'name',
-      width: '24%',
-      render: id => (
-        <Link
-          className="item-name"
-          to={`${this.prefix}/${encodeURIComponent(id)}`}
-        >
-          {id}
-        </Link>
-      ),
+      width: '35%',
+      render: id => {
+        const url = `${this.prefix}/${encodeURIComponent(id)}`
+        return <Avatar to={this.isRuning ? null : url} title={id} />
+      },
     },
     {
       title: t('Type'),
@@ -149,7 +139,7 @@ class Credential extends React.Component {
     {
       title: t('Created Time'),
       dataIndex: 'createTime',
-      width: 20,
+      width: '20%',
       render: createTime =>
         getLocalTime(createTime).format(`YYYY-MM-DD HH:mm:ss`),
     },
@@ -160,38 +150,25 @@ class Credential extends React.Component {
       this.store.list
     )
     const showCreate = this.enabledActions.includes('create')
-      ? this.showCreate
+      ? this.handleCreate
       : null
 
     const omitFilters = omit(filters, ['page', 'limit', 'sortBy'])
-
     const pagination = { total, page, limit }
+
     return (
       <Table
         data={data}
         columns={this.getColumns()}
         filters={omitFilters}
         pagination={pagination}
-        rowKey="fullName"
+        rowKey="uid"
         isLoading={isLoading}
         onFetch={this.handleFetch}
         onCreate={showCreate}
         searchType="name"
         module={this.module}
         name={this.name}
-      />
-    )
-  }
-
-  renderModals() {
-    const { devops, cluster } = this.props.match.params
-    return (
-      <CreateModal
-        visible={this.state.showCreate}
-        onOk={this.handleCreate}
-        onCancel={this.hideCreate}
-        devops={devops}
-        cluster={cluster}
       />
     )
   }
@@ -206,7 +183,6 @@ class Credential extends React.Component {
           module={this.module}
         />
         {this.renderContent()}
-        {this.renderModals()}
       </div>
     )
   }

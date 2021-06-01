@@ -1,25 +1,28 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { capitalize } from 'lodash'
 
-import { Avatar, Status, Button } from 'components/Base'
+import { Button } from '@juanchi_xd/components'
+
+import { Status } from 'components/Base'
+import Avatar from 'apps/components/Avatar'
 import Banner from 'components/Cards/Banner'
 import Table from 'components/Tables/List'
 import withList, { ListPage } from 'components/HOCs/withList'
@@ -98,7 +101,6 @@ export default class Apps extends React.Component {
     {
       title: t('Name'),
       dataIndex: 'app_id',
-      width: '27%',
       render: (app_id, app) => {
         const avatar = this.getAvatar(app.icon)
         return (
@@ -128,20 +130,13 @@ export default class Apps extends React.Component {
       title: t('Latest Version'),
       dataIndex: 'latest_app_version.name',
       isHideable: true,
-      width: '15%',
-    },
-    {
-      title: t('Deployed Instances'),
-      dataIndex: 'cluster_total',
-      isHideable: true,
-      width: '15%',
-      render: total => total || 0,
+      width: '20%',
     },
     {
       title: t('Updated Time'),
       dataIndex: 'update_time',
       isHideable: true,
-      width: '20%',
+      width: '120',
       render: (time, item) => getLocalTime(time || item.status_time).fromNow(),
     },
   ]

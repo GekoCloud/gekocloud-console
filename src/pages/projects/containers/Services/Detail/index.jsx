@@ -1,31 +1,32 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { get, isEmpty } from 'lodash'
-import { Loading } from '@pitrix/lego-ui'
+import { Loading } from '@juanchi_xd/components'
 
 import { getDisplayName, joinSelector, getLocalTime } from 'utils'
 import { trigger } from 'utils/action'
 import { SERVICE_TYPES } from 'utils/constants'
 import ServiceStore from 'stores/service'
+import ServiceMonitorStore from 'stores/monitoring/service.monitor'
 
 import DetailPage from 'projects/containers/Base/Detail'
 
@@ -36,6 +37,8 @@ import getRoutes from './routes'
 @trigger
 export default class ServiceDetail extends React.Component {
   store = new ServiceStore()
+
+  serviceMonitorStore = new ServiceMonitorStore()
 
   componentDidMount() {
     this.fetchData()
@@ -56,9 +59,7 @@ export default class ServiceDetail extends React.Component {
   get listUrl() {
     const { workspace, cluster, namespace } = this.props.match.params
     if (workspace) {
-      return `/${workspace}/clusters/${cluster}/projects/${namespace}/${
-        this.module
-      }`
+      return `/${workspace}/clusters/${cluster}/projects/${namespace}/${this.module}`
     }
     return `/clusters/${cluster}/${this.module}`
   }
@@ -71,6 +72,17 @@ export default class ServiceDetail extends React.Component {
     const { params } = this.props.match
     this.store.fetchDetail(params)
     this.store.fetchEndpoints(params)
+  }
+
+  fetchServiceMonitors = () => {
+    const { selector, cluster, namespace } = this.store.detail
+    if (!isEmpty(selector)) {
+      this.serviceMonitorStore.fetchListByK8s({
+        cluster,
+        namespace,
+        labelSelector: joinSelector(selector),
+      })
+    }
   }
 
   getOperations = () => [
@@ -107,6 +119,18 @@ export default class ServiceDetail extends React.Component {
         this.trigger('service.gateway.edit', {
           detail: this.store.detail,
           success: this.fetchData,
+        }),
+    },
+    {
+      key: 'serviceMonitor',
+      icon: 'linechart',
+      text: t('Service Monitoring Exporter'),
+      action: 'edit',
+      onClick: () =>
+        this.trigger('service.monitor.edit', {
+          ...this.props.match.params,
+          detail: this.store.detail,
+          success: this.fetchServiceMonitors,
         }),
     },
     {
@@ -196,6 +220,10 @@ export default class ServiceDetail extends React.Component {
         value: joinSelector(detail.selector),
       },
       {
+        name: t('DNS'),
+        value: this.renderDNS(),
+      },
+      {
         name: t('Endpoint'),
         value: this.renderEndpoints(),
       },
@@ -262,7 +290,10 @@ export default class ServiceDetail extends React.Component {
   }
 
   render() {
-    const stores = { detailStore: this.store }
+    const stores = {
+      detailStore: this.store,
+      serviceMonitorStore: this.serviceMonitorStore,
+    }
 
     if (this.store.isLoading && !this.store.detail.name) {
       return <Loading className="ks-page-loading" />

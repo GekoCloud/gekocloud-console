@@ -1,29 +1,28 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
 import classnames from 'classnames'
 import { Link } from 'react-router-dom'
-import { Icon, Menu, Dropdown } from '@pitrix/lego-ui'
+import { Button, Icon, Menu, Dropdown } from '@juanchi_xd/components'
 import { isAppsPage } from 'utils'
 
-import { Button } from 'components/Base'
 import LoginInfo from '../LoginInfo'
 
 import styles from './index.scss'
@@ -62,7 +61,7 @@ class Header extends React.Component {
 
   render() {
     const { className, innerRef, location } = this.props
-    const logo = globals.config.logo || '/assets/smartkube_logo.png'
+    const logo = globals.config.logo || '/assets/geko_logo_cloud_negativo.svg'
 
     return (
       <div
@@ -78,7 +77,7 @@ class Header extends React.Component {
         <Link to={isAppsPage() && !globals.user ? '/apps' : '/'}>
           <img
             className={styles.logo}
-            src={isAppsPage() ? `/assets/smartkube_logo.svg` : logo}
+            src={isAppsPage() ? `/assets/login-logo.svg` : logo}
             alt=""
           />
         </Link>

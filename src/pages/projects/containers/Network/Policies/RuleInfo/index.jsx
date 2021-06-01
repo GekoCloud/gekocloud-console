@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,12 +21,11 @@ import { inject, observer } from 'mobx-react'
 import { toJS } from 'mobx'
 import { get, isEmpty } from 'lodash'
 import classNames from 'classnames'
-import { Icon } from '@pitrix/lego-ui'
+import { Button, Icon } from '@juanchi_xd/components'
 
-import { Button } from 'components/Base'
 import { trigger } from 'utils/action'
 import ServiceStore from 'stores/service'
-import NetWorkStore from 'stores/network'
+import NetWorkPolicyStore from 'stores/network/policy'
 import styles from './index.scss'
 
 @inject('rootStore')
@@ -36,7 +35,7 @@ import styles from './index.scss'
 export default class RuleInfo extends React.Component {
   constructor(props) {
     super(props)
-    this.store = new NetWorkStore(props.module)
+    this.store = new NetWorkPolicyStore(props.module)
     this.projectStore = props.projectStore
     this.serviceStore = new ServiceStore()
     this.state = {
@@ -291,7 +290,7 @@ export default class RuleInfo extends React.Component {
           <div className={styles.rulemenu}>
             <div>{t('NETWORK_POLICY_R1_DESC1')}</div>
             {canEdit && (
-              <Button onClick={this.addAllowList} className={styles.addBtn}>
+              <Button type="control" onClick={this.addAllowList}>
                 {t('Add Allowlist')}
               </Button>
             )}
@@ -321,7 +320,7 @@ export default class RuleInfo extends React.Component {
           <div className={styles.rulemenu}>
             <div>{t('NETWORK_POLICY_R2_DESC1')}</div>
             {canEdit && (
-              <Button onClick={this.addIpBlock} className={styles.addBtn}>
+              <Button type="control" onClick={this.addIpBlock}>
                 {t('Add Rule')}
               </Button>
             )}

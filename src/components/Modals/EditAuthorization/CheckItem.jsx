@@ -1,36 +1,56 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import { get, isEmpty } from 'lodash'
 
-import { Checkbox } from '@pitrix/lego-ui'
-import { Text, Tag } from 'components/Base'
+import { Checkbox, Tag, Notify } from '@juanchi_xd/components'
+import { Text } from 'components/Base'
 
 import styles from './index.scss'
 
 export default class CheckItem extends Component {
   handleCheck = () => {
-    const { roleTemplates, data, onChange } = this.props
+    const { roleTemplates, roleTemplatesMap, data, onChange } = this.props
 
     let newTemplates = [...roleTemplates]
     if (newTemplates.includes(data.name)) {
-      newTemplates = newTemplates.filter(item => item !== data.name)
+      const relateTemplates = newTemplates.filter(
+        template =>
+          template !== data.name &&
+          this.getDependencies([template]).includes(data.name)
+      )
+      if (relateTemplates.length === 0) {
+        newTemplates = newTemplates.filter(item => item !== data.name)
+      } else {
+        Notify.warning(
+          t(
+            relateTemplates.length === 1
+              ? 'RULE_RELATED_WITH'
+              : 'RULE_RELATED_WITH_PLURAL',
+            {
+              resource: relateTemplates
+                .map(rt => t(get(roleTemplatesMap, `[${rt}].aliasName`)))
+                .join(', '),
+            }
+          )
+        )
+      }
     } else {
       newTemplates.push(data.name)
     }
@@ -64,19 +84,18 @@ export default class CheckItem extends Component {
     return dependencies
   }
 
-  handleCheckboxClick = e => e.stopPropagation()
-
   render() {
     const { roleTemplates, roleTemplatesMap, data } = this.props
 
     return (
-      <div className={styles.checkItem} onClick={this.handleCheck}>
+      <div className={styles.checkItem}>
         <Checkbox
           checked={roleTemplates.includes(data.name)}
-          onClick={this.handleCheckboxClick}
+          onClick={this.handleCheck}
         />
         <Text
           title={t(data.aliasName)}
+          onClick={this.handleCheck}
           description={t(
             `${data.aliasName.toUpperCase().replace(/\s+/g, '_')}_DESC`
           )}

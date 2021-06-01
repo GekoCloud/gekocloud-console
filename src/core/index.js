@@ -1,37 +1,33 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Suspense } from 'react'
 import ReactDOM from 'react-dom'
-import { AppContainer } from 'react-hot-loader'
-import { Loading, LocaleProvider } from '@pitrix/lego-ui'
+import { LocaleProvider, Loading, Notify } from '@juanchi_xd/components'
 
 import { isAppsPage } from 'utils'
 import request from 'utils/request'
-
-import Notify from 'components/Base/Notify'
 
 import App from './App'
 import GlobalValue from './global'
 import i18n from './i18n'
 
 require('@babel/polyfill')
-require('utils/polyfills')
 
 // request error handler
 window.onunhandledrejection = function(e) {
@@ -61,13 +57,11 @@ globals.app = new GlobalValue()
 const render = async component => {
   const { locales } = await i18n.init()
   ReactDOM.render(
-    <AppContainer>
-      <Suspense fallback={<Loading className="ks-page-loading" />}>
-        <LocaleProvider locales={locales} localeKey="lang" ignoreWarnings>
-          {component}
-        </LocaleProvider>
-      </Suspense>
-    </AppContainer>,
+    <Suspense fallback={<Loading className="ks-page-loading" />}>
+      <LocaleProvider locales={locales} localeKey="lang" ignoreWarnings>
+        {component}
+      </LocaleProvider>
+    </Suspense>,
     document.getElementById('root')
   )
 }

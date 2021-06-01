@@ -1,34 +1,37 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
+import { isEmpty } from 'lodash'
 
 import { Panel, Text } from 'components/Base'
 import PodsCard from 'components/Cards/Pods'
+import WorkloadsCard from 'projects/components/Cards/Workloads'
+import ServiceMonitors from 'projects/components/Cards/ServiceMonitors'
 import Placement from 'projects/components/Cards/Placement'
 
 import Ports from '../Ports'
 
 import styles from './index.scss'
 
-@inject('detailStore')
+@inject('detailStore', 'serviceMonitorStore')
 @observer
 export default class ResourceStatus extends React.Component {
   store = this.props.detailStore
@@ -44,6 +47,12 @@ export default class ResourceStatus extends React.Component {
   }
 
   renderPods() {
+    const { selector } = this.store.detail
+
+    if (isEmpty(selector)) {
+      return null
+    }
+
     return <PodsCard prefix={this.prefix} detail={this.store.detail} />
   }
 
@@ -82,6 +91,42 @@ export default class ResourceStatus extends React.Component {
     )
   }
 
+  renderWorkloads() {
+    const { cluster, namespace, selector, workloadType } = this.store.detail
+
+    if (isEmpty(selector)) {
+      return null
+    }
+
+    return (
+      <WorkloadsCard
+        selector={selector}
+        cluster={cluster}
+        namespace={namespace}
+        prefix={`${this.prefix}/projects/${namespace}`}
+        module={`${workloadType.toLowerCase()}s`}
+      />
+    )
+  }
+
+  renderServiceMonitors() {
+    const store = this.props.serviceMonitorStore
+    const { cluster, namespace, selector } = this.store.detail
+
+    if (isEmpty(selector)) {
+      return null
+    }
+
+    return (
+      <ServiceMonitors
+        selector={selector}
+        cluster={cluster}
+        namespace={namespace}
+        store={store}
+      />
+    )
+  }
+
   renderContent() {
     const { detail } = this.store
 
@@ -93,6 +138,8 @@ export default class ResourceStatus extends React.Component {
       <div>
         {this.renderPlacement()}
         {this.renderPorts()}
+        {this.renderServiceMonitors()}
+        {this.renderWorkloads()}
         {this.renderPods()}
       </div>
     )

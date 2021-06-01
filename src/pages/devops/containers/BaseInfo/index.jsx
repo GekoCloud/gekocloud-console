@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { isEmpty } from 'lodash'
@@ -22,8 +22,8 @@ import { Link } from 'react-router-dom'
 import classNames from 'classnames'
 import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
-import { Icon, Dropdown, Menu } from '@pitrix/lego-ui'
-import { Panel, Button, Notify } from 'components/Base'
+import { Icon, Button, Notify, Dropdown, Menu } from '@juanchi_xd/components'
+import { Panel } from 'components/Base'
 import DeleteModal from 'components/Modals/Delete'
 import Banner from 'components/Cards/Banner'
 import EditModal from 'devops/components/Modals/DevOpsEdit'
@@ -148,7 +148,7 @@ class BaseInfo extends React.Component {
       )
       .then(() => {
         this.hideEdit()
-        Notify.success({ content: `${t('Updated Successfully')}!` })
+        Notify.success({ content: `${t('Updated Successfully')}` })
         this.store.fetchDetail({
           workspace: this.workspace,
           ...this.props.match.params,
@@ -231,7 +231,7 @@ class BaseInfo extends React.Component {
           {!isEmpty(this.enabledItemActions) && (
             <div className={classNames(styles.item, 'text-right')}>
               <Dropdown
-                className="dropdown-default"
+                theme="dark"
                 content={this.renderMoreMenu()}
                 trigger="click"
                 placement="bottomRight"

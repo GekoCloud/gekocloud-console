@@ -1,25 +1,25 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import { observer } from 'mobx-react'
-import { Icon, Tooltip } from '@pitrix/lego-ui'
-import { SearchSelect } from 'components/Base'
+import { pick } from 'lodash'
+import { Icon, Select, Tooltip } from '@juanchi_xd/components'
 import ProjectStore from 'stores/project'
 
 import styles from './index.scss'
@@ -64,7 +64,7 @@ export default class ProjectSelect extends Component {
   }
 
   optionRenderer = option => (
-    <span className={styles.option}>
+    <div className={styles.option}>
       {option.isFedManaged ? (
         <img className={styles.indicator} src="/assets/cluster.svg" />
       ) : (
@@ -72,11 +72,13 @@ export default class ProjectSelect extends Component {
       )}
       {option.label}
       {option.isFedManaged && (
-        <Tooltip content={t('FEDPROJECT_RESOURCE_TIP')}>
+        <Tooltip
+          content={this.props.tipMessage || t('FEDPROJECT_RESOURCE_TIP')}
+        >
           <Icon className={styles.tip} name="question" />
         </Tooltip>
       )}
-    </span>
+    </div>
   )
 
   render() {
@@ -87,15 +89,15 @@ export default class ProjectSelect extends Component {
     }
 
     return (
-      <SearchSelect
+      <Select
         options={this.getProjects()}
-        page={this.projectStore.list.page}
-        total={this.projectStore.list.total}
-        currentLength={this.projectStore.list.data.length}
+        pagination={pick(this.projectStore.list, ['page', 'limit', 'total'])}
         isLoading={this.projectStore.list.isLoading}
         valueRenderer={this.optionRenderer}
         optionRenderer={this.optionRenderer}
         onFetch={this.fetchProjects}
+        searchable
+        clearable
         {...rest}
       />
     )

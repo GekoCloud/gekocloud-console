@@ -1,26 +1,25 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import 'whatwg-fetch'
 import qs from 'qs'
 import { isObject, get, set, merge, isEmpty } from 'lodash'
 import { getClusterUrl, safeParseJSON } from './index'
-import cookie from './cookie'
 
 const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
@@ -33,7 +32,7 @@ const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
  * @param reject
  * @returns {Function}
  */
-module.exports = methods.reduce(
+export default methods.reduce(
   (prev, method) => ({
     ...prev,
     [method.toLowerCase()]: (url, params = {}, options, reject) =>
@@ -104,15 +103,6 @@ function buildRequest({
     responseHandler = handler
   }
 
-  if (
-    cookie('currentUser') &&
-    globals.user &&
-    globals.user.username !== cookie('currentUser')
-  ) {
-    location.href = '/'
-    return
-  }
-
   return fetch(getClusterUrl(requestURL), request).then(resp =>
     responseHandler(resp, reject)
   )
@@ -177,6 +167,7 @@ function handleResponse(response, reject) {
       if (typeof reject === 'function') {
         return reject(error, response)
       }
+
       if (window.onunhandledrejection) {
         window.onunhandledrejection(error)
       }

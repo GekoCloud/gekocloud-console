@@ -1,27 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { observable, action, computed, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { set, get } from 'lodash'
-import { Button, Form } from 'components/Base'
-import { Input, Select } from '@pitrix/lego-ui'
+import { Button, Form, Input, Select } from '@juanchi_xd/components'
 
 import YamlEditor from '../StepModals/kubernetesYaml'
 import StepsEditor from '../StepsEditor'
@@ -79,6 +78,11 @@ export default class Sider extends React.Component {
     return get(this.props.store.jsonData, 'json.pipeline.agent.type', '')
   }
 
+  @computed
+  get labelDataList() {
+    return get(this.props.store, 'labelDataList', [])
+  }
+
   handleDelete = () => {
     this.props.store.deleteStage()
   }
@@ -115,6 +119,9 @@ export default class Sider extends React.Component {
   }
 
   renderAgentForms = () => {
+    const labelDataList = toJS(this.labelDataList)
+    const labelDefaultValue = get(labelDataList, '0.value', '')
+
     switch (this.agentType) {
       case 'node':
         return (
@@ -125,7 +132,11 @@ export default class Sider extends React.Component {
                 'The label on which to run the Pipeline or individual stage'
               )}
             >
-              <Input name="label" defaultValue="base" />
+              <Select
+                name="label"
+                options={labelDataList}
+                defaultValue={labelDefaultValue}
+              />
             </Form.Item>
           </Form>
         )
@@ -185,10 +196,12 @@ export default class Sider extends React.Component {
           </div>
         </div>
         {activeStage ? (
-          <StepsEditor activeStage={activeStage} store={this.props.store} />
+          <div className={styles.content}>
+            <StepsEditor activeStage={activeStage} store={this.props.store} />
+          </div>
         ) : null}
         <YamlEditor
-          value={this.formData.yaml}
+          value={this.formData.yaml || ''}
           visible={this.showYaml}
           onCancel={this.hideYamlEditor}
           onOk={this.handleSetYaml}

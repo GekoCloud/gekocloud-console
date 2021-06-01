@@ -1,26 +1,29 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, isEmpty } from 'lodash'
-import { Modal, Notify } from 'components/Base'
+import { Notify } from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 import NetworkPoliciesModal from 'components/Modals/Network/Policies'
 import NetworkPoliciesIpBlockModal from 'components/Modals/Network/Policies/IpBlock'
 import AddByYamlModal from 'components/Modals/Network/Policies/AddByYaml'
+import CreateIPPoolModal from 'components/Modals/Network/IPPoolsCreate'
+import IPPoolWorkspaceModal from 'components/Modals/Network/IPPoolWorkspace'
 import DeleteModal from 'components/Modals/Delete'
 import FORM_TEMPLATES from 'utils/form.templates'
 
@@ -37,7 +40,7 @@ export default {
           }
           store.create(data, { cluster, namespace }).then(() => {
             Modal.close(modal)
-            Notify.success({ content: `${t('Created Successfully')}!` })
+            Notify.success({ content: `${t('Created Successfully')}` })
             success && success()
           })
         },
@@ -59,7 +62,7 @@ export default {
           }
           store.create(data, { cluster, namespace }).then(() => {
             Modal.close(modal)
-            Notify.success({ content: `${t('Created Successfully')}!` })
+            Notify.success({ content: `${t('Created Successfully')}` })
             success && success()
           })
         },
@@ -77,7 +80,7 @@ export default {
         onOk: () => {
           store.delete({ name: ruleName, namespace, cluster }).then(() => {
             Modal.close(modal)
-            Notify.success({ content: `${t('Deleted Successfully')}!` })
+            Notify.success({ content: `${t('Deleted Successfully')}` })
             success && success()
           })
         },
@@ -99,6 +102,55 @@ export default {
           success && success()
         },
         store,
+        ...props,
+      })
+    },
+  },
+  'network.ippool.add': {
+    on({ store, success, ...props }) {
+      const { cluster } = props
+      const modal = Modal.open({
+        modal: CreateIPPoolModal,
+        onOk: async data => {
+          const { cidrs } = data
+          const reqs = []
+
+          cidrs.forEach(item => {
+            reqs.push(
+              store.create(
+                {
+                  apiVersion: 'network.kubesphere.io/v1alpha1',
+                  kind: 'IPPool',
+                  metadata: {
+                    name: item.name,
+                    annotations: { 'kubesphere.io/description': item.desc },
+                  },
+                  spec: { type: 'calico', cidr: item.cidr },
+                },
+                { cluster }
+              )
+            )
+          })
+          await Promise.all(reqs)
+          Modal.close(modal)
+          success && success()
+        },
+        store,
+        ...props,
+      })
+    },
+  },
+  'network.ipool.assignworkspace': {
+    on({ store, success, detail, ...props }) {
+      const modal = Modal.open({
+        modal: IPPoolWorkspaceModal,
+        onOk: async data => {
+          await store.patch(detail, data)
+          Modal.close(modal)
+          success && success()
+        },
+        store,
+        detail,
         ...props,
       })
     },

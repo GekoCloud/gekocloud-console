@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get } from 'lodash'
@@ -47,6 +47,7 @@ export default class DefaultResourceEditModal extends React.Component {
 
     this.state = {
       data: get(props.detail, 'limit', {}),
+      error: '',
     }
   }
 
@@ -78,21 +79,26 @@ export default class DefaultResourceEditModal extends React.Component {
     onOk(this.state.data)
   }
 
+  handleError = error => this.setState({ error })
+
   render() {
     const { visible, onCancel, isSubmitting } = this.props
+    const { error } = this.state
     return (
       <Modal
-        width={691}
+        width={791}
         title={t('Container Resource Default Request')}
         icon="firewall"
         onOk={this.handleOk}
         onCancel={onCancel}
         visible={visible}
         isSubmitting={isSubmitting}
+        disableSubmit={!!error}
       >
         <ResourceLimit
           defaultValue={this.resourceLimit}
           onChange={this.handleChange}
+          onError={this.handleError}
         />
       </Modal>
     )

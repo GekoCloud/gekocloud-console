@@ -1,26 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { isEmpty } from 'lodash'
 import React from 'react'
 import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
-import { Card } from 'components/Base'
+import { Panel } from 'components/Base'
 import Placement from 'projects/components/Cards/Placement'
 
 import Rule from './Rule'
@@ -57,7 +57,7 @@ class ResourceStatus extends React.Component {
     const detail = toJS(this.store.detail)
     const gateway = toJS(this.store.gateway.data)
 
-    const tls = detail.tls[0] || {}
+    const tls = detail.tls || []
 
     if (isEmpty(detail.rules)) {
       return null
@@ -66,7 +66,7 @@ class ResourceStatus extends React.Component {
     const { workspace, cluster, namespace } = this.props.match.params
 
     return (
-      <Card title={t('Rules')}>
+      <Panel title={t('Rules')}>
         {detail.rules.map(rule => (
           <Rule
             key={rule.host}
@@ -78,7 +78,7 @@ class ResourceStatus extends React.Component {
             }/clusters/${cluster}/projects/${namespace}`}
           />
         ))}
-      </Card>
+      </Panel>
     )
   }
 

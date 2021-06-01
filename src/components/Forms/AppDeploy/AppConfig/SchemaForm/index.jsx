@@ -1,26 +1,27 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
 import { map, get, set, every, has, debounce, isEmpty } from 'lodash'
-import { TextArea, InputNumber, Input, Toggle } from '@pitrix/lego-ui'
-import { Form, Slider, Text } from 'components/Base'
+import { Form, Input, Slider, TextArea, Toggle } from '@juanchi_xd/components'
+import { Text } from 'components/Base'
+import { NumberInput } from 'components/Inputs'
 
 import styles from './index.scss'
 
@@ -79,6 +80,7 @@ export default class SchemaForm extends React.Component {
               unit={propObj.sliderUnit}
               marks={this.generateMarks(propObj.sliderMin, propObj.sliderMax)}
               {...attrs}
+              withInput
             />
           )
         } else if (propObj.render === 'textArea') {
@@ -88,7 +90,7 @@ export default class SchemaForm extends React.Component {
         }
         break
       case 'integer':
-        content = <InputNumber {...attrs} min={0} />
+        content = <NumberInput {...attrs} min={0} integer />
         break
       case 'boolean':
         content = (

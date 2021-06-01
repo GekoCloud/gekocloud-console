@@ -1,34 +1,35 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { observer } from 'mobx-react'
 import { isEmpty } from 'lodash'
 import { observable, action, toJS } from 'mobx'
-import ParamsModal from 'components/Forms/CICDs/paramsModal'
+
 import PropTypes from 'prop-types'
 import { Dragger } from 'components/Base'
+import ParamsFormModal from 'components/Forms/Pipelines/ParamsFormModal'
 
 import PipelineNodes from './nodesRender'
 import style from './index.scss'
 
 @observer
-export default class Pipeline extends React.Component {
+export default class PipelineStatus extends React.Component {
   constructor(props) {
     super(props)
     this.draggerCref = React.createRef()
@@ -64,7 +65,10 @@ export default class Pipeline extends React.Component {
 
   @action
   handleProceed = async (parameters, cb) => {
-    await this.context.onProceed({ parameters, ...this.elseParams }, cb)
+    await this.context.onProceed(
+      { parameters, ...this.elseParams },
+      typeof cb === 'function' ? cb : undefined
+    )
     this.showParamsModal = false
   }
 
@@ -101,7 +105,7 @@ export default class Pipeline extends React.Component {
             onBreak={this.context.onBreak}
           />
         </Dragger>
-        <ParamsModal
+        <ParamsFormModal
           visible={this.showParamsModal}
           parameters={toJS(this.parameters)}
           onCancel={this.hideProceedModal}

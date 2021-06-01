@@ -1,27 +1,25 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { capitalize } from 'lodash'
 
-import { safeAtob } from 'utils'
 import cookie from 'utils/cookie'
 import { STATUS_TRANSFER_MAP } from 'configs/openpitrix/version'
-import { saveAs } from 'file-saver'
 
 export const transferAppStatus = status => {
   if (cookie('lang') === 'zh') {
@@ -41,19 +39,24 @@ export const transferVersionStatus = status => {
 }
 
 export const transferReviewStatus = status => {
-  if (status === 'submitted') {
-    return 'pending-review'
+  let transStatus
+  switch (status) {
+    case 'submitted':
+      transStatus = 'pending-review'
+      break
+    case 'passed':
+    case 'suspended':
+    case 'rejected':
+      transStatus = status
+      break
+    case 'active':
+      transStatus = 'published'
+      break
+    default:
+      transStatus = 'in-review'
   }
 
-  if (status === 'admin-passed') {
-    return 'passed'
-  }
-
-  if (status.endsWith('-rejected')) {
-    return 'rejected'
-  }
-
-  return 'in-review'
+  return transStatus
 }
 
 export const getVersionTypesName = typeStr => {
@@ -79,19 +82,10 @@ export const getAppCategoryNames = categories => {
 }
 
 export const downloadFileFromBase64 = (base64Str = '', fileName) => {
-  // Convert the Base64 string back to text.
-  const byteString = safeAtob(base64Str)
-
-  // Convert that text into a byte array.
-  const ab = new ArrayBuffer(byteString.length)
-  const ia = new Uint8Array(ab)
-  for (let i = 0; i < byteString.length; i++) {
-    ia[i] = byteString.charCodeAt(i)
-  }
-
-  const blob = new Blob([ia], { type: 'application/tar+gzip' })
-
-  saveAs(blob, `${fileName}.tgz`)
+  const a = document.createElement('a')
+  a.href = `data:application/tar+gzip;base64,${base64Str}`
+  a.download = `${fileName}.tgz`
+  a.click()
 }
 
 export const compareVersion = (v1, v2) => {

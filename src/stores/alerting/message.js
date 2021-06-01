@@ -1,113 +1,137 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { observable, action } from 'mobx'
-import { isEmpty } from 'lodash'
+import { get } from 'lodash'
+import { action, observable } from 'mobx'
 
-import ObjectMapper from 'utils/object.mapper'
-import UserStore from 'stores/user'
-import List from 'stores/base.list'
+import { LIST_DEFAULT_ORDER } from 'utils/constants'
 
-import Base from './base'
+import Base from 'stores/base'
 
-export default class MessageStore extends Base {
-  module = 'history'
-
-  comments = new List()
-
-  userStore = new UserStore()
+export default class AlertStore extends Base {
+  @observable
+  ruleCount = 0
 
   @observable
-  notifications = {
-    data: {},
-    total: 0,
-    isLoading: true,
+  builtinRuleCount = 0
+
+  get apiVersion() {
+    return 'kapis/alerting.kubesphere.io/v2alpha1/'
   }
 
-  get mapper() {
-    return ObjectMapper['alertmessage']
+  getPath({ cluster, namespace, ruleName, type } = {}) {
+    let path = ''
+    if (cluster) {
+      path += `/klusters/${cluster}`
+    }
+    if (namespace) {
+      path += `/namespaces/${namespace}`
+    }
+    if (type === 'builtin') {
+      path += `/${type}`
+    }
+    if (ruleName) {
+      path += `/rules/${ruleName}`
+    }
+    return path
   }
 
-  getDetailUrl = ({ id, ...params }) =>
-    `${this.getListUrl(params)}?${this.module}_ids=${id}`
+  module = 'alerts'
 
-  getCommentUrl = (params = {}) =>
-    `${this.apiVersion}${this.getPath(params)}/comment`
+  getResourceUrl = this.getListUrl
 
-  @action
-  async fetchNotifications({
-    ruleId,
-    resourceName,
-    status,
-    recent = false,
-    ...rest
-  }) {
-    this.notifications.isLoading = true
-
-    const params = {
-      rule_ids: ruleId,
-      resource_names: resourceName,
-      recent,
-      reverse: true,
-      sort_key: 't1.create_time',
-      ...rest,
+  getFilterParams = params => {
+    const result = { ...params }
+    if (result['labels.severity']) {
+      result.label_filters = `severity=${result['labels.severity']}`
+      delete result['labels.severity']
     }
-
-    if (!isEmpty(status)) {
-      params.events = status
-    }
-
-    const result = await request.get(this.getListUrl(rest), params)
-    const data = (result[this.itemsKey] || []).map(this.mapper)
-
-    this.notifications = {
-      data,
-      total: result.total || 0,
-      isLoading: false,
-    }
+    return result
   }
 
   @action
-  async fetchComments({ cluster, id }) {
-    this.comments.isLoading = true
+  async fetchList({
+    cluster,
+    workspace,
+    namespace,
+    more,
+    ruleName,
+    type,
+    ...params
+  } = {}) {
+    this.list.isLoading = true
 
-    const params = {
-      history_ids: id,
+    if (!params.sortBy && params.ascending === undefined) {
+      params.sortBy = LIST_DEFAULT_ORDER[this.module] || 'createTime'
     }
-    const result = await request.get(this.getCommentUrl({ cluster }), params)
-    const results = result.comment_set || []
 
-    this.comments.update({
-      data: results,
+    if (params.limit === Infinity || params.limit === -1) {
+      params.limit = -1
+      params.page = 1
+    }
+
+    params.limit = params.limit || 10
+
+    const result = await request.get(
+      this.getResourceUrl({ cluster, workspace, namespace, ruleName, type }),
+      this.getFilterParams(params)
+    )
+    const data = (get(result, 'items') || []).map((item, index) => ({
+      cluster,
+      namespace,
+      id: index,
+      ...this.mapper(item),
+    }))
+
+    const total = result.total
+
+    if (type === 'builtin') {
+      this.builtinRuleCount = total
+    } else {
+      this.ruleCount = total
+    }
+
+    this.list.update({
+      data: more ? [...this.list.data, ...data] : data,
+      total,
+      ...params,
+      limit: Number(params.limit) || 10,
+      page: Number(params.page) || 1,
       isLoading: false,
+      ...(this.list.silent ? {} : { selectedRowKeys: [] }),
     })
+
+    return data
   }
 
   @action
-  createComment(params, data) {
-    return this.submitting(request.post(this.getCommentUrl(params), data))
-  }
-
-  fetchList(params) {
-    const defaultParams = {
-      sort_key: 't1.create_time',
-      reverse: true,
-    }
-    super.fetchList({ ...defaultParams, ...params })
+  async fetchCount({ cluster, namespace }) {
+    const result = await Promise.all([
+      request.get(this.getResourceUrl({ cluster, namespace }), {
+        page: 1,
+        limit: 1,
+      }),
+      request.get(
+        this.getResourceUrl({ cluster, namespace, type: 'builtin' }),
+        { page: 1, limit: 1 }
+      ),
+    ])
+    this.ruleCount = get(result, '0.total', 0)
+    this.builtinRuleCount = get(result, '1.total', 0)
   }
 }

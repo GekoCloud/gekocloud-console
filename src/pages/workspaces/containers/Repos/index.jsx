@@ -1,24 +1,27 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
+import { parse } from 'qs'
+import { debounce } from 'lodash'
 
-import { Avatar, Status, Notify } from 'components/Base'
+import { Notify } from '@juanchi_xd/components'
+import { Avatar, Status } from 'components/Base'
 import Banner from 'components/Cards/Banner'
 import Table from 'components/Tables/List'
 import withList, { ListPage } from 'components/HOCs/withList'
@@ -85,7 +88,7 @@ export default class AppRepos extends React.Component {
         {
           key: 'create',
           type: 'control',
-          text: t('Add Repo'),
+          text: t('Add Repository'),
           action: 'manage',
           onClick: () =>
             trigger('openpitrix.repo.add', {
@@ -143,7 +146,7 @@ export default class AppRepos extends React.Component {
       dataIndex: 'status',
       isHideable: true,
       width: '15%',
-      render: status => <Status type={status} name={t(status)} />,
+      render: status => <Status type={status} name={t(status)} flicker />,
     },
     {
       title: t('URL'),
@@ -151,10 +154,27 @@ export default class AppRepos extends React.Component {
     },
   ]
 
+  handleFetch = debounce(query => {
+    const { store, getData } = this.props
+    if (store.list.isLoading) {
+      return
+    }
+    const params = parse(location.search.slice(1))
+    return getData({ ...params, ...query, silent: true })
+  }, 1000)
+
+  handleWatch = message => {
+    if (message.object.kind === 'HelmRepo') {
+      if (['MODIFIED', 'DELETED', 'ADDED'].includes(message.type)) {
+        this.handleFetch()
+      }
+    }
+  }
+
   render() {
     const { bannerProps, tableProps } = this.props
     return (
-      <ListPage {...this.props} noWatch>
+      <ListPage {...this.props} onMessage={this.handleWatch}>
         <Banner
           {...bannerProps}
           tips={this.tips}

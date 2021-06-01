@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -23,7 +23,7 @@ import { action, observable, computed } from 'mobx'
 import { observer } from 'mobx-react'
 import { get } from 'lodash'
 
-import { Icon } from '@pitrix/lego-ui'
+import { Icon } from '@juanchi_xd/components'
 import DefaultRange from 'components/Cards/Monitoring/Controller/TimeSelector/Range/Default'
 import CustomRange from 'components/Cards/Monitoring/Controller/TimeSelector/Range/Custom'
 import {
@@ -329,7 +329,7 @@ export default class SearchBar extends React.Component {
               {options.imgUrl ? (
                 <img height="100%" src={options.imgUrl} />
               ) : (
-                <Icon name={options.icon} size="20" />
+                <Icon name={options.icon} />
               )}
             </span>
             <span>{options.text}</span>
@@ -342,7 +342,7 @@ export default class SearchBar extends React.Component {
             key={'_time'}
           >
             <span className={styles.icon}>
-              <Icon name="clock" size="20" />
+              <Icon name="clock" />
             </span>
             <span>{t('Time Range')}</span>
           </div>

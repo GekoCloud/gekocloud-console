@@ -21,9 +21,9 @@
   right: 32px;
 
   &:hover {
-    :global .qicon-light {
-      color: #C0690C;
-      fill: #F9CE9F;
+    :global .kubed-icon-light {
+      color: #324558;
+      fill: #b6c2cd;
     }
   }
 }
@@ -42,7 +42,7 @@
   padding-top: calc(50vh - 160px);
   overflow: hidden;
 
-  &:hover {
+  &.active {
     background-color: $blue-color03;
 
     .bottomIcon {

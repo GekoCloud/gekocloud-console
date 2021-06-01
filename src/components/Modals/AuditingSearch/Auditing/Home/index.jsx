@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,7 +21,7 @@ import { action, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import moment from 'moment-mini'
 import classnames from 'classnames'
-import { Icon, Loading, Select } from '@pitrix/lego-ui'
+import { Icon, Loading, Select } from '@juanchi_xd/components'
 
 import SearchInput from 'components/Modals/LogSearch/Logging/SearchInput'
 import TimeBar from 'components/Charts/Bar/TimeBar'
@@ -163,11 +163,7 @@ export default class Home extends React.Component {
         <div className={classnames(styles.card, styles.recent)}>
           <div className={styles.recentSummary}>
             <h2 className={styles.count}>{total || 0}</h2>
-            <p>
-              {t(
-                'Trends in the total number of auditing logs in the last 12 hours'
-              )}
-            </p>
+            <p>{t('Auditing log trends in the last 12 hours')}</p>
           </div>
           <div className={styles.chart}>
             <TimeBar

@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,19 +21,20 @@ import { inject, observer } from 'mobx-react'
 import { set } from 'lodash'
 import { observable, toJS } from 'mobx'
 import classNames from 'classnames'
-import { Modal, Form, Panel } from 'components/Base'
+import {
+  Form,
+  RadioGroup,
+  RadioButton,
+  Checkbox,
+  Icon,
+  Tooltip,
+} from '@juanchi_xd/components'
+import { Modal, Panel } from 'components/Base'
 import ServiceStore from 'stores/service'
 import { generateId } from 'utils'
 
-import {
-  RadioGroup,
-  RadioButton,
-  Select,
-  List,
-  Checkbox,
-  Icon,
-} from '@pitrix/lego-ui'
 import styles from './index.scss'
+import { ProjectSelect } from '../../../Inputs'
 
 @inject('projectStore')
 @observer
@@ -180,7 +181,6 @@ export default class NetworkPoliciesModal extends React.Component {
           ]}
         >
           <RadioGroup
-            size="large"
             name="direction"
             defaultValue={specType}
             wrapClassName={styles.dirCheck}
@@ -198,7 +198,6 @@ export default class NetworkPoliciesModal extends React.Component {
             </RadioButton>
           </RadioGroup>
         </Form.Item>
-
         <Form.Item
           label={`${t('Type')}:`}
           rules={[{ validator: this.psValidator }]}
@@ -206,7 +205,7 @@ export default class NetworkPoliciesModal extends React.Component {
         >
           <RadioGroup
             name="type"
-            wrapClassName="radio-default"
+            mode="button"
             buttonWidth={155}
             defaultValue={tabName}
             onChange={this.handleTabChange}
@@ -223,23 +222,30 @@ export default class NetworkPoliciesModal extends React.Component {
             styles.panel_p
           )}
         >
-          <List
-            className={styles.list}
-            itemRenderer={item => (
-              <Checkbox
-                value={item.name}
-                checked={
-                  specNameSpaces.filter(ns => ns.name === item.name).length > 0
-                }
-                onChange={(e, checked) => {
-                  this.handleNameSpaceChecked(item, checked)
-                }}
-              >
-                {item.name}
-              </Checkbox>
-            )}
-            items={projectList.data.map(item => item)}
-          />
+          <ul className={styles.list}>
+            {projectList.data.map(item => (
+              <li key={item.name}>
+                <Checkbox
+                  value={item.name}
+                  checked={
+                    specNameSpaces.filter(ns => ns.name === item.name).length >
+                    0
+                  }
+                  disabled={item.isFedManaged}
+                  onChange={checked => {
+                    this.handleNameSpaceChecked(item, checked)
+                  }}
+                >
+                  {item.name}
+                </Checkbox>
+                {item.isFedManaged && (
+                  <Tooltip content={t('FED_HOST_NAMESPACE_TIP')}>
+                    <Icon className={styles.tip} name="question" />
+                  </Tooltip>
+                )}
+              </li>
+            ))}
+          </ul>
         </Panel>
         <Panel
           className={classNames(
@@ -248,37 +254,35 @@ export default class NetworkPoliciesModal extends React.Component {
           )}
         >
           <div className={styles.sheader}>
-            <Select
-              value={specCurNameSpace}
+            <ProjectSelect
+              cluster={this.props.cluster}
+              defaultValue={specCurNameSpace}
               onChange={this.handleNameSpaceChange}
-              options={projectList.data.map(p => ({
-                value: p.name,
-                label: p.name,
-              }))}
+              tipMessage={t('FED_HOST_NAMESPACE_TIP')}
             />
           </div>
           <div className={styles.sbody}>
-            <List
-              className={styles.list}
-              itemRenderer={item => (
-                <Checkbox
-                  value={item.name}
-                  checked={
-                    specServices.filter(
-                      el =>
-                        el.name === item.name &&
-                        el.namespace === specCurNameSpace
-                    ).length > 0
-                  }
-                  onChange={(e, checked) => {
-                    this.handleServiceChange(item, checked)
-                  }}
-                >
-                  {item.name}
-                </Checkbox>
-              )}
-              items={serviceList.data.map(item => item)}
-            />
+            <ul className={styles.list}>
+              {serviceList.data.map(item => (
+                <li key={item.name}>
+                  <Checkbox
+                    value={item.name}
+                    checked={
+                      specServices.filter(
+                        el =>
+                          el.name === item.name &&
+                          el.namespace === specCurNameSpace
+                      ).length > 0
+                    }
+                    onChange={checked => {
+                      this.handleServiceChange(item, checked)
+                    }}
+                  >
+                    {item.name}
+                  </Checkbox>
+                </li>
+              ))}
+            </ul>
           </div>
         </Panel>
       </Modal.Form>

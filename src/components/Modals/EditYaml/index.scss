@@ -1,6 +1,10 @@
 .editor {
   height: 100%;
-  overflow-y: auto;
+  :global {
+    .ace_editor {
+      min-height: 100%;
+    }
+  }
 }
 
 .readOnly {

@@ -1,34 +1,35 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
-import { observer } from 'mobx-react'
-import { reaction } from 'mobx'
-import { get } from 'lodash'
+import { observer, inject } from 'mobx-react'
+import { reaction, toJS } from 'mobx'
+import { get, isEmpty } from 'lodash'
+import { Button } from '@juanchi_xd/components'
 import {
   addFullScreenChangeEvents,
   removeFullScreenChangeEvents,
   enterFullScreen,
 } from 'utils/dom'
 
-import { Modal, Button } from 'components/Base'
+import { Modal } from 'components/Base'
 import Status from 'devops/components/Status'
 import { getPipelineStatus } from 'utils/status'
 import PipelineContent from 'devops/components/PipelineStatus'
@@ -36,9 +37,9 @@ import PipelineContent from 'devops/components/PipelineStatus'
 import PipelineLog from '../PipelineLogDialog'
 import style from './index.scss'
 
-// @inject('devopsStore')
+@inject('rootStore', 'detailStore')
 @observer
-export default class Pipeline extends React.Component {
+export default class TaskStatus extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -47,10 +48,7 @@ export default class Pipeline extends React.Component {
       showErrorLog: false,
     }
     this.store = props.detailStore || {}
-    this.updateReaction = reaction(
-      () => this.props.detailStore.runDetail,
-      this.handleFetch
-    )
+    this.updateReaction = reaction(() => this.store.runDetail, this.handleFetch)
   }
 
   get enabledActions() {
@@ -64,16 +62,15 @@ export default class Pipeline extends React.Component {
   }
 
   get hasRuning() {
-    const { runDetail } = this.props.detailStore
+    const { runDetail } = this.store
     const state = get(runDetail, 'state')
 
     return state && state !== 'FINISHED' && state !== 'PAUSED'
   }
 
   get isQueued() {
-    const { runDetail } = this.props.detailStore
+    const { runDetail } = this.store
     const state = get(runDetail, 'state', '')
-
     return state === 'QUEUED'
   }
 
@@ -102,12 +99,11 @@ export default class Pipeline extends React.Component {
   }
 
   handleFetch = () => {
-    const { params } = this.props.match
-    const { runDetail } = this.props.detailStore
-    if (get(runDetail, 'state') === 'QUEUED') {
-      return
+    const { runDetail } = this.store
+    if (!isEmpty(toJS(runDetail)) && !this.isQueued) {
+      const { params } = this.props.match
+      this.store.getNodesStatus(params)
     }
-    this.store.getNodesStatus(params)
   }
 
   toggleFullScreenState = () => {
@@ -135,14 +131,14 @@ export default class Pipeline extends React.Component {
   handleDownloadLogs = () => {
     const { params } = this.props.match
 
-    this.props.detailStore.handleDownloadLogs(params)
+    this.store.handleDownloadLogs(params)
   }
 
   handleProceed = async (_params, callBack) => {
     try {
       const { params } = this.props.match
       await this.store.handleProceed({ ..._params, ...params })
-      await this.props.detailStore.getRunDetail(params)
+      await this.store.getRunDetail(params)
     } finally {
       callBack && callBack()
     }
@@ -152,7 +148,7 @@ export default class Pipeline extends React.Component {
     try {
       const { params } = this.props.match
       await this.store.handleBreak({ ..._params, ...params })
-      await this.props.detailStore.getRunDetail(params)
+      await this.store.getRunDetail(params)
     } finally {
       callBack && callBack()
     }
@@ -182,13 +178,15 @@ export default class Pipeline extends React.Component {
     </div>
   )
 
-  renderQueuedCard = () => (
+  renderQueuedCard = runDetail => (
     <div className={style.card}>
       <div>
         <span className={classNames(style.QueuedIcon, style.icon)} />
       </div>
       <div className={style.title}>{t('PIPELINE_QUEUED_TITLE')}</div>
-      <div className={style.desc}>{t('PIPELINE_QUEUED_DESC')}</div>
+      <div className={style.desc}>
+        {get(runDetail, 'causeOfBlockage') || t('PIPELINE_QUEUED_DESC')}
+      </div>
     </div>
   )
 
@@ -198,7 +196,7 @@ export default class Pipeline extends React.Component {
 
     if (nodesStatus.length === 0) {
       if (this.isQueued) {
-        return this.renderQueuedCard()
+        return this.renderQueuedCard(runDetail)
       }
       if (this.hasRuning && !showErrorLog) {
         return this.renderLoadingCard()

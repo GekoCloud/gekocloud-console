@@ -1,26 +1,28 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { observer } from 'mobx-react'
+import { pick } from 'lodash'
 
-import { Alert, Modal, Form, SearchSelect } from 'components/Base'
+import { Alert, Form, Select } from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 
 import WorkspaceStore from 'stores/workspace'
 import UserStore from 'stores/user'
@@ -104,15 +106,19 @@ export default class AssignWorkspaceModal extends Component {
           message={t('PROJECT_ASSIGN_DESC')}
         />
         <Form.Item label={t('Target Workspace')} desc={t('Choose a workspace')}>
-          <SearchSelect
+          <Select
             name="metadata.labels['kubesphere.io/workspace']"
             onChange={this.handleWorkspaceChange}
             options={this.getWorkspaces()}
-            page={this.workspaceStore.list.page}
-            total={this.workspaceStore.list.total}
-            currentLength={this.workspaceStore.list.data.length}
+            pagination={pick(this.workspaceStore.list, [
+              'page',
+              'total',
+              'limit',
+            ])}
             isLoading={this.workspaceStore.list.isLoading}
             onFetch={this.fetchWorkspaces}
+            searchable
+            clearable
           />
         </Form.Item>
         <Form.Item
@@ -121,14 +127,14 @@ export default class AssignWorkspaceModal extends Component {
             'Select a user of the workspace as the manager of the project.'
           )}
         >
-          <SearchSelect
+          <Select
             name="metadata.annotations['kubesphere.io/creator']"
             options={this.getUsers()}
-            page={this.memberStore.list.page}
-            total={this.memberStore.list.total}
-            currentLength={this.memberStore.list.data.length}
-            isLoading={this.workspaceStore.list.isLoading}
+            pagination={pick(this.memberStore.list, ['page', 'total', 'limit'])}
+            isLoading={this.memberStore.list.isLoading}
             onFetch={this.fetchMembers}
+            searchable
+            clearable
           />
         </Form.Item>
       </Modal.Form>

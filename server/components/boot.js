@@ -1,48 +1,34 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 const compress = require('koa-compress')
 const mount = require('koa-mount')
 const render = require('koa-ejs')
 const serve = require('koa-static')
-const session = require('koa-session2')
 
-const Store = require('../store')
 const { getServerConfig, root } = require('../libs/utils')
 
 const serverConfig = getServerConfig().server
 
 module.exports = function(app) {
-  app.use(
-    session({
-      store: !global.MODE_DEV && serverConfig.redis ? new Store() : undefined,
-      key: serverConfig.sessionKey,
-      maxAge: serverConfig.sessionTimeout,
-      signed: true,
-    })
-  )
-
   // compress middleware
   app.use(
     compress({
-      filter(content_type) {
-        return /(text|javascript)/i.test(content_type)
-      },
       threshold: 2048,
       flush: require('zlib').Z_SYNC_FLUSH,
     })

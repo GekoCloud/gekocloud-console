@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -45,16 +45,7 @@ export default class KubeCtlModal extends React.Component {
   terminalRef = React.createRef()
 
   componentDidMount() {
-    if (!this.props.cluster) {
-      this.clusterStore.fetchListByK8s().then(() => {
-        const cluster = get(this.clusters, '[0].value')
-        this.setState({ cluster }, () => {
-          this.store.fetchKubeCtl({ cluster })
-        })
-      })
-    } else {
-      this.store.fetchKubeCtl({ cluster: this.props.cluster })
-    }
+    this.fetchData()
   }
 
   get clusters() {
@@ -64,14 +55,46 @@ export default class KubeCtlModal extends React.Component {
         label: item.name,
         value: item.name,
         icon: CLUSTER_PROVIDER_ICON[item.provider] || 'kubernetes',
+        version: get(item, 'configz.ksVersion'),
         description: item.provider,
       }))
   }
 
+  async fetchData() {
+    if (!globals.app.isMultiCluster) {
+      return this.store.fetchKubeCtl({
+        clusterVersion: get(globals, 'ksConfig.ksVersion'),
+      })
+    }
+
+    if (!this.props.cluster) {
+      await this.clusterStore.fetchListByK8s()
+      const cluster = get(this.clusters, '[0].value')
+      const clusterVersion = get(this.clusters, '[0].version')
+      this.setState({ cluster, clusterVersion }, () => {
+        this.store.fetchKubeCtl({ cluster, clusterVersion })
+      })
+    } else {
+      const { cluster, clusterVersion } = this.props
+      let version = clusterVersion
+      if (!version) {
+        const clusterDetail = await this.clusterStore.fetchDetail({
+          name: cluster,
+        })
+        version = get(clusterDetail, 'configz.ksVersion')
+      }
+      this.store.fetchKubeCtl({ cluster, clusterVersion: version })
+    }
+  }
+
   handleClusterChange = cluster => {
-    this.setState({ cluster }, () => {
-      this.store.fetchKubeCtl({ cluster })
-    })
+    const clusterObj = this.clusters.find(item => item.value === cluster)
+
+    if (clusterObj) {
+      this.setState({ cluster }, () => {
+        this.store.fetchKubeCtl({ cluster, clusterVersion: clusterObj.version })
+      })
+    }
   }
 
   onTipsToggle = () => {

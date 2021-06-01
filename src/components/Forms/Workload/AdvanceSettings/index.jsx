@@ -1,35 +1,32 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { get } from 'lodash'
 import { MODULE_KIND_MAP } from 'utils/constants'
 
-import { Form } from 'components/Base'
+import { Form } from '@juanchi_xd/components'
 
 import Metadata from './Metadata'
 import NodeSchedule from './NodeSchedule'
+import PodIPRange from './PodIPRange'
 
 export default class AdvancedSettings extends React.Component {
-  get cluster() {
-    return this.props.cluster
-  }
-
   get namespace() {
     return get(this.formTemplate, 'metadata.namespace')
   }
@@ -46,9 +43,17 @@ export default class AdvancedSettings extends React.Component {
   }
 
   render() {
-    const { formRef, store, module, prefix, isFederated } = this.props
+    const { formRef, store, module, cluster, prefix, isFederated } = this.props
     return (
       <Form data={this.fedFormTemplate} ref={formRef}>
+        {globals.app.hasClusterModule(cluster, 'network.ippool') &&
+          !isFederated && (
+            <PodIPRange
+              prefix={prefix}
+              cluster={cluster}
+              namespace={this.namespace}
+            />
+          )}
         {module !== 'daemonsets' && (
           <Form.Group
             label={t('Set Node Scheduling Policy')}
@@ -57,6 +62,7 @@ export default class AdvancedSettings extends React.Component {
           >
             <NodeSchedule
               prefix={prefix}
+              cluster={cluster}
               namespace={this.namespace}
               formTemplate={this.fedFormTemplate}
             />
@@ -73,7 +79,7 @@ export default class AdvancedSettings extends React.Component {
           <Metadata
             store={store}
             module={module}
-            cluster={this.cluster}
+            cluster={cluster}
             namespace={this.namespace}
             formTemplate={this.formTemplate}
             isFederated={isFederated}

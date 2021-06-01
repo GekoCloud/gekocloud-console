@@ -1,8 +1,8 @@
-# Access the backend services of Smartkube
+# Access the backend services of SmartKube
 
-## 1. Access the services of the Smartkube cluster from outside
+## 1. Access the services of the SmartKube cluster from outside
 
-### Expose the Smartkube api server service to the host
+### Expose the SmartKube api server service to the host
 
 ```sh
 kubectl -n kubesphere-system patch svc ks-apiserver -p '{"spec":{"type":"NodePort","ports":[{"name":"ks-apiserver","port":80,"protocal":"TCP","targetPort":9090,"nodePort":30881}]}}'
@@ -10,7 +10,7 @@ kubectl -n kubesphere-system patch svc ks-apiserver -p '{"spec":{"type":"NodePor
 
 The above command exposes the ks-apiserver service through the node port 30881. You can access the ks-apiserver service through any <node_ip>:<30881> port in the cluster.
 
-### Config api server in Smartkube Console
+### Config api server in SmartKube Console
 
 Add the file `local_config.yaml` under the folder `server`
 
@@ -23,9 +23,9 @@ server:
     wsUrl: ws://node_ip:30881
 ```
 
-See more details in [Smartkube API Guide](https://kubesphere.io/docs/v2.1/zh-CN/api-reference/api-guide/).
+See more details in [SmartKube API Guide](https://v2-1.docs.kubesphere.io/docs/api-reference/api-guide/).
 
-## 2. Access the services within the Smartkube cluster
+## 2. Access the services within the SmartKube cluster
 
 If you are in the same network as the cluster. You can access the ks-apiserver using K8s DNS with the default configuration in `server/config.yaml`
 

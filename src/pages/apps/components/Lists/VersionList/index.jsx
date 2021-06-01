@@ -1,35 +1,37 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { observer } from 'mobx-react'
 import PropTypes from 'prop-types'
-import classnames from 'classnames'
 import { isEmpty, get } from 'lodash'
 import {
   Level,
   LevelLeft,
   LevelRight,
-  Pagination,
   Loading,
-} from '@pitrix/lego-ui'
+  Pagination,
+  InputSearch,
+  Button,
+  Notify,
+} from '@juanchi_xd/components'
 
-import { Card, Search, Button, Notify } from 'components/Base'
+import { Panel } from 'components/Base'
 import HelmUploadModal from 'apps/components/Modals/HelmUpload'
 
 import { STORE_QUERY_STATUS } from 'configs/openpitrix/app'
@@ -42,11 +44,7 @@ export default class VersionList extends React.Component {
   static propTypes = {
     versionStore: PropTypes.object,
     appStore: PropTypes.object,
-    title: PropTypes.string,
-    appId: PropTypes.string,
-    appDetail: PropTypes.object,
-    params: PropTypes.object,
-    isAdmin: PropTypes.bool,
+    match: PropTypes.object,
     hideHeader: PropTypes.bool,
     hideFooter: PropTypes.bool,
     onSearch: PropTypes.func,
@@ -57,11 +55,7 @@ export default class VersionList extends React.Component {
   static defaultProps = {
     versionStore: {},
     appStore: {},
-    title: 'Versions',
-    appId: '',
-    appDetail: {},
-    params: {},
-    isAdmin: false,
+    match: {},
     hideHeader: false,
     hideFooter: false,
     onSearch() {},
@@ -83,24 +77,20 @@ export default class VersionList extends React.Component {
     this.fetchData()
   }
 
-  get isTable() {
-    const { hideHeader, hideFooter } = this.props
-    return !hideHeader || !hideFooter
-  }
-
   get enabledActions() {
-    if (!this.props.params.workspace) {
+    if (!this.props.match.params.workspace) {
       return ['manage']
     }
 
     return globals.app.getActions({
-      workspace: this.props.params.workspace,
+      workspace: this.props.match.params.workspace,
       module: 'app-templates',
     })
   }
 
   fetchData = (params = {}) => {
-    const { appId, workspace, isAdmin } = this.props
+    const { appId, workspace } = this.props.match.params
+    const isAdmin = this.props.appStore.isAdmin
     const status = isAdmin ? STORE_QUERY_STATUS : this.store.defaultStatus
 
     this.store.fetchList({
@@ -147,20 +137,20 @@ export default class VersionList extends React.Component {
   handleCreate = params => {
     this.store.create(params).then(() => {
       this.setState({ uploadModal: false })
-      Notify.success({ content: `${t('Created Successfully')}!` })
+      Notify.success({ content: `${t('Created Successfully')}` })
       this.fetchData()
     })
   }
 
   renderHeader = () => {
-    const { isAdmin } = this.props
+    const { isAdmin } = this.props.appStore
 
     return (
       <div className={styles.header}>
-        <Search
+        <InputSearch
           className={styles.search}
           name="search"
-          placeholder={t('Please input a keyword to filter')}
+          placeholder={t('Filter by keyword')}
           onSearch={this.handleSearch}
         />
         <div className={styles.actions}>
@@ -175,9 +165,19 @@ export default class VersionList extends React.Component {
 
   renderContent() {
     const { data, isLoading } = this.store.list
-    const { appDetail, isAdmin, params, appStore } = this.props
+    const {
+      match: { params },
+      appStore,
+      clusters,
+    } = this.props
+    const isAdmin = appStore.isAdmin
+    const appDetail = appStore.detail || {}
 
-    const content = (
+    if (isLoading) {
+      return <Loading className={styles.loading} />
+    }
+
+    return (
       <div className={styles.body}>
         {isEmpty(data) ? (
           <div className={styles.empty}>{t('RESOURCE_NOT_FOUND')}</div>
@@ -191,18 +191,13 @@ export default class VersionList extends React.Component {
               params={params}
               store={this.store}
               appStore={appStore}
+              clusters={clusters}
               enabledActions={this.enabledActions}
               handleExpandExtra={this.handleExpandExtra}
             />
           ))
         )}
       </div>
-    )
-
-    return this.isTable ? (
-      <Loading spinning={isLoading}>{content}</Loading>
-    ) : (
-      content
     )
   }
 
@@ -214,9 +209,9 @@ export default class VersionList extends React.Component {
         <LevelLeft>{t('TOTAL_ITEMS', { num: total })}</LevelLeft>
         <LevelRight>
           <Pagination
-            current={page}
+            page={page}
             total={total}
-            pageSize={limit}
+            limit={limit}
             onChange={this.handlePage}
           />
         </LevelRight>
@@ -225,7 +220,7 @@ export default class VersionList extends React.Component {
   }
 
   renderModals() {
-    const { appId, workspace } = this.props
+    const { appId, workspace } = this.props.match.params
     const { isSubmitting } = this.store
 
     return (
@@ -247,29 +242,17 @@ export default class VersionList extends React.Component {
   }
 
   render() {
-    const { className, title, hideHeader, hideFooter } = this.props
-    const { data, isLoading } = this.store.list
-    const isTable = this.isTable
+    const { hideHeader, hideFooter } = this.props
 
     return (
-      <div className={styles.wrapper}>
-        <div className={styles.title}>{t(title)}</div>
-        <Card
-          className={classnames(styles.main, className, {
-            [styles.table]: isTable,
-          })}
-          empty={t('NOT_AVAILABLE', { resource: t('Version') })}
-          isEmpty={!isTable && isEmpty(data)}
-          loading={!isTable && isLoading}
-        >
-          <div className={styles.inner}>
-            {!hideHeader && this.renderHeader()}
-            {this.renderContent()}
-            {!hideFooter && this.renderFooter()}
-            {this.renderModals()}
-          </div>
-        </Card>
-      </div>
+      <Panel className={styles.main} title={t('Version')}>
+        <div className={styles.inner}>
+          {!hideHeader && this.renderHeader()}
+          {this.renderContent()}
+          {!hideFooter && this.renderFooter()}
+          {this.renderModals()}
+        </div>
+      </Panel>
     )
   }
 }

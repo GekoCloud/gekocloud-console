@@ -1,27 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import classnames from 'classnames'
 
-import { Input, Column, Columns } from '@pitrix/lego-ui'
+import { Column, Columns, Form, Input } from '@juanchi_xd/components'
 import { NumberInput } from 'components/Inputs'
-import { Form } from 'components/Base'
 
 import styles from './index.scss'
 
@@ -30,6 +29,8 @@ export default class UrlInput extends React.Component {
     hostName: 'Host',
     portName: 'Port',
     defaultPort: 9200,
+    hostRules: [{ required: true, message: t('Please enter the address') }],
+    portRules: [{ required: true, message: t('Please input port') }],
   }
 
   render() {
@@ -37,9 +38,7 @@ export default class UrlInput extends React.Component {
     return (
       <Columns className={classnames(styles.columns, className)}>
         <Column className="is-7">
-          <Form.Item
-            rules={[{ required: true, message: t('Please input path') }]}
-          >
+          <Form.Item rules={this.props.hostRules}>
             <Input
               name={this.props.hostName}
               placeholder={`${t('eg.')}192.168.1.10`}
@@ -48,9 +47,7 @@ export default class UrlInput extends React.Component {
           </Form.Item>
         </Column>
         <Column>
-          <Form.Item
-            rules={[{ required: true, message: t('Please input port') }]}
-          >
+          <Form.Item rules={this.props.portRules}>
             <NumberInput
               min={0}
               max={65535}

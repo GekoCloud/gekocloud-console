@@ -1,27 +1,27 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import classnames from 'classnames'
-import { Icon } from '@pitrix/lego-ui'
+import { Icon, Notify } from '@juanchi_xd/components'
 
-import { Modal, Notify } from 'components/Base'
+import { Modal } from 'components/Base'
 import UploadInfo from 'apps/components/Cards/UploadInfo'
 import CreateInfo from 'apps/components/Cards/CreateInfo'
 import { OPENPITRIX_LINKS } from 'configs/openpitrix/app'
@@ -113,7 +113,7 @@ export default class HelmUpload extends Component {
 
     if (this.state.checkStatus !== 'success') {
       Notify.error({
-        content: `${t('UPLOAD_PACKAGE_OK_NOTE')}!`,
+        content: `${t('UPLOAD_PACKAGE_OK_NOTE')}`,
       })
       return false
     }
@@ -164,8 +164,12 @@ export default class HelmUpload extends Component {
         </div>
         <div className={styles.note}>
           💁‍♂️ {t('APP_CREATE_GUIDE')}
-          <a href={OPENPITRIX_LINKS.helm_developer_guide} target="_blank">
-            《{t('HELM_DEVELOP_GUIDE')}》
+          <a
+            href={OPENPITRIX_LINKS.helm_developer_guide}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            {t('HELM_DEVELOP_GUIDE')}
           </a>
         </div>
       </div>

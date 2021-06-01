@@ -1,79 +1,37 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 import React, { Component } from 'react'
+import { pick, set } from 'lodash'
 import { inject, observer, Provider } from 'mobx-react'
-import { Loading } from '@pitrix/lego-ui'
+import { Loading } from '@juanchi_xd/components'
 
 import { renderRoutes } from 'utils/router.config'
-import { Nav } from 'components/Layout'
-import Selector from 'projects/components/Selector'
 
 import DevOpsStore from 'stores/devops'
-
-import styles from './layout.scss'
+import ClusterStore from 'stores/cluster'
 
 @inject('rootStore')
 @observer
-class DevOpsLayout extends Component {
+export default class Layout extends Component {
   constructor(props) {
     super(props)
-
     this.store = new DevOpsStore()
-    this.init(props.match.params)
-  }
-
-  componentDidUpdate(prevProps) {
-    if (
-      prevProps.match.params.devops !== this.props.match.params.devops ||
-      prevProps.match.params.cluster !== this.props.match.params.cluster
-    ) {
-      this.init(this.props.match.params)
-    }
-  }
-
-  get workspace() {
-    return this.props.match.params.workspace
-  }
-
-  async init(params) {
-    this.store.initializing = true
-
-    await Promise.all([
-      this.store.fetchDetail(params),
-      this.props.rootStore.getRules({
-        workspace: params.workspace,
-      }),
-    ])
-
-    await this.props.rootStore.getRules({
-      cluster: params.cluster,
-      devops: this.store.data.devops,
-      workspace: params.workspace,
-    })
-
-    globals.app.cacheHistory(this.props.match.url, {
-      type: 'DevOps',
-      name: this.store.data.devops,
-      description: this.store.data.description,
-    })
-
-    this.store.initializing = false
+    this.clusterStore = new ClusterStore()
   }
 
   get cluster() {
@@ -81,51 +39,78 @@ class DevOpsLayout extends Component {
   }
 
   get devops() {
-    return this.store.data.devops
+    return this.props.match.params.devops
+  }
+
+  get workspace() {
+    return this.props.match.params.workspace
   }
 
   get routing() {
     return this.props.rootStore.routing
   }
 
-  handleChange = url => this.routing.push(url)
+  componentDidMount() {
+    this.init()
+  }
 
-  render() {
-    const { match, route, location } = this.props
-    const { initializing, data } = this.store
+  componentDidUpdate(prevProps) {
+    if (
+      prevProps.match.params.cluster !== this.cluster ||
+      prevProps.match.params.devops !== this.devops
+    ) {
+      this.init()
+    }
+  }
 
-    if (initializing) {
-      return <Loading className={styles.loading} />
+  async init() {
+    this.store.initializing = true
+    const params = {
+      cluster: this.cluster,
+      devops: this.devops,
+      workspace: this.workspace,
     }
 
+    await Promise.all([
+      this.store.fetchDetail(params),
+      this.clusterStore.fetchDetail({ name: params.cluster }),
+      this.props.rootStore.getRules({
+        workspace: this.workspace,
+      }),
+    ])
+
+    await this.props.rootStore.getRules(params)
+
+    set(
+      globals,
+      `clusterConfig.${params.cluster}`,
+      this.clusterStore.detail.configz
+    )
+
+    globals.app.cacheHistory(this.props.match.url, {
+      type: 'DevOps',
+      name: this.devops,
+      aliasName: this.store.data.aliasName,
+      cluster: pick(this.clusterStore.detail, [
+        'name',
+        'aliasName',
+        'group',
+        'provider',
+      ]),
+    })
+
+    this.store.initializing = false
+  }
+
+  render() {
+    const { initializing } = this.store
+    if (initializing) {
+      return <Loading className="ks-page-loading" />
+    }
     return (
       <Provider devopsStore={this.store}>
-        <>
-          <div className="ks-page-side">
-            <Selector
-              type="devops"
-              title={t('DevOps Project')}
-              detail={data}
-              onChange={this.handleChange}
-              workspace={this.workspace}
-              cluster={this.cluster}
-            />
-            <Nav
-              className="ks-page-nav"
-              navs={globals.app.getDevOpsNavs({
-                devops: this.devops,
-                cluster: this.cluster,
-                workspace: this.workspace,
-              })}
-              location={location}
-              match={match}
-            />
-          </div>
-          <div className="ks-page-main">{renderRoutes(route.routes)}</div>
-        </>
+        {renderRoutes(this.props.route.routes)}
       </Provider>
     )
   }
 }
-
-export default DevOpsLayout

@@ -1,28 +1,35 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
+import { get } from 'lodash'
 import PropTypes from 'prop-types'
 import copy from 'fast-copy'
 
-import { Icon, Input } from '@pitrix/lego-ui'
-import { Form, Modal, Tag, TextArea } from 'components/Base'
-import { SelectInput } from 'components/Inputs'
+import {
+  Form,
+  Icon,
+  Input,
+  Select,
+  Tag,
+  TextArea,
+} from '@juanchi_xd/components'
+import { Modal } from 'components/Base'
 
 import {
   CLUSTER_GROUP_TAG_TYPE,
@@ -48,9 +55,37 @@ export default class EditBasicInfoModal extends React.Component {
 
   constructor(props) {
     super(props)
+
     this.state = {
+      region: get(
+        props.detail,
+        'metadata.labels["topology.kubernetes.io/region"]',
+        ''
+      ),
       formData: copy(props.detail),
     }
+  }
+
+  get regions() {
+    return get(globals.config, 'regionZones', []).map(item => ({
+      label: item.alias,
+      value: item.name,
+    }))
+  }
+
+  get zones() {
+    const region = get(globals.config, 'regionZones', []).find(
+      item => item.name === this.state.region
+    )
+
+    if (region && region.zones) {
+      return region.zones.map(item => ({
+        label: item.alias,
+        value: item.name,
+      }))
+    }
+
+    return []
   }
 
   groupOptionRenderer = option => (
@@ -75,6 +110,10 @@ export default class EditBasicInfoModal extends React.Component {
     onOk(data)
   }
 
+  handleRegionSelect = region => {
+    this.setState({ region })
+  }
+
   render() {
     const { visible, isSubmitting, onCancel } = this.props
     const { formData } = this.state
@@ -96,14 +135,14 @@ export default class EditBasicInfoModal extends React.Component {
           <Input name="metadata.name" disabled />
         </Form.Item>
         <Form.Item label={t('CLUSTER_TAG')} desc={t('CLUSTER_TAG_DESC')}>
-          <SelectInput
+          <Select
             name="metadata.labels['cluster.kubesphere.io/group']"
             options={CLUSTER_PRESET_GROUPS}
             optionRenderer={this.groupOptionRenderer}
           />
         </Form.Item>
         <Form.Item label={t('Provider')} desc={t('CLUSTER_PROVIDER_DESC')}>
-          <SelectInput
+          <Select
             name="spec.provider"
             options={CLUSTER_PROVIDERS}
             optionRenderer={this.providerOptionRenderer}

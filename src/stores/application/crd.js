@@ -1,50 +1,54 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get, set, pickBy, keyBy, findKey } from 'lodash'
+import { get, set, has, findKey } from 'lodash'
 import { observable, action } from 'mobx'
 
-import { joinSelector, generateId, withDryRun } from 'utils'
+import { generateId, withDryRun } from 'utils'
 import { TIME_MICROSECOND_MAP, MODULE_KIND_MAP } from 'utils/constants'
 import { transformTraces } from 'utils/tracing'
 
-import ServiceStore from 'stores/service'
-import RouterStore from 'stores/router'
-import GrayReleaseStore from 'stores/grayrelease'
-import PodStore from 'stores/pod'
-
 import Base from 'stores/base'
+
+const healthProcess = health => {
+  if (has(health, 'requests.errorRatio')) {
+    return health
+  }
+
+  let totalRPS = 0
+  let errorRPS = 0
+  const inboundData = get(health, 'requests.inbound.http', {})
+  Object.keys(inboundData).forEach(key => {
+    const value = Number(inboundData[key])
+    totalRPS += value
+    if (Number(key) >= 400) {
+      errorRPS += value
+    }
+  })
+
+  set(health, 'requests.errorRatio', Math.max((errorRPS * 100) / totalRPS, 0))
+
+  return health
+}
 
 export default class ApplicationStore extends Base {
   constructor(module = 'applications') {
     super(module)
-
-    this.serviceStore = new ServiceStore()
-    this.routerStore = new RouterStore()
-    this.grayReleaseStore = new GrayReleaseStore()
-    this.podStore = new PodStore()
-  }
-
-  @observable
-  components = {
-    data: [],
-    total: 0,
-    isLoading: true,
   }
 
   @observable
@@ -79,77 +83,69 @@ export default class ApplicationStore extends Base {
     })}/health?rateInterval=60s&type=${type}`
 
   @action
-  async fetchComponents(params) {
-    this.components.isLoading = true
-
-    await Promise.all([
-      this.serviceStore.fetchListByK8s(params),
-      this.podStore.fetchListByK8s(params),
-      this.grayReleaseStore.fetchList(params),
-    ])
-
-    const services = this.serviceStore.list.data
-    const pods = this.podStore.list.data
-    const grayReleases = this.grayReleaseStore.list.data
-
-    if (services) {
-      const componentNameMap = keyBy(services, 'name')
-      if (pods) {
-        pods.forEach(item => {
-          const service = item.labels.app
-          if (service && componentNameMap[service]) {
-            componentNameMap[service].podNums =
-              componentNameMap[service].podNums || 0
-            componentNameMap[service].podNums += 1
-          }
-        })
-      }
-      if (grayReleases) {
-        grayReleases.forEach(item => {
-          const service = item.labels.app
-          if (service && componentNameMap[service]) {
-            componentNameMap[service].grayRelease = {
-              newVersion: item.newVersion,
-              oldVersion: item.oldVersion,
-            }
-          }
-        })
-      }
-
-      this.components.data = services
-      this.components.total = services.length
-    }
-
-    this.components.isLoading = false
-  }
-
-  @action
-  async fetchGraph({ cluster, namespace, selector } = {}) {
+  async fetchGraph({ cluster, namespace, app } = {}) {
     const [
-      serviceResult,
       result,
       appHealth,
       serviceHealth,
       workloadHealth,
     ] = await Promise.all([
-      request.get(`api/v1${this.getPath({ cluster, namespace })}/services`, {
-        labelSelector: joinSelector(selector),
-      }),
-      request.get(this.getGraphUrl({ cluster, namespace })),
+      request.get(this.getGraphUrl({ cluster, namespace, app })),
       request.get(this.getHealthUrl({ cluster, namespace, type: 'app' })),
       request.get(this.getHealthUrl({ cluster, namespace, type: 'service' })),
       request.get(this.getHealthUrl({ cluster, namespace, type: 'workload' })),
     ])
 
-    const serviceNames =
-      serviceResult && serviceResult.items
-        ? serviceResult.items.map(item => get(item, 'metadata.name'))
-        : []
+    const serviceNames = this.detail.services || []
+    const workloadNames = this.detail.workloads || []
+
+    const workloadServiceMap = {}
+
+    if (appHealth && serviceHealth && workloadHealth) {
+      this.graph.health = serviceNames.reduce((prev, cur) => {
+        if (!appHealth[cur]) {
+          return prev
+        }
+
+        const { requests, workloadStatuses } = appHealth[cur]
+        const workloads = workloadStatuses.reduce(
+          (_prev, workload) => ({
+            ..._prev,
+            [workload.name]: healthProcess(workloadHealth[workload.name]),
+          }),
+          {}
+        )
+
+        Object.keys(workloads).forEach(key => {
+          workloadServiceMap[key] = cur
+        })
+
+        return {
+          ...prev,
+          [cur]: {
+            requests,
+            workloadStatuses,
+            workloads,
+            service: healthProcess(serviceHealth[cur]),
+          },
+        }
+      }, {})
+    }
 
     if (result && result.elements) {
       const nodes = []
       result.elements.nodes.forEach(node => {
-        if (serviceNames.includes(node.data.app)) {
+        if (
+          node.data.nodeType === 'service' &&
+          serviceNames.includes(node.data.service)
+        ) {
+          nodes.push(node)
+        } else if (
+          node.data.nodeType === 'app' &&
+          node.data.workload &&
+          workloadNames.includes(node.data.workload)
+        ) {
+          node.data.app = workloadServiceMap[node.data.workload]
           nodes.push(node)
         }
 
@@ -160,23 +156,6 @@ export default class ApplicationStore extends Base {
       })
 
       this.graph.data = { nodes, edges: result.elements.edges }
-    }
-
-    if (appHealth && serviceHealth && workloadHealth) {
-      this.graph.health = serviceNames.reduce(
-        (prev, cur) => ({
-          ...prev,
-          [cur]: {
-            ...appHealth[cur],
-            service: serviceHealth[cur],
-            workloads: pickBy(
-              workloadHealth,
-              (value, key) => key.split('-')[0] === cur
-            ),
-          },
-        }),
-        {}
-      )
     }
   }
 
@@ -195,7 +174,6 @@ export default class ApplicationStore extends Base {
         'tcp_sent',
         'tcp_received',
       ],
-      'quantiles[]': [0.95],
       direction: 'inbound',
       reporter: 'destination',
       ...options,
@@ -218,7 +196,6 @@ export default class ApplicationStore extends Base {
       step: 20,
       rateInterval: '20s',
       'filters[]': ['request_count', 'request_duration', 'request_error_count'],
-      'quantiles[]': [0.95],
       direction: 'inbound',
       reporter: 'destination',
       requestProtocol: 'http',
@@ -239,7 +216,6 @@ export default class ApplicationStore extends Base {
       duration: 60,
       step: 20,
       rateInterval: '20s',
-      'quantiles[]': [0.95],
       direction: 'inbound',
       reporter: 'source',
       requestProtocol: 'http',

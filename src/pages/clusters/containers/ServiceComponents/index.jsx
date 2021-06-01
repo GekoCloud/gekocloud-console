@@ -1,25 +1,25 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { observer, inject } from 'mobx-react'
 import { isEmpty } from 'lodash'
-import { RadioGroup, RadioButton, Tag, Loading } from '@pitrix/lego-ui'
+import { RadioGroup, RadioButton, Tag, Loading } from '@juanchi_xd/components'
 import Banner from 'components/Cards/Banner'
 import { parse } from 'qs'
 
@@ -54,7 +54,7 @@ export default class ServiceComponents extends React.Component {
     return this.props.match.params.cluster
   }
 
-  getColor = healthy => (healthy ? '#f5a623' : '#F18918')
+  getColor = healthy => (healthy ? '#f5a623' : '#55bc8a')
 
   getCount = type => {
     const exceptionCount = this.store.exceptionCount
@@ -66,19 +66,13 @@ export default class ServiceComponents extends React.Component {
   getConfigs = () => [
     {
       type: 'kubesphere',
-      title: 'Smartkube',
-      icon: '/assets/smartkube_logo_horizontal.png',
+      title: 'SmartKube',
+      icon: '/assets/kubesphere.svg',
     },
     {
       type: 'kubernetes',
       title: 'Kubernetes',
       icon: '/assets/kubernetes.svg',
-    },
-    {
-      type: 'openpitrix',
-      title: 'OpenPitrix',
-      icon: '/assets/openpitrix.svg',
-      disabled: !globals.app.hasClusterModule(this.cluster, 'openpitrix'),
     },
     {
       type: 'istio',
@@ -127,10 +121,9 @@ export default class ServiceComponents extends React.Component {
     return (
       <div className="inline-block">
         <RadioGroup
-          wrapClassName="radio-default"
+          mode="button"
           value={this.state.type}
           onChange={this.handleTypeChange}
-          size="small"
         >
           {this.configs
             .filter(item => !item.disabled)

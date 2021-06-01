@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -42,6 +42,14 @@ class Nav extends React.Component {
     onItemClick() {},
   }
 
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      openedNav: this.getOpenedNav(),
+    }
+  }
+
   get currentPath() {
     const {
       location: { pathname },
@@ -50,6 +58,39 @@ class Nav extends React.Component {
 
     const length = trimEnd(url, '/').length
     return pathname.slice(length + 1)
+  }
+
+  getOpenedNav() {
+    let name = ''
+    const { navs } = this.props
+    const current = this.currentPath
+    navs.forEach(nav => {
+      nav.items.forEach(item => {
+        if (
+          item.children &&
+          item.children.some(child => {
+            if (child.name === current) {
+              return true
+            }
+            if (child.tabs) {
+              return child.tabs.some(tab => tab.name === current)
+            }
+
+            return false
+          })
+        ) {
+          name = item.name
+        }
+      })
+    })
+
+    return name
+  }
+
+  handleItemOpen = name => {
+    this.setState(({ openedNav }) => ({
+      openedNav: openedNav === name ? '' : name,
+    }))
   }
 
   render() {
@@ -62,6 +103,8 @@ class Nav extends React.Component {
       disabled,
     } = this.props
 
+    const { openedNav } = this.state
+    const current = this.currentPath
     const prefix = trimEnd(match.url, '/')
 
     return (
@@ -75,8 +118,10 @@ class Nav extends React.Component {
                   key={item.name}
                   item={item}
                   prefix={prefix}
-                  current={this.currentPath}
+                  current={current}
                   onClick={onItemClick}
+                  isOpen={item.name === openedNav}
+                  onOpen={this.handleItemOpen}
                   disabled={disabled}
                 />
               ))}

@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,24 +21,14 @@ import { observer, inject } from 'mobx-react'
 import { isEmpty } from 'lodash'
 import { parse } from 'qs'
 
-import {
-  Dropdown,
-  Buttons,
-  Level,
-  LevelItem,
-  LevelLeft,
-  LevelRight,
-} from '@pitrix/lego-ui'
-import { Button } from 'components/Base'
 import BaseTable from 'components/Tables/Base'
 import withTableActions from 'components/HOCs/withTableActions'
 import ProjectSelect from './ProjectSelect'
 
-class ResourceTable extends BaseTable {
+class ResourceTable extends React.Component {
   routing = this.props.rootStore.routing
 
   componentDidMount() {
-    super.componentDidMount()
     const params = parse(location.search.slice(1))
     if (
       params.namespace &&
@@ -69,47 +59,32 @@ class ResourceTable extends BaseTable {
     this.props.onFetch({}, true)
   }
 
-  renderNormalTitle() {
-    const { hideCustom, module, cluster, clusterStore } = this.props
+  renderCustomFilter() {
+    const { module, cluster, clusterStore } = this.props
     return (
-      <Level>
-        <LevelLeft>
-          <LevelItem>
-            <ProjectSelect
-              module={module}
-              cluster={cluster}
-              list={clusterStore.projects}
-              namespace={clusterStore.project}
-              onFetch={this.fetchProjects}
-              onChange={this.handleClusterChange}
-            />
-          </LevelItem>
-        </LevelLeft>
-        <LevelItem>{this.renderSearch()}</LevelItem>
-        <LevelRight>
-          <Buttons>
-            <Button
-              type="flat"
-              icon="refresh"
-              onClick={this.handleRefresh}
-              data-test="table-refresh"
-            />
-            {!hideCustom && (
-              <Dropdown
-                content={this.renderColumnsMenu()}
-                placement="bottomRight"
-              >
-                <Button type="flat" icon="cogwheel" data-test="table-columns" />
-              </Dropdown>
-            )}
-            {this.renderActions()}
-          </Buttons>
-        </LevelRight>
-      </Level>
+      <ProjectSelect
+        module={module}
+        cluster={cluster}
+        list={clusterStore.projects}
+        namespace={clusterStore.project}
+        onFetch={this.fetchProjects}
+        onChange={this.handleClusterChange}
+      />
+    )
+  }
+
+  render() {
+    return (
+      <BaseTable
+        customFilter={this.renderCustomFilter()}
+        showEmpty={this.showEmpty}
+        {...this.props}
+      />
     )
   }
 }
 
-export default inject('rootStore', 'clusterStore')(
-  observer(withTableActions(ResourceTable))
-)
+export default inject(
+  'rootStore',
+  'clusterStore'
+)(observer(withTableActions(ResourceTable)))

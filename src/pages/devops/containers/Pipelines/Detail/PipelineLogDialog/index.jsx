@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,7 +21,7 @@ import classNames from 'classnames'
 import { throttle, isEmpty } from 'lodash'
 import { action, observable, computed, toJS, reaction } from 'mobx'
 import { observer } from 'mobx-react'
-import { Button } from 'components/Base'
+import { Button } from '@juanchi_xd/components'
 import Status from 'devops/components/Status'
 import { getPipelineStatus } from 'utils/status'
 import { formatUsedTime } from 'utils'
@@ -46,8 +46,9 @@ export default class PipelineLog extends React.Component {
     )
   }
 
-  componentDidMount() {
-    this.getPipelineIndexLog()
+  async componentDidMount() {
+    await this.getPipelineIndexLog()
+    this.handleExpandErrorStep()
   }
 
   @computed
@@ -66,24 +67,37 @@ export default class PipelineLog extends React.Component {
   }
 
   @observable
-  activeNodeIndex = [0, 0] // lineindex, colunmIndex
+  activeNodeIndex = [0, 0] // lineindex, columnIndex
 
   @observable
   refreshFlag = true
 
   @action
-  updateActiveTabs = (lineindex, colunmIndex) => () => {
-    this.activeNodeIndex = [lineindex, colunmIndex]
+  updateActiveTabs = (lineindex, columnIndex) => () => {
+    this.activeNodeIndex = [lineindex, columnIndex]
   }
 
   @action
-  getPipelineIndexLog() {
+  async getPipelineIndexLog() {
     const { params } = this.props
-    this.store.getRunStatusLogs(params)
+    await this.store.getRunStatusLogs(params)
   }
 
   handleDownloadLogs = () => {
     this.props.handleDownloadLogs()
+  }
+
+  handleExpandErrorStep = () => {
+    const nodes = toJS(this.props.nodes)
+    const errorNodeIdex = nodes.findIndex(item => item.result !== 'SUCCESS')
+
+    if (errorNodeIdex > -1) {
+      const subStepIdex = nodes[errorNodeIdex].steps.findIndex(
+        item => item.result !== 'SUCCESS'
+      )
+
+      this.activeNodeIndex = [errorNodeIdex, subStepIdex]
+    }
   }
 
   handleRefresh = throttle(() => {
@@ -142,7 +156,7 @@ export default class PipelineLog extends React.Component {
       <LogItem
         key={step.id}
         step={step}
-        nodeid={this.activeStage.id}
+        nodeId={this.activeStage.id}
         params={params}
         refreshFlag={this.refreshFlag}
       />
@@ -154,25 +168,23 @@ export default class PipelineLog extends React.Component {
     const _nodes = toJS(nodes)
 
     return (
-      <React.Fragment>
-        <div className={styles.container}>
-          <div className={styles.left}>
-            {_nodes.map((stage, index) => this.renderLeftTab(stage, index))}
-          </div>
-          <div className={styles.right}>
-            <div className={styles.header}>
-              <span>{`${t('Time Used')} ${formatUsedTime(
-                this.activeStage.durationInMillis
-              )}`}</span>
-              <Button onClick={this.handleDownloadLogs}>
-                {t('Download Logs')}
-              </Button>
-              <Button onClick={this.handleRefresh}>{t('Refresh')}</Button>
-            </div>
-            <div className={styles.logContainer}>{this.renderLogContent()}</div>
-          </div>
+      <div className={styles.container}>
+        <div className={styles.left}>
+          {_nodes.map((stage, index) => this.renderLeftTab(stage, index))}
         </div>
-      </React.Fragment>
+        <div className={styles.right}>
+          <div className={styles.header}>
+            <span>{`${t('Time Used')} ${formatUsedTime(
+              this.activeStage.durationInMillis
+            )}`}</span>
+            <Button onClick={this.handleDownloadLogs}>
+              {t('Download Logs')}
+            </Button>
+            <Button onClick={this.handleRefresh}>{t('Refresh')}</Button>
+          </div>
+          <div className={styles.logContainer}>{this.renderLogContent()}</div>
+        </div>
+      </div>
     )
   }
 }

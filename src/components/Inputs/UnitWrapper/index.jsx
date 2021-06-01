@@ -1,0 +1,43 @@
+/*
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
+ *
+ * SmartKube Console is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SmartKube Console is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import React, { Component } from 'react'
+import { isUndefined, trimEnd } from 'lodash'
+
+export default class UnitWrapper extends Component {
+  handleChange = value => {
+    const { unit, onChange } = this.props
+    onChange(isUndefined(value) ? value : `${value}${unit}`)
+  }
+
+  render() {
+    const { value, unit, children, ...rest } = this.props
+
+    let formatValue = value
+    if (unit) {
+      formatValue = trimEnd(value, unit)
+    }
+
+    return React.cloneElement(children, {
+      ...rest,
+      ...children.props,
+      value: formatValue,
+      onChange: this.handleChange,
+    })
+  }
+}

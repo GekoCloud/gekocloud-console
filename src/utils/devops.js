@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { set, cloneDeep } from 'lodash'
 
@@ -34,9 +34,8 @@ const deleteUnenableAttrs = data => {
 export const updatePipelineParams = (data, isEditor = false) => {
   const { multi_branch_pipeline, pipeline, type, ...rest } = data
 
-  if (!rest.description && rest.desc) {
-    rest.description = rest.desc
-    delete rest.desc
+  if (isEditor && !rest.description) {
+    rest.description = ''
   }
 
   const param = cloneDeep(rest)
@@ -56,7 +55,7 @@ export const updatePipelineParams = (data, isEditor = false) => {
     deleteUnenableAttrs(data.multi_branch_pipeline)
   }
 
-  if (data.pipeline) {
+  if (pipeline) {
     !isEditor
       ? Object.assign(data.pipeline, rest)
       : Object.assign(data.pipeline, param)
@@ -67,7 +66,7 @@ export const updatePipelineParams = (data, isEditor = false) => {
 
   if (!isEditor) {
     for (const key in rest) {
-      if (key !== 'project_name') {
+      if (key !== 'devopsName') {
         delete data[key]
       }
     }
@@ -100,7 +99,6 @@ export const updatePipelineParamsInSpec = (data, devops) => {
   }
 
   delete data.type
-  delete data.desc
   delete data.description
 
   data = set(data, 'metadata.namespace', devops)

@@ -1,24 +1,27 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { lazy } from 'react'
 
 import BaseLayout from 'core/layouts/Base'
+import Login from 'core/containers/Login'
+import LoginConfirm from 'core/containers/LoginConfirm'
+import PasswordConfirm from 'core/containers/PasswordConfirm'
 
 const Console = lazy(() =>
   import(/* webpackChunkName: "console" */ 'console/App.jsx')
@@ -27,10 +30,10 @@ const Clusters = lazy(() =>
   import(/* webpackChunkName: "clusters" */ 'clusters/App.jsx')
 )
 const AccessControl = lazy(() =>
-  import(/* webpackChunkName: "clusters" */ 'access/App.jsx')
+  import(/* webpackChunkName: "access" */ 'access/App.jsx')
 )
 const Settings = lazy(() =>
-  import(/* webpackChunkName: "clusters" */ 'settings/App.jsx')
+  import(/* webpackChunkName: "settings" */ 'settings/App.jsx')
 )
 const Workspaces = lazy(() =>
   import(/* webpackChunkName: "workspaces" */ 'workspaces/App.jsx')
@@ -44,14 +47,12 @@ const FederatedProjects = lazy(() =>
 const DevOps = lazy(() =>
   import(/* webpackChunkName: "devops" */ 'devops/App.jsx')
 )
-const ManageApp = lazy(() =>
-  import(/* webpackChunkName: "apps" */ 'apps/App.jsx')
-)
-const AppStore = lazy(() =>
-  import(/* webpackChunkName: "app_store" */ 'appStore/App.jsx')
-)
+const App = lazy(() => import(/* webpackChunkName: "apps" */ 'apps/App.jsx'))
 
 export default [
+  { path: `/login`, component: Login, exact: true },
+  { path: `/login/confirm`, component: LoginConfirm, exact: true },
+  { path: `/password/confirm`, component: PasswordConfirm, exact: true },
   {
     component: BaseLayout,
     routes: [
@@ -81,11 +82,11 @@ export default [
       },
       {
         path: '/apps',
-        component: AppStore,
+        component: App,
       },
       {
         path: '/apps-manage',
-        component: ManageApp,
+        component: App,
       },
       {
         path: '/settings',

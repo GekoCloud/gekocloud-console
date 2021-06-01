@@ -1,40 +1,48 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import classNames from 'classnames'
 import { observer, inject } from 'mobx-react'
-import { observable, action } from 'mobx'
 import { isEmpty } from 'lodash'
 
 import Draggable from 'react-draggable'
-import { Button, Text, List } from 'components/Base'
+import { Button } from '@juanchi_xd/components'
+import { Text, List } from 'components/Base'
+import { safeParseJSON } from 'utils'
 import { trigger } from 'utils/action'
 import { createCenterWindowOpt } from 'utils/dom'
 
 import styles from './index.scss'
 
+const KS_TOOLBOX_POS_KEY = 'ks-toolbox-pos'
+
 @inject('rootStore')
 @observer
 @trigger
 export default class KubeTools extends React.Component {
-  @observable
-  showTools = 0
+  state = {
+    showTools: 0,
+    defaultPosition: safeParseJSON(localStorage.getItem(KS_TOOLBOX_POS_KEY), {
+      x: 0,
+      y: 0,
+    }),
+  }
 
   getWindowOpts() {
     return createCenterWindowOpt({
@@ -45,20 +53,23 @@ export default class KubeTools extends React.Component {
     })
   }
 
+  get isHideMeterModal() {
+    return (
+      globals.app.hasKSModule('metering') &&
+      (globals.app.hasPermission({
+        module: 'workspaces',
+        action: 'view',
+      }) ||
+        !isEmpty(globals.user.workspaces) ||
+        globals.app.hasPermission({
+          module: 'clusters',
+          action: 'view',
+        }))
+    )
+  }
+
   get toolList() {
     return [
-      {
-        group: 'History',
-        data: [
-          {
-            key: 'history',
-            icon: 'clock',
-            title: t('History'),
-            description: t('HISTORY_DESC'),
-            onClick: this.props.rootStore.toggleHistory,
-          },
-        ],
-      },
       {
         group: 'Analysis Tools',
         data: [
@@ -91,6 +102,14 @@ export default class KubeTools extends React.Component {
               !globals.app.hasKSModule('auditing'),
             action: 'toolbox.auditingsearch',
           },
+          {
+            icon: 'wallet',
+            title: t('Bill'),
+            description: t('BILLING_OPERATING_DESC'),
+            link: '/bill',
+            hidden: !this.isHideMeterModal,
+            action: 'toolbox.bill',
+          },
         ],
       },
       {
@@ -98,7 +117,7 @@ export default class KubeTools extends React.Component {
         data: [
           {
             icon: 'terminal',
-            link: '/kubectl',
+            link: '/terminal/kubectl',
             title: 'Kubectl',
             description: t('TOOLBOX_KUBECTL_DESC'),
             hidden: !globals.app.isPlatformAdmin,
@@ -144,21 +163,26 @@ export default class KubeTools extends React.Component {
     window.open(data.link, '_blank')
   }
 
-  @action
-  onMouseEnter = () => {
-    this.showTools = 1
+  handleStop = (e, data) => {
+    localStorage.setItem(
+      KS_TOOLBOX_POS_KEY,
+      JSON.stringify({ x: 0, y: Math.max(Math.min(data.y, 0), -900) })
+    )
   }
 
-  @action
+  onMouseEnter = () => {
+    this.setState({ showTools: 1 })
+  }
+
   onMouseLeave = () => {
-    this.showTools = -1
+    this.setState({ showTools: -1 })
   }
 
   renderTools() {
     return (
       <div
         className={classNames(styles.tools, {
-          [styles.showTools]: this.showTools === 1,
+          [styles.showTools]: this.state.showTools === 1,
         })}
       >
         <div className={styles.toolsWrapper}>
@@ -228,7 +252,11 @@ export default class KubeTools extends React.Component {
     }
 
     return (
-      <Draggable axis="y">
+      <Draggable
+        axis="y"
+        defaultPosition={this.state.defaultPosition}
+        onStop={this.handleStop}
+      >
         <div className={styles.trigger} onMouseLeave={this.onMouseLeave}>
           <Button
             className={styles.button}

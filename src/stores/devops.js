@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { set, get, isArray, omit, cloneDeep } from 'lodash'
@@ -41,6 +41,8 @@ export default class DevOpsStore extends Base {
 
   @observable
   data = {}
+
+  detail = {}
 
   @observable
   devopsListData = []
@@ -107,10 +109,10 @@ export default class DevOpsStore extends Base {
       params.limit = params.limit || 10
     }
 
-    const result = await request.get(
-      this.getBaseUrlV3({ cluster, workspace }),
-      params
-    )
+    const result =
+      (await request
+        .get(this.getBaseUrlV3({ cluster, workspace }), params)
+        .catch(() => {})) || {}
 
     const items = Array.isArray(get(result, 'items'))
       ? get(result, 'items')
@@ -206,7 +208,7 @@ export default class DevOpsStore extends Base {
 
   @action
   async fetchDetail({ cluster, devops, workspace }) {
-    const detail = await request.get(
+    const result = await request.get(
       this.getDevOpsDetailUrl({ workspace, cluster, devops }),
       null,
       null,
@@ -217,12 +219,13 @@ export default class DevOpsStore extends Base {
       }
     )
 
-    this.itemDetail = detail
-    const data = { cluster, ...this.mapper(detail) }
+    this.itemDetail = result
+    const data = { cluster, ...this.mapper(result) }
     this.devopsName = data.name
     this.devops = data.devops
     data.workspace = data.workspace || workspace
     this.data = data
+    this.detail = data
   }
 
   @action

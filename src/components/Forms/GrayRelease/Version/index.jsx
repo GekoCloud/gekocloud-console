@@ -1,27 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, debounce } from 'lodash'
 import React from 'react'
 import { observer } from 'mobx-react'
 
-import { Columns, Column, Input } from '@pitrix/lego-ui'
-import { Form } from 'components/Base'
+import { Column, Columns, Form, Input } from '@juanchi_xd/components'
 import { ReplicasInput } from 'components/Inputs'
 import ContainerSettings from 'components/Forms/Workload/ContainerSettings'
 
@@ -86,8 +85,14 @@ export default class Version extends ContainerSettings {
   handleVersionChange = debounce(value => {
     const componentName = get(this.formTemplate, 'metadata.labels.app', '')
 
-    set(this.formTemplate, 'metadata.name', `${componentName}-${value}`)
+    const name = `${componentName}-${value}`
+    set(this.formTemplate, 'metadata.name', name)
     mergeLabels(this.formTemplate, { version: value })
+    set(
+      this.props.formTemplate,
+      'strategy.metadata.annotations["servicemesh.kubesphere.io/newWorkloadName"]',
+      name
+    )
   }, 200)
 
   renderReplicasControl() {
@@ -132,6 +137,7 @@ export default class Version extends ContainerSettings {
       <Column>
         <Form.Item rules={[{ validator: this.containersValidator }]}>
           <ContainerList
+            className={styles.containers}
             name={`${this.prefix}spec.containers`}
             onShow={this.showContainer}
             onDelete={this.handleDelete}

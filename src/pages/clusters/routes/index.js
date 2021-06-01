@@ -1,33 +1,36 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { getIndexRoute } from 'utils/router.config'
+
+import AlertMessages from 'projects/containers/Alerting/Messages'
+import AlertPolicies from 'projects/containers/Alerting/Policies'
 
 import ClusterLayout from '../containers/layout'
 import ListLayout from '../containers/Base/List'
 
 import Clusters from '../containers/Clusters'
-import AddCluster from '../containers/Clusters/AddCluster'
 import Overview from '../containers/Overview'
 import StorageClasses from '../containers/Storage/StorageClasses'
 import VolumeSnapshots from '../containers/Storage/VolumeSnapshots'
 import Volumes from '../containers/Storage/Volumes'
 import Nodes from '../containers/Nodes'
+import EdgeNodes from '../containers/EdgeNodes/index'
 import ServiceComponents from '../containers/ServiceComponents'
 import Projects from '../containers/Projects'
 import CustomResources from '../containers/CustomResources'
@@ -42,19 +45,18 @@ import Services from '../containers/Workload/Services'
 import Routes from '../containers/Workload/Routes'
 import Secrets from '../containers/Secrets'
 import ConfigMaps from '../containers/ConfigMaps'
+import ServiceAccounts from '../containers/ServiceAccounts'
 import ClusterMonitor from '../containers/Monitor/Cluster'
 import ResourceMonitor from '../containers/Monitor/Resource'
 import Members from '../containers/Members'
 import Roles from '../containers/Roles'
 import BaseInfo from '../containers/BaseInfo'
 import Visibility from '../containers/Visibility'
-import KubeCtl from '../containers/KubeCtl'
 import KubeConfig from '../containers/KubeConfig'
 import NetworkPolicies from '../containers/Network/Policies'
-import AlertMessages from '../containers/Alerting/Messages'
-import AlertPolicies from '../containers/Alerting/Policies'
-import MailServer from '../containers/MailServices'
+import IPPools from '../containers/Network/IPPools'
 import LogCollections from '../containers/LogCollections'
+import CustomMonitoring from '../containers/CustomMonitoring'
 
 import detail from './detail'
 
@@ -73,17 +75,11 @@ export default [
         },
     exact: true,
   },
-  { path: '/clusters/add', component: AddCluster, exact: true },
   {
     path: PATH,
     component: ClusterLayout,
     routes: [
       ...detail,
-      {
-        path: `${PATH}/kubectl`,
-        exact: true,
-        component: KubeCtl,
-      },
       {
         path: `${PATH}/kubeConfig`,
         component: KubeConfig,
@@ -103,8 +99,14 @@ export default [
             component: Nodes,
           },
           {
+            path: `${PATH}/edgenodes`,
+            component: EdgeNodes,
+            exact: true,
+          },
+          {
             path: `${PATH}/components`,
             component: ServiceComponents,
+            exact: true,
           },
           {
             path: `${PATH}/projects`,
@@ -167,6 +169,11 @@ export default [
             exact: true,
           },
           {
+            path: `${PATH}/serviceaccounts`,
+            component: ServiceAccounts,
+            exact: true,
+          },
+          {
             path: `${PATH}/storageclasses`,
             component: StorageClasses,
             exact: true,
@@ -190,11 +197,11 @@ export default [
             component: ResourceMonitor,
           },
           {
-            path: `${PATH}/alert-messages`,
+            path: `${PATH}/alerts`,
             component: AlertMessages,
           },
           {
-            path: `${PATH}/alert-policies`,
+            path: `${PATH}/alert-rules`,
             component: AlertPolicies,
           },
           {
@@ -232,13 +239,18 @@ export default [
             exact: true,
           },
           {
-            path: `${PATH}/mail-server`,
-            component: MailServer,
+            path: `${PATH}/ippools`,
+            component: IPPools,
             exact: true,
           },
           {
             path: `${PATH}/log-collections/:component`,
             component: LogCollections,
+          },
+          {
+            path: `${PATH}/custom-monitoring`,
+            component: CustomMonitoring,
+            exact: true,
           },
           getIndexRoute({ path: PATH, to: `${PATH}/overview`, exact: true }),
           getIndexRoute({
@@ -251,6 +263,7 @@ export default [
             to: `${PATH}/log-collections/logging`,
             exact: true,
           }),
+          getIndexRoute({ path: '*', to: '/404', exact: true }),
         ],
       },
     ],

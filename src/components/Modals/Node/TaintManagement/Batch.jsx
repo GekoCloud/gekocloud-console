@@ -1,28 +1,36 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import { isEmpty, set, intersectionBy, unionBy, remove, debounce } from 'lodash'
+import {
+  isEmpty,
+  set,
+  intersectionBy,
+  unionBy,
+  remove,
+  debounce,
+  get,
+} from 'lodash'
 
 import { cacheFunc } from 'utils'
 
-import { Alert } from '@pitrix/lego-ui'
+import { Alert } from '@juanchi_xd/components'
 import { Modal } from 'components/Base'
 import TaintInput from './TaintInput'
 
@@ -95,17 +103,35 @@ export default class TaintManagementModal extends React.Component {
 
   handleSubmit = () => {
     const { nodes, commonTaints } = this.state
+
     const result = nodes.map(node => {
       const taints = this.getTaints(node)
       set(
         node,
         'taints',
-        unionBy(taints, commonTaints, 'key').filter(taint => taint.key)
+        [...taints, ...commonTaints].filter(taint => taint.key)
       )
 
       return node
     })
-    this.props.onOk(result)
+
+    let isSubmit = true
+
+    result.forEach(node => {
+      const nodeTains = get(node, 'taints', [])
+      const isSomeTains = {}
+      nodeTains.forEach(item => {
+        if (isSomeTains[item.key]) {
+          isSubmit = false
+        } else {
+          isSomeTains[item.key] = 1
+        }
+      })
+    })
+
+    if (isSubmit) {
+      this.props.onOk(result)
+    }
   }
 
   handleChangeAll = debounce((values, deleteValue = {}) => {

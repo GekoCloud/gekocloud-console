@@ -1,29 +1,47 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, isEmpty } from 'lodash'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import { Form, Button, Notify } from 'components/Base'
-import { Dropdown, Icon, DatePicker, Select, Tooltip } from '@pitrix/lego-ui'
+import classnames from 'classnames'
+import {
+  Form,
+  Button,
+  Notify,
+  Icon,
+  DatePicker,
+  Select,
+} from '@juanchi_xd/components'
 import moment from 'moment-mini'
 
 import styles from './index.scss'
+
+const defaultRecentOpts = [
+  { label: 'Last 5 Minutes', value: { count: 5, unit: 'Minutes' } },
+]
+
+const defaultFormat = ({ count, unit } = {}, { startTime = 0, endTime = 0 }) =>
+  count
+    ? `${t('Last')} ${count} ${t(unit)}`
+    : `${moment(startTime).format('YYYY/MM/DD HH:mm:ss')} ~ ${moment(
+        endTime
+      ).format('YYYY/MM/DD HH:mm:ss')}`
 
 class TimeRangeSelector extends Component {
   static propTypes = {
@@ -40,45 +58,23 @@ class TimeRangeSelector extends Component {
   static defaultProps = {
     recent: null,
     timeRange: { startTime: Date.now(), endTime: Date.now() },
-    format: ({ count, unit } = {}, { startTime = 0, endTime = 0 }) =>
-      count
-        ? `${t('Last')} ${count} ${t(unit)}`
-        : `${moment(startTime).format('YYYY/MM/DD HH:mm:ss')} ~ ${moment(
-            endTime
-          ).format('YYYY/MM/DD HH:mm:ss')}`,
-    recentOpts: [
-      { label: 'Last 5 Minutes', value: { count: 5, unit: 'Minutes' } },
-    ],
-    intervalOpts: [
-      // { label: '5 Seconds', value: '5s' }
-    ],
+    format: defaultFormat,
+    recentOpts: defaultRecentOpts,
+    intervalOpts: [],
     onRecentSelect() {},
     onCustomSummit() {},
   }
 
-  startTimeRef = React.createRef()
-
-  endTimeRef = React.createRef()
-
-  componentDidMount() {
-    const startCalendar = get(
-      this.startTimeRef,
-      'current.instance.calendarContainer',
-      {}
-    )
-    const endCalendar = get(
-      this.endTimeRef,
-      'current.instance.calendarContainer',
-      {}
-    )
-
-    startCalendar.addEventListener('click', this.stopPropagation)
-    endCalendar.addEventListener('click', this.stopPropagation)
-    document.addEventListener('click', this.handleOutsideClick)
+  state = {
+    showDropdown: false,
   }
 
-  stopPropagation(e) {
-    e.stopPropagation()
+  toggleDropdown = () => {
+    this.setState({ showDropdown: !this.state.showDropdown })
+  }
+
+  hideDropdown = () => {
+    this.setState({ showDropdown: false })
   }
 
   handleRecentClick = e => {
@@ -102,20 +98,28 @@ class TimeRangeSelector extends Component {
   }
 
   render() {
+    const { showDropdown } = this.state
     const { format, timeRange, recent } = this.props
     const content = format(recent || {}, timeRange)
 
     return (
-      <div className={styles.wrapper}>
-        <Dropdown content={this.renderDropDown()} closeAfterClick={false}>
-          <div className={styles.content}>
-            <Icon name="calendar" />
-            <Tooltip content={recent ? null : content}>
-              <h4>{content}</h4>
-            </Tooltip>
-            <Icon name="caret-down" />
-          </div>
-        </Dropdown>
+      <div
+        className={classnames(styles.wrapper, {
+          [styles.active]: showDropdown,
+        })}
+      >
+        <div
+          className={classnames(styles.mask, {
+            [styles.active]: showDropdown,
+          })}
+          onClick={this.hideDropdown}
+        />
+        <div className={styles.content} onClick={this.toggleDropdown}>
+          <Icon name="calendar" type="light" />
+          <span>{content}</span>
+          <Icon name="chevron-down" type="light" />
+        </div>
+        {this.renderDropDown()}
       </div>
     )
   }
@@ -133,7 +137,7 @@ class TimeRangeSelector extends Component {
     const { recentOpts } = this.props
     return (
       <>
-        <h3>{t('Select Time Range')}</h3>
+        <div className={styles.title}>{t('Select Time Range')}</div>
         <div className={styles.recentWrapper}>
           {recentOpts.map(({ label }, index) => (
             <span
@@ -157,28 +161,20 @@ class TimeRangeSelector extends Component {
       enableSeconds: true,
       enableTime: true,
       dateFormat: 'Y-m-d H:i:S',
-      showClearBtn: false,
     }
+
     return (
       <>
-        <h3>{t('Custom Time Range')}</h3>
+        <div className={styles.title}>{t('Custom Time Range')}</div>
         <Form
           data={{ interval, startTime: [startTime], endTime: [endTime] }}
           onSubmit={this.handleSubmit}
         >
           <Form.Item label={t('Start Time')}>
-            <DatePicker
-              ref={this.startTimeRef}
-              name={'startTime'}
-              {...datePickerProps}
-            />
+            <DatePicker name={'startTime'} {...datePickerProps} />
           </Form.Item>
           <Form.Item label={t('End Time')}>
-            <DatePicker
-              ref={this.endTimeRef}
-              name={'endTime'}
-              {...datePickerProps}
-            />
+            <DatePicker name={'endTime'} {...datePickerProps} />
           </Form.Item>
           <div className={styles.footer}>
             {isEmpty(intervalOpts) || (
@@ -191,7 +187,7 @@ class TimeRangeSelector extends Component {
               </Form.Item>
             )}
             <div>
-              <Button htmlType={'submit'}>{t('OK')}</Button>
+              <Button htmlType="submit">{t('OK')}</Button>
             </div>
           </div>
         </Form>

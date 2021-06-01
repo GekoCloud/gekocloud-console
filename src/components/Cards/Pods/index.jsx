@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -23,6 +23,7 @@ import PropTypes from 'prop-types'
 import classnames from 'classnames'
 import { isEmpty, has, get, throttle } from 'lodash'
 import {
+  Button,
   Icon,
   Level,
   LevelLeft,
@@ -30,7 +31,8 @@ import {
   Pagination,
   Loading,
   Select,
-} from '@pitrix/lego-ui'
+  InputSearch,
+} from '@juanchi_xd/components'
 
 import { joinSelector } from 'utils'
 import { startAutoRefresh, stopAutoRefresh } from 'utils/monitoring'
@@ -39,7 +41,7 @@ import PodStore from 'stores/pod'
 import PodMonitorStore from 'stores/monitoring/pod'
 import WebSocketStore from 'stores/websocket'
 
-import { Panel, Search, Button } from 'components/Base'
+import { Panel } from 'components/Base'
 import PodItem from './Item'
 
 import styles from './index.scss'
@@ -195,6 +197,7 @@ export default class PodsCard extends React.Component {
         result.namespace = name
         break
       case 'Service':
+      case 'IPPool':
         result.labelSelector = joinSelector(selector)
         break
       default:
@@ -233,7 +236,6 @@ export default class PodsCard extends React.Component {
     const { data, isLoading } = this.store.list
 
     if (isEmpty(data) || isLoading || isEmpty(this.state.params)) return false
-
     this.monitorStore.fetchMetrics({
       step: '1m',
       times: 30,
@@ -285,9 +287,9 @@ export default class PodsCard extends React.Component {
     })
   }
 
-  handleExpand = name => {
+  handleExpand = uid => {
     this.setState(({ expandItem }) => ({
-      expandItem: expandItem === name ? '' : name,
+      expandItem: expandItem === uid ? '' : uid,
     }))
   }
 
@@ -324,10 +326,10 @@ export default class PodsCard extends React.Component {
             onChange={this.handleClusterChange}
           />
         )}
-        <Search
+        <InputSearch
           className={styles.search}
           name="search"
-          placeholder={t('Please input a keyword to filter')}
+          placeholder={t('Filter by keyword')}
           onSearch={this.handleSearch}
         />
         <div className={styles.actions}>
@@ -349,7 +351,7 @@ export default class PodsCard extends React.Component {
         ) : (
           data.map(pod => (
             <PodItem
-              key={pod.name}
+              key={pod.uid}
               prefix={
                 isFederated ? `${prefix}/clusters/${selectCluster}` : prefix
               }
@@ -357,7 +359,7 @@ export default class PodsCard extends React.Component {
               metrics={this.getPodMetrics(pod)}
               loading={this.monitorStore.isLoading}
               refreshing={this.monitorStore.isRefreshing}
-              isExpand={this.state.expandItem === pod.name}
+              isExpand={this.state.expandItem === pod.uid}
               onExpand={this.handleExpand}
             />
           ))
@@ -369,18 +371,14 @@ export default class PodsCard extends React.Component {
   }
 
   renderFooter = () => {
-    const { total, page, limit } = this.getPagination()
+    const pagination = this.getPagination()
+    const { total } = pagination
 
     return (
       <Level className={styles.footer}>
         <LevelLeft>{t('TOTAL_ITEMS', { num: total })}</LevelLeft>
         <LevelRight>
-          <Pagination
-            current={page}
-            total={total}
-            pageSize={limit}
-            onChange={this.handlePage}
-          />
+          <Pagination {...pagination} onChange={this.handlePage} />
         </LevelRight>
       </Level>
     )
@@ -388,7 +386,7 @@ export default class PodsCard extends React.Component {
 
   render() {
     const { className, title, hideHeader, hideFooter, noWrapper } = this.props
-    const { data, isLoading } = this.store.list
+    const { data } = this.store.list
 
     if (noWrapper) {
       return this.renderContent()
@@ -400,7 +398,6 @@ export default class PodsCard extends React.Component {
         title={t(title)}
         empty={t('NOT_AVAILABLE', { resource: t('Pod') })}
         isEmpty={isEmpty(data)}
-        loading={isLoading}
       >
         {!hideHeader && this.renderHeader()}
         {this.renderContent()}

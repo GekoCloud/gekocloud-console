@@ -1,27 +1,25 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { lazy, Suspense, PureComponent } from 'react'
 import PropTypes from 'prop-types'
 import classnames from 'classnames'
-import { Loading } from '@pitrix/lego-ui'
-
-import { getValue } from 'utils/yaml'
+import { Loading } from '@juanchi_xd/components'
 
 import styles from './index.scss'
 
@@ -31,7 +29,12 @@ const AceEditor = lazy(() =>
 
 class CodeEditor extends PureComponent {
   static propTypes = {
-    value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    value: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.object,
+      PropTypes.arrayOf(PropTypes.string),
+      PropTypes.arrayOf(PropTypes.object),
+    ]),
     mode: PropTypes.string,
     options: PropTypes.object,
     onChange: PropTypes.func,
@@ -44,44 +47,17 @@ class CodeEditor extends PureComponent {
     onChange() {},
   }
 
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      value: getValue(props.value),
-      originValue: props.value,
-    }
-  }
-
-  static getDerivedStateFromProps(props, state) {
-    const { value } = props
-
-    if (value !== state.originValue) {
-      return {
-        value: getValue(value),
-        originValue: value,
-      }
-    }
-
-    return null
-  }
-
-  handleChange = value => {
-    const { onChange } = this.props
-    this.setState({ value }, () => onChange(value))
-  }
-
   render() {
-    const { className, mode, options } = this.props
+    const { className, mode, options, value, onChange } = this.props
 
     return (
       <Suspense fallback={<Loading className="ks-page-loading" />}>
         <AceEditor
           {...options}
           className={classnames(styles.editor, className)}
-          value={this.state.value}
+          value={value}
           mode={mode}
-          onChange={this.handleChange}
+          onChange={onChange}
         />
       </Suspense>
     )

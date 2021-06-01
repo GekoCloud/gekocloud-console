@@ -1,36 +1,51 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, isEmpty } from 'lodash'
 import { observable, action } from 'mobx'
 
-import { getFilterString } from 'utils'
-import ObjectMapper from 'utils/object.mapper'
+import { getFilterString, joinSelector } from 'utils'
 import { CLUSTER_QUERY_STATUS } from 'configs/openpitrix/app'
 
+import ServiceStore from 'stores/service'
+import PodStore from 'stores/pod'
+
 import Base from './base'
+
+const STATUSES = {
+  creating: 'Creating',
+  created: 'Creating',
+  active: 'Running',
+  failed: 'Failed',
+  deleting: 'Deleting',
+  upgrading: 'Upgrading',
+  upgraded: 'Upgrading',
+}
 
 const dataFormatter = data => {
   const status = get(data, 'cluster.status')
   return {
     ...data,
     ...data.cluster,
-    status: status === 'pending' ? 'failed' : status,
+    selector: {
+      'app.kubesphere.io/instance': data.cluster.name,
+    },
+    status: STATUSES[status],
   }
 }
 
@@ -39,23 +54,24 @@ export default class Application extends Base {
 
   defaultStatus = CLUSTER_QUERY_STATUS
 
-  get baseUrl() {
-    return 'kapis/openpitrix.io/v1'
+  serviceStore = new ServiceStore()
+
+  podStore = new PodStore()
+
+  @observable
+  components = {
+    data: [],
+    total: 0,
+    isLoading: true,
   }
 
-  getPath({ workspace, cluster, namespace }) {
-    let path = ''
-    if (workspace) {
-      path += `/workspaces/${workspace}`
-    }
-    if (cluster) {
-      path += `/clusters/${cluster}`
-    }
-    if (namespace) {
-      path += `/namespaces/${namespace}`
-    }
-    return path
-  }
+  getWatchListUrl = ({ cluster, namespace } = {}) =>
+    `apis/application.kubesphere.io/v1alpha1/watch/helmreleases?labelSelector=${joinSelector(
+      {
+        'kubesphere.io/cluster': globals.app.isMultiCluster ? cluster : null,
+        'kubesphere.io/namespace': namespace,
+      }
+    )}`
 
   getUrl = ({ workspace, namespace, cluster, cluster_id } = {}) => {
     const url = `${this.baseUrl}${this.getPath({
@@ -98,7 +114,6 @@ export default class Application extends Base {
 
     if (!order && reverse === undefined) {
       order = 'status_time'
-      reverse = true
     }
 
     if (!isEmpty(filters)) {
@@ -143,6 +158,7 @@ export default class Application extends Base {
     })
 
     this.list.isLoading = false
+    return data
   }
 
   @action
@@ -153,26 +169,10 @@ export default class Application extends Base {
       this.getUrl({ workspace, namespace, cluster, cluster_id })
     )
 
-    if (result.services) {
-      result.services = result.services.map(ObjectMapper.services)
-    }
-
-    if (result.workloads) {
-      Object.keys(result.workloads).forEach(key => {
-        if (ObjectMapper[key]) {
-          result.workloads[key] = result.workloads[key].map(ObjectMapper[key])
-        }
-      })
-    }
-
-    try {
-      const clusterData = get(result, 'cluster.env', '')
-      this.env.data = JSON.parse(clusterData)
-    } catch (err) {}
-
     this.detail = {
       ...dataFormatter(result),
       workspace,
+      namespace,
       cluster,
     }
 

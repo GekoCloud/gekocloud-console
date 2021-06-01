@@ -1,29 +1,28 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import PropTypes from 'prop-types'
 import classnames from 'classnames'
-import { get, set, debounce } from 'lodash'
+import { get, set } from 'lodash'
 import isEqual from 'react-fast-compare'
 
-import { Icon, Input, Columns, Column } from '@pitrix/lego-ui'
-import { Alert } from 'components/Base'
+import { Icon, Input, Columns, Column, Alert } from '@juanchi_xd/components'
 
 import { cpuFormat, memoryFormat } from 'utils'
 
@@ -36,11 +35,13 @@ export default class ResourceLimit extends React.Component {
     value: PropTypes.object,
     defaultValue: PropTypes.object,
     onChange: PropTypes.func,
+    onError: PropTypes.func,
   }
 
   static defaultProps = {
     value: {},
     onChange() {},
+    onError() {},
     cpuProps: {},
     memoryProps: {},
   }
@@ -198,28 +199,26 @@ export default class ResourceLimit extends React.Component {
     let memoryError = ''
     const { requests, limits } = state
 
-    if (Number(requests.cpu) > Number(limits.cpu)) {
+    if (limits.cpu && Number(requests.cpu) > Number(limits.cpu)) {
       cpuError = 'RequestExceed'
     }
 
-    if (Number(requests.memory) > Number(limits.memory)) {
+    if (limits.memory && Number(requests.memory) > Number(limits.memory)) {
       memoryError = 'RequestExceed'
     }
 
     return { cpuError, memoryError }
   }
 
-  triggerChange = debounce(() => {
-    const { onChange } = this.props
+  triggerChange = () => {
+    const { onChange, onError } = this.props
     const { requests, limits, cpuError, memoryError } = this.state
     const { unit: memoryUnit } = this.getMemoryProps()
     let { unit: cpuUnit } = this.getCPUProps()
 
     cpuUnit = cpuUnit === 'Core' ? '' : cpuUnit
 
-    if (cpuError || memoryError) {
-      return
-    }
+    onError(cpuError || memoryError)
 
     const result = {}
     if (requests.cpu > 0 && requests.cpu < Infinity) {
@@ -236,7 +235,7 @@ export default class ResourceLimit extends React.Component {
     }
 
     onChange(result)
-  }, 200)
+  }
 
   handleCPUChange = value => {
     this.setState(

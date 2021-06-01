@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -23,6 +23,7 @@ import PropTypes from 'prop-types'
 import { List } from 'components/Base'
 
 import Card from './Card'
+import QuotaCheck from './QuotaCheck'
 
 import styles from './index.scss'
 
@@ -72,6 +73,23 @@ export default class ContainerList extends React.Component {
     onDelete && onDelete(container.name)
   }
 
+  renderQuotaCheck() {
+    const { value, replicas } = this.props
+    const {
+      specTemplate: { initContainers = [] },
+      leftQuota,
+    } = this.props
+    return (
+      <QuotaCheck
+        className="margin-b12"
+        containers={value}
+        initContainers={initContainers}
+        leftQuota={leftQuota}
+        replicas={replicas}
+      />
+    )
+  }
+
   renderContainers() {
     const { value, readOnlyList } = this.props
 
@@ -115,17 +133,18 @@ export default class ContainerList extends React.Component {
         icon="docker"
         title={`${t('Add ')}${t('Container Image')}`}
         description={t(
-          'Smartkube supports pulling images from the Image Registries and creating new images through source code (Source to Image).'
+          'SmartKube supports pulling images from the Image Registries and creating new images through source code (Source to Image).'
         )}
       />
     )
   }
 
   render() {
-    const { className } = this.props
+    const { className, projectDetail } = this.props
 
     return (
       <div className={classNames(styles.wrapper, className)}>
+        {projectDetail && this.renderQuotaCheck()}
         {this.renderInitContainers()}
         {this.renderContainers()}
         {this.renderAdd()}

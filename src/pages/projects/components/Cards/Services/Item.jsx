@@ -1,28 +1,31 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { isArray } from 'lodash'
+import { get } from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import classnames from 'classnames'
 
-import { Icon } from '@pitrix/lego-ui'
+import { Tooltip, Icon } from '@juanchi_xd/components'
+import { Text } from 'components/Base'
+import ServiceAccess from 'projects/components/ServiceAccess'
+import { getDisplayName } from 'utils'
 
 import styles from './index.scss'
 
@@ -45,38 +48,37 @@ export default class ServiceItem extends React.Component {
       return null
     }
 
-    let ports = detail.ports
-    if (isArray(ports)) {
-      ports = ports
-        .map(item => `${item.port}:${item.targetPort}/${item.protocol}`)
-        .join(';')
-    }
-
-    const { type, clusterIP, loadBalancerIngress, externalName } = detail
-    const content =
-      type === 'Virtual IP'
-        ? clusterIP
-        : loadBalancerIngress.join(';') || externalName
+    const serviceMonitor = get(detail, 'monitor.name')
+    const detailName = getDisplayName(detail)
 
     return (
       <div className={classnames(styles.item, className)}>
-        <div className={styles.icon}>
-          <Icon name="network-router" size={40} />
-        </div>
-        <div className={styles.name}>
-          <Link to={`${prefix}/${detail.name}`}>{detail.name}</Link>
-          <p>
-            {t(type)}: {content || '-'}
-          </p>
-        </div>
-        <div className={styles.status}>
-          <p>
-            <span>{t('Port')}</span>: {ports}
-          </p>
-          <p>
-            <span>{t('IP')}</span>: {detail.virtualIp || '-'}
-          </p>
-        </div>
+        <Text
+          icon="network-router"
+          title={
+            <>
+              <Link to={`${prefix}/services/${detail.name}`}>{detailName}</Link>
+              {serviceMonitor && (
+                <Tooltip
+                  content={`${t('Monitoring Exporter')}: ${serviceMonitor}`}
+                >
+                  <Icon className="margin-l8" name="monitor" size={20} />
+                </Tooltip>
+              )}
+            </>
+          }
+          description={t(detail.type)}
+        />
+        <Text
+          title={
+            get(detail, 'annotations["servicemesh.kubesphere.io/enabled"]') ===
+            'true'
+              ? t('On')
+              : t('Off')
+          }
+          description={t('Application Governance')}
+        />
+        <ServiceAccess data={detail} />
       </div>
     )
   }

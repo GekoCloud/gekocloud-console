@@ -11,15 +11,15 @@
     :global(.select-control) {
       height: 24px;
       border: none;
-      background: #3563AD;
+      background: #242e42;
     }
     :global(.select-input) {
       height: 24px;
     }
-    :global(.select-value-label) {
+    :global(.select-value) {
       color: white !important;
     }
-    :global(.select-arrow) {
+    :global(.select-icon) {
       svg {
         color: white;
       }

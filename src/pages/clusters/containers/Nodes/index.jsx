@@ -1,24 +1,24 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { isEmpty, get } from 'lodash'
-import { Tooltip, Icon } from '@pitrix/lego-ui'
+import { Tooltip, Icon } from '@juanchi_xd/components'
 
 import { cpuFormat, memoryFormat } from 'utils'
 import { ICON_TYPES, NODE_STATUS } from 'utils/constants'
@@ -27,12 +27,13 @@ import { getValueByUnit } from 'utils/monitoring'
 import NodeStore from 'stores/node'
 import NodeMonitoringStore from 'stores/monitoring/node'
 
-import withList, { ListPage } from 'components/HOCs/withList'
+import { withClusterList, ListPage } from 'components/HOCs/withList'
 
 import { Avatar, Status, Panel, Text } from 'components/Base'
 import Banner from 'components/Cards/Banner'
 import Table from 'components/Tables/List'
 
+import { toJS } from 'mobx'
 import styles from './index.scss'
 
 const MetricTypes = {
@@ -46,7 +47,7 @@ const MetricTypes = {
   pod_total: 'node_pod_quota',
 }
 
-@withList({
+@withClusterList({
   store: new NodeStore(),
   name: 'Cluster Node',
   module: 'nodes',
@@ -78,14 +79,15 @@ export default class Nodes extends React.Component {
   }
 
   get itemActions() {
-    const { store, routing } = this.props
+    const { store, clusterStore, routing, trigger, name } = this.props
     return [
       {
         key: 'uncordon',
         icon: 'start',
         text: t('Uncordon'),
         action: 'edit',
-        show: item => this.getUnschedulable(item),
+        show: item =>
+          item.importStatus === 'success' && this.getUnschedulable(item),
         onClick: item => store.uncordon(item).then(routing.query),
       },
       {
@@ -93,17 +95,54 @@ export default class Nodes extends React.Component {
         icon: 'stop',
         text: t('Cordon'),
         action: 'edit',
-        show: item => !this.getUnschedulable(item),
+        show: item =>
+          item.importStatus === 'success' && !this.getUnschedulable(item),
         onClick: item => store.cordon(item).then(routing.query),
+      },
+      {
+        key: 'logs',
+        icon: 'eye',
+        text: t('Show Logs'),
+        action: 'edit',
+        show: item => item.importStatus !== 'success',
+        onClick: () =>
+          trigger('node.add.log', { detail: toJS(clusterStore.detail) }),
+      },
+      {
+        key: 'delete',
+        icon: 'trash',
+        text: t('Delete'),
+        action: 'delete',
+        show: item => item.importStatus === 'failed',
+        onClick: item =>
+          trigger('resource.delete', {
+            type: t(name),
+            detail: item,
+            success: routing.query,
+          }),
       },
     ]
   }
 
   get tableActions() {
-    const { trigger, routing, tableProps } = this.props
+    const { trigger, routing, clusterStore, tableProps } = this.props
+    const actions = []
+    if (clusterStore.detail.kkName) {
+      actions.push({
+        key: 'add',
+        type: 'control',
+        text: t('Add Node'),
+        action: 'create',
+        onClick: () =>
+          trigger('node.add', {
+            kkName: clusterStore.detail.kkName || 'ddd',
+          }),
+      })
+    }
+
     return {
       ...tableProps.tableActions,
-      actions: [],
+      actions,
       selectActions: [
         {
           key: 'taint',
@@ -120,7 +159,11 @@ export default class Nodes extends React.Component {
   }
 
   getData = async params => {
-    await this.store.fetchList({ ...params, ...this.props.match.params })
+    await this.store.fetchList({
+      ...params,
+      ...this.props.match.params,
+    })
+
     await this.monitoringStore.fetchMetrics({
       ...this.props.match.params,
       resources: this.store.list.data.map(node => node.name),
@@ -146,7 +189,6 @@ export default class Nodes extends React.Component {
 
   getRecordMetrics = (record, configs) => {
     const metrics = {}
-
     configs.forEach(cfg => {
       metrics[cfg.type] = parseFloat(
         this.getLastValue(record, MetricTypes[cfg.type], cfg.unit)
@@ -187,7 +229,7 @@ export default class Nodes extends React.Component {
           <Avatar
             icon={ICON_TYPES[module]}
             iconSize={40}
-            to={`${prefix}/${name}`}
+            to={record.importStatus !== 'success' ? null : `${prefix}/${name}`}
             title={name}
             desc={record.ip}
           />
@@ -210,7 +252,7 @@ export default class Nodes extends React.Component {
                 type={status}
                 name={t(`NODE_STATUS_${status.toUpperCase()}`)}
               />
-              {!isEmpty(taints) && (
+              {!isEmpty(taints) && record.importStatus === 'success' && (
                 <Tooltip content={this.renderTaintsTip(taints)}>
                   <span className={styles.taints}>{taints.length}</span>
                 </Tooltip>

@@ -1,30 +1,30 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { observer } from 'mobx-react'
 import classnames from 'classnames'
-import { Tabs } from '@pitrix/lego-ui'
+import { Button, Tabs } from '@juanchi_xd/components'
 import { get } from 'lodash'
 import { toJS } from 'mobx'
 
-import { Modal, Button, Image } from 'components/Base'
+import { Modal, Image } from 'components/Base'
 import BaseInfo from 'apps/components/Cards/BaseInfo'
 import AppReadme from 'apps/components/Cards/AppReadme'
 import TextPreview from 'apps/components/TextPreview'
@@ -196,11 +196,7 @@ export default class AppReview extends Component {
         rightScreen
         hideFooter
       >
-        <Tabs
-          className="tabs-new"
-          activeName={tab}
-          onChange={this.handleTabChange}
-        >
+        <Tabs type="button" activeName={tab} onChange={this.handleTabChange}>
           <TabPanel label={t('App Info')} name="appInfo">
             {this.renderBaseInfo()}
           </TabPanel>

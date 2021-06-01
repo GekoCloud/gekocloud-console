@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -87,7 +87,7 @@ class EtcdMonitorings extends React.Component {
       type: 'area',
       title: 'Client Traffic',
       unitType: 'traffic',
-      legend: ['Received', 'Sented'],
+      legend: ['Received', 'Sent'],
       data: [
         get(
           this.metrics,
@@ -100,7 +100,7 @@ class EtcdMonitorings extends React.Component {
       type: 'area',
       title: 'gRPC Stream Messages',
       unit: 'times/s',
-      legend: ['Received', 'Sented'],
+      legend: ['Received', 'Sent'],
       data: [
         get(this.metrics, `${MetricTypes.grpc_received_rate}.data.result[0]`),
         get(this.metrics, `${MetricTypes.grpc_sent_rate}.data.result[0]`),
@@ -197,6 +197,7 @@ class EtcdMonitorings extends React.Component {
   render() {
     const { isLoading, isRefreshing } = this.monitorStore
     const configs = this.getMonitoringCfgs()
+    const cluster = this.props.match.params.cluster
 
     return (
       <MonitoringController
@@ -211,7 +212,7 @@ class EtcdMonitorings extends React.Component {
         <div className={styles.content}>
           <div className={styles.box}>
             <div className={styles.status}>
-              <ETCDNodes />
+              <ETCDNodes cluster={cluster} />
             </div>
           </div>
           {configs.map(item => this.renderChart(item))}

@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,7 +21,7 @@ import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import { get } from 'lodash'
 import { Card } from 'components/Base'
-import { Icon } from '@pitrix/lego-ui'
+import { Icon } from '@juanchi_xd/components'
 import { parseUrl } from 'utils'
 
 import StatusCard from './StatusCard'
@@ -29,12 +29,13 @@ import styles from './index.scss'
 
 class CodeQualityResult extends React.Component {
   static propTypes = {
-    data: PropTypes.object,
+    detail: PropTypes.object,
     loading: PropTypes.bool,
   }
 
   get sonarqubeOrigin() {
-    const { sonarqubeDashboardUrl } = this.props.data
+    const { sonarqubeDashboardUrl } = this.props.detail
+
     return (
       get(globals, 'config.devops.sonarqubeURL') ||
       parseUrl(sonarqubeDashboardUrl).origin
@@ -42,7 +43,7 @@ class CodeQualityResult extends React.Component {
   }
 
   goToSonarqube = () => {
-    const { sonarqubeDashboardUrl } = this.props.data
+    const { sonarqubeDashboardUrl } = this.props.detail
     const customUrl = get(globals, 'config.devops.sonarqubeURL')
     if (customUrl) {
       const parsedUrlObj = parseUrl(sonarqubeDashboardUrl)
@@ -57,7 +58,7 @@ class CodeQualityResult extends React.Component {
   }
 
   renderTotalResult = () => {
-    const { totalStatus } = this.props.data
+    const { totalStatus } = this.props.detail
     const isPassed = totalStatus !== 'ERROR'
     return (
       <div
@@ -82,7 +83,7 @@ class CodeQualityResult extends React.Component {
   }
 
   renderOtherResults = () => {
-    const { data } = this.props
+    const { detail } = this.props
     const {
       bugRating,
       bugs,
@@ -91,13 +92,13 @@ class CodeQualityResult extends React.Component {
       codeSmells,
       coverage,
       key,
-    } = data
+    } = detail
 
     const totalCode =
-      data.totalCode > 1000
-        ? parseFloat(data.totalCode / 1000).toFixed(2)
-        : data.totalCode
-    const totalCodeUnit = data.totalCode > 1000 ? 'K' : ''
+      detail.totalCode > 1000
+        ? parseFloat(detail.totalCode / 1000).toFixed(2)
+        : detail.totalCode
+    const totalCodeUnit = detail.totalCode > 1000 ? 'K' : ''
 
     return (
       <div className={styles.otherCards}>
@@ -105,47 +106,37 @@ class CodeQualityResult extends React.Component {
           title={t('Lines of Code')}
           value={totalCode}
           unit={totalCodeUnit}
-          url={`${
-            this.sonarqubeOrigin
-          }/component_measures?id=${key}&metric=ncloc`}
+          url={`${this.sonarqubeOrigin}/component_measures?id=${key}&metric=ncloc`}
         />
         <StatusCard
           hasIcon
           title={t('Bug')}
           value={bugs}
-          unit={t('个')}
+          unit={t('NUM_UNIT')}
           resultClass={bugRating}
-          url={`${
-            this.sonarqubeOrigin
-          }/project/issues?id=${key}&resolved=false&types=BUG`}
+          url={`${this.sonarqubeOrigin}/project/issues?id=${key}&resolved=false&types=BUG`}
         />
         <StatusCard
           hasIcon
           title={t('Code Vulnerability')}
           value={vulnerabilities}
-          unit={t('个')}
+          unit={t('NUM_UNIT')}
           resultClass={securityRating}
-          url={`${
-            this.sonarqubeOrigin
-          }/project/issues?id=${key}&resolved=false&types=VULNERABILITY`}
+          url={`${this.sonarqubeOrigin}/project/issues?id=${key}&resolved=false&types=VULNERABILITY`}
         />
         <StatusCard
           hasIcon
           title={t('CodeSmells')}
           value={codeSmells}
           unit={t('Line')}
-          url={`${
-            this.sonarqubeOrigin
-          }/project/issues?id=${key}&resolved=false&types=CODE_SMELL`}
+          url={`${this.sonarqubeOrigin}/project/issues?id=${key}&resolved=false&types=CODE_SMELL`}
         />
         <StatusCard
           hasIcon
           title={t('Coverage')}
           value={coverage}
           unit={'%'}
-          url={`${
-            this.sonarqubeOrigin
-          }/component_measures?id=${key}&metric=coverage`}
+          url={`${this.sonarqubeOrigin}/component_measures?id=${key}&metric=coverage`}
         />
       </div>
     )

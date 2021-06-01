@@ -1,30 +1,31 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 const fs = require('fs')
-const crypto = require('crypto')
 const yaml = require('js-yaml/dist/js-yaml')
 const NodeCache = require('node-cache')
+const get = require('lodash/get')
 const merge = require('lodash/merge')
 const isEmpty = require('lodash/isEmpty')
-const pathToRegex = require('path-to-regexp')
+const pick = require('lodash/pick')
 
-const STATIC_VERSION_CACHE_KEY = 'STATIC_VERSION_CACHE_KEY'
+const MANIFEST_CACHE_KEY_PREFIX = 'MANIFEST_CACHE_KEY_'
+const LOCALE_MANIFEST_CACHE_KEY = 'LOCALE_MANIFEST_CACHE_KEY'
 
 const root = dir => `${global.APP_ROOT}/${dir}`.replace(/(\/+)/g, '/')
 
@@ -67,57 +68,12 @@ const getServerConfig = key => {
       }
     }
 
-    if (global.ARGV.server) {
-      merge(config, { server: global.ARGV.server })
-    }
-
-    if (global.ARGV.client) {
-      merge(config, { client: global.ARGV.client })
-    }
-
     cache.set(server_conf_key, config)
   }
   return key ? config[key] : config
 }
 
 const getCache = () => cache
-
-const formatRules = rules =>
-  (rules || []).reduce(
-    (prev, cur) => ({
-      ...prev,
-      [cur.name]: cur.actions,
-    }),
-    {}
-  )
-
-const checkSum = (data, algorithm, encoding) =>
-  crypto
-    .createHash(algorithm || 'md5')
-    .update(data, 'utf8')
-    .digest(encoding || 'hex')
-
-const getFileVersion = filename => {
-  if (global.MODE_DEV) {
-    return ''
-  }
-
-  let versionCache = cache.get(STATIC_VERSION_CACHE_KEY)
-  if (!versionCache) {
-    versionCache = {}
-    cache.set(STATIC_VERSION_CACHE_KEY, versionCache)
-  }
-
-  if (!versionCache[filename]) {
-    const data = fs.readFileSync(root(filename))
-    const version = checkSum(data)
-    versionCache[filename] = version
-
-    cache.set(STATIC_VERSION_CACHE_KEY, versionCache)
-  }
-
-  return versionCache[filename] || ''
-}
 
 const isValidReferer = path =>
   !isEmpty(path) && path !== '/' && path.indexOf('/login') === -1
@@ -127,8 +83,7 @@ const isValidReferer = path =>
  * @param path  koa ctx.path
  */
 const isAppsRoute = path => {
-  const regex = pathToRegex('/apps/app-(.*)')
-  return path === '/apps' || regex.exec(path)
+  return path === '/apps' || /\/apps\/?(app-([-0-9a-z]*)\/?)?$/.exec(path)
 }
 
 /**
@@ -187,14 +142,48 @@ const safeParseJSON = (json, defaultValue) => {
   return result
 }
 
+const getManifest = entry => {
+  let manifestCache = cache.get(`${MANIFEST_CACHE_KEY_PREFIX}${entry}`)
+
+  if (!manifestCache) {
+    let data = {}
+    try {
+      const dataStream = fs.readFileSync(root('dist/manifest.json'))
+      data = safeParseJSON(dataStream.toString(), {})
+    } catch (error) {}
+    manifestCache = get(data, `entrypoints.${entry}`)
+    cache.set(`${MANIFEST_CACHE_KEY_PREFIX}${entry}`, manifestCache)
+  }
+
+  return manifestCache
+}
+
+const getLocaleManifest = () => {
+  let manifestCache = cache.get(LOCALE_MANIFEST_CACHE_KEY)
+
+  if (!manifestCache) {
+    let data = {}
+    try {
+      const dataStream = fs.readFileSync(root('dist/manifest.locale.json'))
+      data = safeParseJSON(dataStream.toString(), {})
+    } catch (error) {}
+    manifestCache = pick(
+      data,
+      Object.keys(data).filter(key => key.startsWith('locale-'))
+    )
+    cache.set(LOCALE_MANIFEST_CACHE_KEY, manifestCache)
+  }
+
+  return manifestCache
+}
+
 module.exports = {
   root,
   loadYaml,
   getCache,
+  getManifest,
+  getLocaleManifest,
   getServerConfig,
-  formatRules,
-  checkSum,
-  getFileVersion,
   isValidReferer,
   isAppsRoute,
   decryptPassword,

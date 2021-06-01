@@ -1,25 +1,25 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import { get, set } from 'lodash'
+import { get, set, pick } from 'lodash'
 import classNames from 'classnames'
 import {
   Icon,
@@ -28,8 +28,10 @@ import {
   Select,
   Tooltip,
   Loading,
-} from '@pitrix/lego-ui'
-import { Text, Form, SearchSelect } from 'components/Base'
+  Form,
+} from '@juanchi_xd/components'
+
+import { Text } from 'components/Base'
 import Confirm from 'components/Forms/Base/Confirm'
 import StatusReason from 'clusters/components/StatusReason'
 import WorkspaceStore from 'stores/workspace'
@@ -82,7 +84,6 @@ export default class Placment extends Component {
       .map(item => ({
         label: item.name,
         value: item.name,
-        opRuntime: item.opRuntime,
         disabled: item.isFedManaged,
         isFedManaged: item.isFedManaged,
       }))
@@ -110,11 +111,6 @@ export default class Placment extends Component {
       const firstValidNamepsace =
         this.namespaces.find(item => !item.disabled) || {}
       set(this.state.formData, 'namespace', firstValidNamepsace.value || '')
-      set(
-        this.state.formData,
-        'runtime_id',
-        firstValidNamepsace.opRuntime || ''
-      )
     }
 
     Object.assign(this.props.formData, this.state.formData)
@@ -169,15 +165,8 @@ export default class Placment extends Component {
     const form = this.formRef.current
     form &&
       form.validate(() => {
-        const namespace = this.state.formData.namespace
-        const runtime_id = (
-          this.projectStore.list.data.find(item => item.name === namespace) ||
-          {}
-        ).opRuntime
-
         Object.assign(this.props.formData, {
           ...this.state.formData,
-          runtime_id,
         })
         this.hideForm()
       })
@@ -268,17 +257,21 @@ export default class Placment extends Component {
                   { required: true, message: t('Please select a project') },
                 ]}
               >
-                <SearchSelect
+                <Select
                   name="namespace"
                   placeholder={t('Please select a project')}
                   options={this.namespaces}
-                  page={this.projectStore.list.page}
-                  total={this.projectStore.list.total}
+                  pagination={pick(this.projectStore.list, [
+                    'page',
+                    'limit',
+                    'total',
+                  ])}
                   isLoading={this.projectStore.list.isLoading}
-                  currentLength={this.projectStore.list.data.length}
                   onFetch={this.fetchNamespaces}
                   valueRenderer={this.projectOptionRenderer}
                   optionRenderer={this.projectOptionRenderer}
+                  searchable
+                  clearable
                 />
               </Form.Item>
             </Column>

@@ -1,30 +1,37 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, debounce } from 'lodash'
 import React, { Component } from 'react'
 import { observer } from 'mobx-react'
 
-import { Columns, Column, Input, InputPassword } from '@pitrix/lego-ui'
-import { Button, Alert } from 'components/Base'
+import {
+  Columns,
+  Column,
+  Input,
+  InputPassword,
+  Button,
+  Alert,
+} from '@juanchi_xd/components'
 import { SchemeInput } from 'components/Inputs'
 
 import { safeParseJSON } from 'utils'
+import { safeBtoa } from 'utils/base64'
 
 import SecretStore from 'stores/secret'
 
@@ -65,7 +72,7 @@ export default class ImageRegistry extends Component {
               username,
               password,
               email,
-              auth: btoa(`${username}:${password}`),
+              auth: safeBtoa(`${username}:${password}`),
             },
           },
         })
@@ -111,17 +118,38 @@ export default class ImageRegistry extends Component {
     this.setState({ password: e.target.value }, this.triggerChange)
   }
 
+  renderTip() {
+    const { errorMsg, validate, reason } = this.state
+
+    if (errorMsg) {
+      return <Alert className="margin-t12" type="error" message={errorMsg} />
+    }
+
+    if (validate) {
+      return (
+        <Alert
+          type="info"
+          icon="success"
+          message={t('Registry verification succeeded')}
+        />
+      )
+    }
+
+    if (reason) {
+      return (
+        <Alert
+          type="error"
+          title={t('Registry verification failed')}
+          message={reason}
+        />
+      )
+    }
+
+    return <Alert type="warning" message={t('IMAGE_REGISTRY_VALIDATE_TIP')} />
+  }
+
   render() {
-    const {
-      url,
-      username,
-      password,
-      email,
-      errorMsg,
-      isValidating,
-      validate,
-      reason,
-    } = this.state
+    const { url, username, password, email, isValidating } = this.state
     return (
       <div>
         <input name="username" className="hidden-input" type="text" disabled />
@@ -159,40 +187,21 @@ export default class ImageRegistry extends Component {
           </Column>
           <Column>
             <Wrapper label={t('Password')} required>
-              <InputPassword
-                type="password"
-                value={password}
-                onChange={this.handlePasswordChange}
-                autoComplete="new-password"
-              />
+              <div className={styles.password}>
+                <InputPassword
+                  type="password"
+                  value={password}
+                  onChange={this.handlePasswordChange}
+                  autoComplete="new-password"
+                />
+                <Button onClick={this.handleValidate} loading={isValidating}>
+                  {t('Validate')}
+                </Button>
+              </div>
             </Wrapper>
           </Column>
         </Columns>
-        <div className={styles.tip}>
-          {validate ? (
-            <Alert
-              type="info"
-              icon="success"
-              message={t('Registry verification success')}
-            />
-          ) : reason ? (
-            <Alert
-              type="error"
-              title={t('Registry verification failed')}
-              message={reason}
-            />
-          ) : (
-            <Alert type="warning" message={t('IMAGE_REGISTRY_VALIDATE_TIP')} />
-          )}
-          {!validate && (
-            <Button onClick={this.handleValidate} loading={isValidating}>
-              {t('Validate')}
-            </Button>
-          )}
-        </div>
-        {errorMsg && (
-          <Alert className="margin-t12" type="error" message={errorMsg} />
-        )}
+        <div className={styles.tip}>{this.renderTip()}</div>
       </div>
     )
   }

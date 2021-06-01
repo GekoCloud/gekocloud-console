@@ -1,25 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
-import { get, set } from 'lodash'
+import { get, set, unset } from 'lodash'
 import { MODULE_KIND_MAP } from 'utils/constants'
-import { Form, TypeSelect } from 'components/Base'
+import { Form } from '@juanchi_xd/components'
+import { TypeSelect } from 'components/Base'
 
 import FormTemplate from './FormTemplate'
 import SnapshotForm from './SnapshotForm'
@@ -27,7 +28,7 @@ import SnapshotForm from './SnapshotForm'
 const CREATE_TYPE_OPTIONS = [
   {
     icon: 'snapshot',
-    value: 'snapshot',
+    value: true,
     get label() {
       return t('CREATE_VOLUME_BY_SNAPSHOT')
     },
@@ -37,7 +38,7 @@ const CREATE_TYPE_OPTIONS = [
   },
   {
     icon: 'database',
-    value: 'storageclass',
+    value: false,
     get label() {
       return t('CREATE_VOLUME_BY_STORAGECLASS')
     },
@@ -46,16 +47,6 @@ const CREATE_TYPE_OPTIONS = [
     },
   },
 ]
-
-const CREATE_WAY = {
-  SNAPSHOT: 'snapshot',
-  NORMAL: 'storageclass',
-}
-const DEFAULT_CREATE_WAY = CREATE_WAY.NORMAL
-/**
- * use for save the temporary message
- */
-const CREATE_TYPE_NAME = 'create_way'
 
 export default class VolumeSettings extends React.Component {
   get formTemplate() {
@@ -70,35 +61,35 @@ export default class VolumeSettings extends React.Component {
   }
 
   state = {
-    method: this.formTemplate[CREATE_TYPE_NAME] || DEFAULT_CREATE_WAY,
+    fromSnapshot: !!get(this.formTemplate, 'spec.dataSource.name'),
   }
 
-  handeChange = method => {
-    if (method !== this.state.method) {
+  handeChange = fromSnapshot => {
+    if (fromSnapshot !== this.state.fromSnapshot) {
+      unset(this.fedFormTemplate, 'spec.storageClassName')
       set(this.fedFormTemplate, 'spec.accessModes', [])
-      set(this.fedFormTemplate, 'dataSource', {})
+      set(this.fedFormTemplate, 'spec.dataSource', {})
       set(this.fedFormTemplate, 'spec.resources.requests.storage', '0Gi')
-      this.setState({ method })
+      this.setState({ fromSnapshot })
     }
   }
 
   render() {
     const { formRef, isFederated, cluster } = this.props
-    const { method } = this.state
+    const { fromSnapshot } = this.state
 
     return (
       <Form data={this.fedFormTemplate} ref={formRef}>
         {!isFederated && (
           <Form.Item label={t('Method')}>
             <TypeSelect
-              name={CREATE_TYPE_NAME}
-              defaultValue={DEFAULT_CREATE_WAY}
+              value={fromSnapshot}
               options={CREATE_TYPE_OPTIONS}
               onChange={this.handeChange}
             />
           </Form.Item>
         )}
-        {method === CREATE_WAY.SNAPSHOT ? (
+        {fromSnapshot ? (
           <SnapshotForm
             namespace={get(this.formTemplate, 'metadata.namespace')}
             cluster={cluster}

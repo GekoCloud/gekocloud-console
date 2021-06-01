@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -21,6 +21,7 @@ import { debounce } from 'lodash'
 import { Terminal } from 'xterm'
 import PropTypes from 'prop-types'
 import * as fit from 'xterm/lib/addons/fit/fit'
+import SocketClient from 'utils/socket.client'
 
 import './terminal.css'
 import './xterm.css'
@@ -51,7 +52,7 @@ export default class ContainerTerminal extends React.Component {
   }
 
   get isWsOpen() {
-    return this.ws && this.ws.readyState === 1
+    return this.ws && this.ws.getSocketState() === 'open'
   }
 
   constructor(props) {
@@ -65,7 +66,6 @@ export default class ContainerTerminal extends React.Component {
     this.term = this.initTerm()
     this.ws = this.createWS()
 
-    this.addWSListeners()
     this.onTerminalResize()
     this.onTerminalKeyPress()
 
@@ -142,28 +142,20 @@ export default class ContainerTerminal extends React.Component {
       Rows: row,
     })
 
-  unpackStdout = data => JSON.parse(data).Data
+  unpackStdout = data => data.Data
 
   createWS() {
-    return new WebSocket(this.props.websocketUrl)
-  }
-
-  addWSListeners() {
-    this.ws.onmessage = this.onWSReceive
-    this.ws.onclose = this.onWSClose
-    this.ws.onerror = this.onWSError
+    return new SocketClient(this.props.websocketUrl, {
+      onmessage: this.onWSReceive,
+      onerror: this.onWSError,
+    })
   }
 
   onWSError = ex => {
     this.fatal(ex.message)
   }
 
-  onWSClose = ev => {
-    this.fatal(ev.reason)
-  }
-
-  onWSReceive = ev => {
-    const data = ev.data
+  onWSReceive = data => {
     const term = this.term
 
     if (this.first) {
@@ -184,15 +176,7 @@ export default class ContainerTerminal extends React.Component {
     }
 
     if (this.ws) {
-      const ws = this.ws
-      ws.onopen = null
-      ws.onmessage = null
-      ws.onerror = null
-      ws.onclose = null
-      if (ws.readyState < 2) {
-        ws.close()
-        this.ws = null
-      }
+      this.ws.close(true)
     }
   }
 
@@ -205,7 +189,6 @@ export default class ContainerTerminal extends React.Component {
     if (!first) message = `\r\n${message}`
     if (first) this.term.reset()
     this.term.write(`\x1b[31m${message}\x1b[m\r\n`)
-    this.disconnect()
   }
 
   render() {

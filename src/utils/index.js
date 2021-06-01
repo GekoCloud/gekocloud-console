@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -24,6 +24,7 @@ import {
   isString,
   trimEnd,
   isUndefined,
+  isNull,
   isEmpty,
   trimStart,
   isNumber,
@@ -71,6 +72,34 @@ export const formatUsedTime = ms => {
   return `${parseFloat(ms / 3600000).toFixed(2)} h`
 }
 
+export const formatDuration = (str, targetUnit = 's') => {
+  const units = ['d', 'h', 'm', 's', 'ms']
+  const unitConvertor = [24, 60, 60, 1000, 1]
+  const [, value, unit] = str.match(/^([0-9.]*)(.*)$/)
+
+  if (isUndefined(value) || isUndefined(unit)) {
+    return str
+  }
+
+  let sourceIndex = units.indexOf(unit)
+  const targetIndex = units.indexOf(targetUnit)
+
+  let targetValue = parseFloat(value)
+  if (sourceIndex < targetIndex) {
+    while (sourceIndex !== targetIndex) {
+      targetValue *= unitConvertor[sourceIndex]
+      sourceIndex++
+    }
+  } else {
+    while (sourceIndex !== targetIndex) {
+      sourceIndex--
+      targetValue /= unitConvertor[sourceIndex]
+    }
+  }
+
+  return targetValue
+}
+
 /**
  * Flatten object. transfer {a:{b:{c:1}}} to {'a.b.c':1}
  * @param {Object} obj
@@ -112,6 +141,7 @@ export const generateId = length =>
  */
 export const joinSelector = (selector = {}) =>
   Object.entries(selector)
+    .filter(entry => !isUndefined(entry[1]) && !isNull(entry[1]))
     .map(([key, value]) => `${key}=${value}`)
     .join(',')
 
@@ -129,14 +159,6 @@ export const safeParseJSON = (json, defaultValue) => {
   if (!result && defaultValue !== undefined) {
     return defaultValue
   }
-  return result
-}
-
-export const safeAtob = str => {
-  let result = ''
-  try {
-    result = atob(str)
-  } catch (e) {}
   return result
 }
 
@@ -291,14 +313,16 @@ export const cpuFormat = (cpu, unit = 'Core') => {
   }
 
   const units = ['m', 'Core', 'k', 'M', 'G']
-  const currentUnit = cpu.slice(-1)
+  const currentUnit = String(cpu).slice(-1)
   // if no unit, unit = 'Core'
   const currentUnitIndex =
     units.indexOf(currentUnit) > -1 ? units.indexOf(currentUnit) : 1
   const targetUnitIndex = units.indexOf(unit)
 
   let value =
-    currentUnitIndex === 1 ? Number(cpu) : Number(trimEnd(cpu, currentUnit))
+    currentUnitIndex === 1
+      ? Number(cpu)
+      : Number(trimEnd(String(cpu), currentUnit))
 
   value *= 1000 ** (currentUnitIndex - targetUnitIndex)
 
@@ -311,17 +335,19 @@ export const memoryFormat = (memory, unit = 'Mi') => {
   }
 
   const units = ['ki', 'mi', 'gi', 'ti']
-  const currentUnit = memory.toLowerCase().slice(-2)
+  const currentUnit = String(memory)
+    .toLowerCase()
+    .slice(-2)
 
   let currentUnitIndex =
     units.indexOf(currentUnit) > -1 ? units.indexOf(currentUnit) : 1
   const targetUnitIndex = units.indexOf(unit.toLowerCase())
 
-  let value = Number(trimEnd(memory.toLowerCase(), currentUnit))
+  let value = Number(trimEnd(String(memory).toLowerCase(), currentUnit))
 
   if (/m$/g.test(String(memory))) {
     // transfer m to ki
-    value = Number(trimEnd(memory, 'm')) / (1000 * 1024)
+    value = Number(trimEnd(String(memory), 'm')) / (1000 * 1024)
     currentUnitIndex = 0
   } else if (/^[0-9.]*$/.test(String(memory))) {
     // transfer bytes to ki
@@ -329,7 +355,7 @@ export const memoryFormat = (memory, unit = 'Mi') => {
     currentUnitIndex = 0
   }
 
-  value *= 1000 ** (currentUnitIndex - targetUnitIndex)
+  value *= 1024 ** (currentUnitIndex - targetUnitIndex)
 
   if (String(value).indexOf('.') > -1) {
     value = Number(value.toFixed(3))
@@ -374,15 +400,6 @@ export const getDisplayName = item => {
 
   return `${item.name}${item.aliasName ? `(${item.aliasName})` : ''}`
 }
-
-export const formatRules = rules =>
-  (rules || []).reduce(
-    (prev, cur) => ({
-      ...prev,
-      [cur.name]: cur.actions,
-    }),
-    {}
-  )
 
 export const getWebSocketProtocol = protocol => {
   if (protocol.startsWith('https')) {
@@ -476,7 +493,7 @@ export const replaceToLocalOrigin = url => {
 }
 
 /**
- * send the k8s requests with dry run
+ * send the K8s requests with dry run
  * @param {Object[]} requests - the requests need dry run.
  * @param {string} requests[].url - the url of a request
  * @param {Object} requests[].data - the data of a request
@@ -517,4 +534,63 @@ export const getClusterUrl = url => {
   return requestURL.replace(/\/\/+/, '/')
 }
 
+export const parseDockerImage = url => {
+  const match = url.match(
+    /^(?:([^/]+)\/)?(?:([^/]+)\/)?([^@:/]+)(?:[@:](.+))?$/
+  )
+
+  if (!match) return {}
+
+  let registry = match[1]
+  let namespace = match[2]
+  const repository = match[3]
+  const tag = match[4]
+
+  if (!namespace && registry && !/[:.]/.test(registry)) {
+    namespace = registry
+    registry = null
+  }
+
+  return {
+    registry: registry || null,
+    namespace: namespace || null,
+    repository,
+    tag: tag || null,
+  }
+}
+
 export const lazy = ctor => () => ctor()
+
+export const compareVersion = (v1 = '', v2 = '') => {
+  const getVersion = str =>
+    str
+      .split('-')[0]
+      .replace('v', '')
+      .split('.')
+      .map(item => parseInt(item, 10))
+
+  const v1s = getVersion(v1)
+  const v2s = getVersion(v2)
+
+  const len = Math.min(v1s.length, v2s.length)
+  let i = 0
+  while (i < len) {
+    if (v1s[i] < v2s[i]) {
+      return -1
+    }
+    if (v1s[i] > v2s[i]) {
+      return 1
+    }
+    i++
+  }
+
+  if (v1s.length < v2s.length) {
+    return -1
+  }
+
+  if (v1s.length > v2s.length) {
+    return 1
+  }
+
+  return 0
+}

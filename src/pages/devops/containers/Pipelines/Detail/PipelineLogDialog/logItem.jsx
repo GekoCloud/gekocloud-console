@@ -1,24 +1,24 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import classNames from 'classnames'
-import { Icon } from '@pitrix/lego-ui'
+import { Icon } from '@juanchi_xd/components'
 import { action } from 'mobx'
 import { observer } from 'mobx-react'
 import Status from 'devops/components/Status'
@@ -41,6 +41,7 @@ export default class LogItem extends React.Component {
 
   componentDidMount() {
     this.timer = setInterval(this.handleRefresh, 4000)
+    this.handleExpandByFail()
   }
 
   componentDidUpdate(prevProps) {
@@ -55,6 +56,13 @@ export default class LogItem extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.timer)
+  }
+
+  handleExpandByFail = () => {
+    const step = this.props.step
+    if (step && step.result !== 'SUCCESS') {
+      this.toggleExpand()
+    }
   }
 
   handleRefresh = () => {
@@ -78,9 +86,9 @@ export default class LogItem extends React.Component {
 
   @action
   getLog() {
-    const { step, params, nodeid } = this.props
+    const { step, params, nodeId } = this.props
 
-    this.store.getStepLog({ ...params, nodeid, stepid: step.id })
+    this.store.getStepLog({ ...params, nodeId, stepId: step.id })
   }
 
   render() {

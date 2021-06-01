@@ -1,37 +1,38 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get, isEmpty, set } from 'lodash'
+import { get, isEmpty, set, unset } from 'lodash'
 import copy from 'fast-copy'
 import React from 'react'
 import { toJS } from 'mobx'
 import { observer } from 'mobx-react'
-import { Icon, Tooltip, Select } from '@pitrix/lego-ui'
+import { Form, Icon, Select, Tooltip } from '@juanchi_xd/components'
 import { joinSelector, mergeLabels } from 'utils'
 import { MODULE_KIND_MAP } from 'utils/constants'
 import FORM_TEMPLATES from 'utils/form.templates'
-import { Form } from 'components/Base'
-import ApplicationStore from 'src/stores/application/crd'
-import ServiceStore from 'src/stores/service'
+import ApplicationStore from 'stores/application/crd'
+import ServiceStore from 'stores/service'
 
 import SelectComponent from './SelectComponent'
 
 import styles from './index.scss'
+
+const REQUEST_CONTENT_PROTOCOLS = ['http', 'http2', 'grpc']
 
 @observer
 export default class Components extends React.Component {
@@ -52,7 +53,11 @@ export default class Components extends React.Component {
 
   componentDidMount() {
     this.appStore
-      .fetchList({ namespace: this.namespace, cluster: this.props.cluster })
+      .fetchList({
+        namespace: this.namespace,
+        cluster: this.props.cluster,
+        limit: -1,
+      })
       .then(() => {
         const data = toJS(this.appStore.list.data)
         const app = data.find(item => item.serviceMeshEnable) || {}
@@ -127,6 +132,8 @@ export default class Components extends React.Component {
       const workloads = toJS(this.serviceStore.workloads.data)
       const strategies = toJS(this.store.list.data)
 
+      unset(this.formTemplate, 'spec.hosts')
+
       this.setState({
         components: services.map(item => {
           item.workloads = []
@@ -174,14 +181,23 @@ export default class Components extends React.Component {
 
       const portName = get(component, 'ports[0].name', '')
       // TO FIXED: add port select
-      const protocol =
-        (portName.split('-')[0] || '').toLowerCase() === 'http' ? 'http' : 'tcp'
+      const protocol = REQUEST_CONTENT_PROTOCOLS.includes(
+        (portName.split('-')[0] || '').toLowerCase()
+      )
+        ? 'http'
+        : 'tcp'
       const version = workload.labels.version
 
       set(this.formTemplate, 'metadata.labels.app', value)
       set(this.formTemplate, 'spec.selector.matchLabels.app', value)
+      set(this.formTemplate, 'spec.template.spec', { hosts: [value] })
       set(this.formTemplate, 'spec.principal', version)
       set(this.formTemplate, 'spec.protocol', protocol)
+      set(
+        this.formTemplate,
+        'metadata.annotations["servicemesh.kubesphere.io/oldWorkloadName"]',
+        workload.name
+      )
       set(
         this.formTemplate,
         'metadata.annotations["servicemesh.kubesphere.io/workloadType"]',
@@ -192,7 +208,6 @@ export default class Components extends React.Component {
         'metadata.annotations["servicemesh.kubesphere.io/workloadReplicas"]',
         String(workload.podNums)
       )
-      set(this.formTemplate, 'spec.template.spec', { hosts: [value] })
 
       this.props.formTemplate.workload = {
         apiVersion: template.apiVersion,

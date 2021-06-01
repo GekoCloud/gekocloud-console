@@ -1,55 +1,36 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { get, isEmpty, isNaN } from 'lodash'
-
-import { compareByCondition } from 'utils/alerting'
 
 import styles from './index.scss'
 
 const CustomToolTip = (props = {}) => {
   if (!props.active) return null
 
-  const { renderLabel, payload, usageData, totalData, alert = {} } = props
+  const { renderLabel, payload, usageData, totalData } = props
   const data = payload || []
   const timeStr = props.label
   const unit = get(data, '[0].unit') || ''
   const unitText = unit === 'default' ? '' : unit === '%' ? '%' : ` ${t(unit)}`
 
-  let labelContent = renderLabel ? renderLabel(props) : timeStr
-  if (!isEmpty(alert)) {
-    const { label, condition, value } = alert
-
-    if (data.some(item => compareByCondition(item.value, value, condition))) {
-      labelContent = (
-        <div>
-          <p>
-            <img src="/assets/error.svg" />
-            {`${t('Alert Occurred')} ${t(
-              label
-            )} ${condition} ${value}${unitText}`}
-          </p>
-          <p>{timeStr}</p>
-        </div>
-      )
-    }
-  }
+  const labelContent = renderLabel ? renderLabel(props) : timeStr
 
   return (
     <div className={styles.tooltip}>
@@ -65,21 +46,24 @@ const CustomToolTip = (props = {}) => {
           let ratio = ''
           if (!isEmpty(usageData) && !isEmpty(totalData)) {
             const usage =
-              get(usageData.find(_item => _item.time === timeStr), name) || 0
+              get(
+                usageData.find(_item => _item.time === timeStr),
+                name
+              ) || 0
             const total =
-              get(totalData.find(_item => _item.time === timeStr), name) || 0
+              get(
+                totalData.find(_item => _item.time === timeStr),
+                name
+              ) || 0
             ratio = <span>{` (${usage}/${total})`}</span>
           }
 
           return (
             <div key={dataKey} className={styles.item}>
               <i style={{ background: color }} />
-              <label>{t(name)}:</label>
-              <p>
-                {value}
-                {unitText}
-                {ratio}
-              </p>
+              {t(name)}:{value}
+              {unitText}
+              {ratio}
             </div>
           )
         })}

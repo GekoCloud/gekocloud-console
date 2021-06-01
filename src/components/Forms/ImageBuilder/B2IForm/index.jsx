@@ -1,26 +1,25 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { get, set } from 'lodash'
 import classnames from 'classnames'
-import { Input, Select, Alert } from '@pitrix/lego-ui'
-import { Form } from 'components/Base'
+import { Alert, Form, Input, Select } from '@juanchi_xd/components'
 import { getDisplayName, getDocsUrl } from 'utils'
 import SecretStore from 'stores/secret'
 import BuilderStore from 'stores/s2i/builder'
@@ -144,6 +143,21 @@ export default class S2IForm extends React.Component {
   renderAdvancedSetting() {
     return (
       <React.Fragment>
+        <Form.Item
+          label={t('Secret Code')}
+          rules={[
+            {
+              pattern: /^[a-zA-Z0-9]+$/,
+              message: `${t('SECRET_CODE_RULE_DESC')}`,
+            },
+          ]}
+        >
+          <Input
+            name={`${this.prefix}spec.config.secretCode`}
+            defaultValue=""
+          />
+        </Form.Item>
+
         <Alert
           className={styles.environment_info}
           message={t.html('S2I_ENVIROMENT_DESC', {
@@ -166,7 +180,7 @@ export default class S2IForm extends React.Component {
     return (
       <Form ref={formRef} data={formTemplate}>
         <Form.Item
-          label={t('Upload Artifacts')}
+          label={t('Upload Artifact')}
           rules={[
             { required: true, message: t('The file has not been uploaded.') },
           ]}
@@ -211,16 +225,14 @@ export default class S2IForm extends React.Component {
           </div>
           <div className="is-half">
             <Form.Item
-              label={t('Target image repository')}
+              label={t('Target Image Repository')}
               desc={t.html('S2I_TARGET_IMAGE_REPONSTRY_DESC', {
                 link: getDocsUrl('secrets'),
               })}
               rules={[{ required: true, message: t('This param is required') }]}
             >
               <Select
-                name={`${
-                  this.prefix
-                }spec.config.pushAuthentication.secretRef.name`}
+                name={`${this.prefix}spec.config.pushAuthentication.secretRef.name`}
                 options={this.state.imageSecretOptions}
                 onChange={this.handleImageSecretChange}
               />

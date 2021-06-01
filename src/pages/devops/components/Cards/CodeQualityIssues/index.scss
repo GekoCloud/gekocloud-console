@@ -63,7 +63,7 @@
     display: block;
     font-size: 14px;
     font-weight: 600;
-    color: #3563AD;
+    color: #242e42;
   }
   .details {
     font-size: 12px;
@@ -129,7 +129,7 @@
 .card-info {
   background-color: #fafbfc;
   &:hover {
-    border: 1px dashed #F18918;
+    border: 1px dashed #329dce;
     transition: all 0.3s ease;
   }
 }
@@ -141,7 +141,7 @@
   span {
     margin-left: 4px;
     font-weight: 600;
-    color: #F18918;
+    color: #329dce;
     cursor: pointer;
   }
 }
@@ -155,5 +155,5 @@
   line-height: 42px;
   font-size: 12px;
   font-weight: 500;
-  color: #F18918;
+  color: #329dce;
 }

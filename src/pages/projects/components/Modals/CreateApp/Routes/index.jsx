@@ -1,25 +1,27 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get, set, omit, uniq, isEmpty } from 'lodash'
+import { get, set, omit } from 'lodash'
 import React from 'react'
+import { toJS } from 'mobx'
 
-import ServiceStore from 'stores/service'
+import SecretStore from 'stores/secret'
+import FederatedStore from 'stores/federated'
 import { generateId } from 'utils'
 import ObjectMapper from 'utils/object.mapper'
 
@@ -32,24 +34,30 @@ export default class Routes extends React.Component {
   constructor(props) {
     super(props)
 
-    this.mapper = this.props.isFederated
+    this.mapper = props.isFederated
       ? ObjectMapper.federated(ObjectMapper.services)
       : ObjectMapper.services
 
-    this.serviceStore = new ServiceStore()
+    this.secretStore = new SecretStore()
+
+    if (props.isFederated) {
+      this.secretStore = new FederatedStore({ module: this.secretStore.module })
+    }
 
     this.state = {
       ingress: get(this.props.formData, 'ingress', {}),
       services: Object.values(
         omit(this.props.formData, ['application', 'ingress']) || {}
       ).map(item => this.mapper(item.service)),
-      rulesError: '',
       showAdd: false,
+      selectRuleIndex: -1,
     }
   }
 
   componentDidMount() {
-    this.updateData()
+    const { cluster, namespace } = this.props
+    this.secretStore.fetchList({ namespace, cluster, limit: -1 })
+    this.updateName()
   }
 
   componentDidUpdate(prevProps) {
@@ -61,77 +69,26 @@ export default class Routes extends React.Component {
           omit(this.props.formData, ['application', 'ingress']) || {}
         ).map(item => this.mapper(item.service)),
       })
-      this.updateData()
+      this.updateName()
     }
   }
 
   validate(callback) {
-    const { gateway } = this.props
-    const { ingress } = this.state
-    if (get(ingress, 'spec.rules', []).length > 0 && isEmpty(gateway)) {
-      return this.setState({
-        rulesError: t('DEPLOY_SAMPLE_NO_INTERNET_ACCESS_TIP'),
-      })
-    }
-
     callback && callback()
   }
 
-  showAdd = data => {
-    this.setState({
-      showAdd: true,
-      selectRule: data ? { ...data, _host: data.host } : {},
-    })
+  showAdd = index => {
+    this.setState({ showAdd: true, selectRuleIndex: index })
   }
 
   hideAdd = () => {
-    this.setState({ showAdd: false, selectRule: {} })
+    this.setState({ showAdd: false, selectRuleIndex: -1 })
   }
 
-  updateComponentKind = () => {
-    const { application } = this.props.formData
-
-    const componentKinds = [
-      {
-        group: '',
-        kind: 'Service',
-      },
-      {
-        group: 'apps',
-        kind: 'Deployment',
-      },
-      {
-        group: 'apps',
-        kind: 'StatefulSet',
-      },
-      {
-        group: 'extensions',
-        kind: 'Ingress',
-      },
-      {
-        group: 'servicemesh.kubesphere.io',
-        kind: 'Strategy',
-      },
-      {
-        group: 'servicemesh.kubesphere.io',
-        kind: 'ServicePolicy',
-      },
-    ]
-
-    set(application, 'spec.componentKinds', componentKinds)
-  }
-
-  updateData = () => {
-    const { formData, isFederated } = this.props
+  updateName = () => {
+    const { formData } = this.props
     const { ingress } = this.state
     const applicationName = get(formData, 'application.metadata.name')
-    const namespace = get(formData, 'application.metadata.namespace')
-
-    const isServiceMeshEnable =
-      get(
-        formData,
-        'application.metadata.annotations["servicemesh.kubesphere.io/enabled"]'
-      ) === 'true'
 
     if (!get(ingress, 'metadata.name')) {
       set(
@@ -140,190 +97,127 @@ export default class Routes extends React.Component {
         `${applicationName}-ingress-${generateId()}`
       )
     }
+  }
 
-    if (isServiceMeshEnable) {
-      if (isFederated) {
-        const ods = get(ingress, 'spec.overrides', [])
-        ods.forEach(od => {
-          const ruleCod = od.clusterOverrides.find(
-            item => item.path === '/spec/rules'
-          )
-          const serviceName = get(
-            ruleCod,
-            '[0].http.paths[0].backend.serviceName'
-          )
-          if (serviceName) {
-            let annotationCod = od.clusterOverrides.find(
-              item => item.path === '/metadata/annotations'
-            )
-            if (!annotationCod) {
-              annotationCod = {
-                path: '/metadata/annotations',
-                value: {},
-              }
-            }
-            annotationCod.value = annotationCod.value || {}
-            annotationCod.value[
-              'nginx.ingress.kubernetes.io/upstream-vhost'
-            ] = `${serviceName}.${namespace}.svc.cluster.local`
-          }
-        })
-      } else {
-        const serviceName = get(
-          ingress,
-          'spec.rules[0].http.paths[0].backend.serviceName'
+  updateAnnotations = () => {
+    const { formData, isFederated, isGovernance } = this.props
+    const { ingress } = this.state
+    const namespace = get(formData, 'application.metadata.namespace')
+
+    if (isGovernance) {
+      const template = isFederated ? get(ingress, 'spec.template') : ingress
+      const serviceName = get(
+        template,
+        'spec.rules[0].http.paths[0].backend.serviceName'
+      )
+      if (serviceName) {
+        set(
+          template,
+          'metadata.annotations["nginx.ingress.kubernetes.io/upstream-vhost"]',
+          `${serviceName}.${namespace}.svc.cluster.local`
         )
-        if (serviceName) {
-          set(
-            ingress,
-            'metadata.annotations["nginx.ingress.kubernetes.io/upstream-vhost"]',
-            `${serviceName}.${namespace}.svc.cluster.local`
-          )
-        }
       }
     }
   }
 
   handleAdd = data => {
-    const { protocol, secretName, _host, ...newRule } = data
+    const { isFederated } = this.props
+    const { ingress, selectRuleIndex } = this.state
 
-    if (this.props.isFederated) {
-      return this.handleFederatedAdd(data)
-    }
+    const template = isFederated ? get(ingress, 'spec.template') : ingress
 
-    const formTemplate = this.state.ingress
+    const rules = get(template, 'spec.rules', [])
 
-    const host = _host || newRule.host
-
-    const rules = get(formTemplate, 'spec.rules')
-
-    const existRule = rules.find(rule => rule.host === host)
-
-    let newRules = []
-    if (existRule) {
-      newRules = rules.map(rule => (rule.host === host ? newRule : rule))
+    if (selectRuleIndex >= 0) {
+      rules[selectRuleIndex] = data
     } else {
-      newRules = [...rules, newRule]
+      rules.push(data)
     }
 
-    set(formTemplate, 'spec.rules', newRules)
+    set(template, 'spec.rules', rules)
 
-    const tls = get(formTemplate, 'spec.tls[0]', {})
-    if (tls.hosts && tls.hosts.includes(host)) {
-      if (protocol === 'http') {
-        tls.hosts = tls.hosts.filter(item => item !== host)
-        if (isEmpty(tls.hosts)) {
-          set(formTemplate, 'spec.tls', [])
-        } else {
-          set(formTemplate, 'spec.tl[0]', tls)
-        }
-      } else if (protocol === 'https') {
-        tls.secretName = secretName
-        set(formTemplate, 'spec.tls[0]', tls)
-      }
-    } else if (protocol === 'https') {
-      tls.secretName = secretName
-      tls.hosts = uniq([...(tls.hosts || []), host])
+    this.updateTLS(template)
 
-      set(formTemplate, 'spec.tls[0]', tls)
-    }
+    this.updateAnnotations()
 
-    this.updateComponentKind()
-    this.updateData()
+    isFederated && this.updateOverrides()
+
     this.hideAdd()
   }
 
-  handleDelete = rule => {
-    if (this.props.isFederated) {
-      return this.handleFederatedDelete(rule)
-    }
-
-    const { host } = rule
+  handleDelete = index => {
+    const { isFederated } = this.props
     const { ingress } = this.state
-    const rules = get(ingress, 'spec.rules', [])
-    const newRules = rules.filter(item => item.host !== host)
-    set(ingress, 'spec.rules', newRules)
+    const template = isFederated ? get(ingress, 'spec.template') : ingress
 
-    const tls = get(ingress, 'spec.tls[0]')
-    if (tls) {
-      if (isEmpty(tls.hosts)) {
-        set(ingress, 'spec.tls', [])
-      } else {
-        tls.hosts = tls.hosts.filter(item => item !== host)
-        set(ingress, 'spec.tls[0]', tls)
-      }
-    }
+    const rules = get(template, 'spec.rules', [])
 
-    this.setState({ ingress: { ...ingress } })
-    this.updateComponentKind()
+    rules.splice(index, 1)
+
+    set(template, 'spec.rules', rules)
+
+    this.updateTLS(template)
+
+    this.updateAnnotations()
+
+    isFederated && this.updateOverrides()
+
+    this.hideAdd()
   }
 
-  handleFederatedAdd = data => {
-    const { protocol, secretName, _host, clusters, ...newRule } = data
+  updateTLS(formTemplate) {
+    const rules = get(formTemplate, 'spec.rules', [])
+    const tls = rules
+      .filter(item => item.protocol === 'https' && item.secretName)
+      .reduce((prev, cur) => {
+        const { secretName, host, clusters } = cur
+        const item = prev.find(_item => _item.secretName === secretName)
+        if (item) {
+          item.hosts = item.hosts || []
+          if (item.hosts.indexOf(host) === -1) {
+            item.hosts.push(host)
+          }
+        } else {
+          prev.push({ hosts: [host], secretName, clusters })
+        }
 
-    const formTemplate = this.state.ingress
-    const overrides = get(formTemplate, 'spec.overrides', [])
+        return prev
+      }, [])
+
+    set(formTemplate, 'spec.tls', tls)
+  }
+
+  updateOverrides() {
+    const overrides = []
+    const { isFederated, projectDetail } = this.props
+    const { ingress } = this.state
+    const template = isFederated ? get(ingress, 'spec.template') : ingress
+    const annotations = get(template, 'metadata.annotations', [])
+    const rules = get(template, 'spec.rules', [])
+    const tls = get(template, 'spec.tls', [])
+    const clusters = get(projectDetail, 'clusters', [])
 
     clusters.forEach(cluster => {
-      let override = overrides.find(item => item.clusterName === cluster)
-      if (!override) {
-        override = {
-          clusterName: cluster,
-          clusterOverrides: [],
-        }
-        overrides.push(override)
-      }
-
-      override.clusterOverrides = override.clusterOverrides || []
-
-      let rulesCod = override.clusterOverrides.find(
-        item => item.path === '/spec/rules'
-      )
-      if (!rulesCod) {
-        rulesCod = {
-          path: '/spec/rules',
-          value: [],
-        }
-        override.clusterOverrides.push(rulesCod)
-      }
-      rulesCod.value = [newRule]
-
-      if (protocol === 'https') {
-        const tls = [{ secretName, hosts: [newRule.host] }]
-        let tlsCod = override.clusterOverrides.find(
-          item => item.path === '/spec/tls'
-        )
-        if (!tlsCod) {
-          tlsCod = {
+      overrides.push({
+        clusterName: cluster.name,
+        clusterOverrides: [
+          {
+            path: '/metadata/annotations',
+            value: annotations,
+          },
+          {
+            path: '/spec/rules',
+            value: rules.filter(rule => rule.clusters.includes(cluster.name)),
+          },
+          {
             path: '/spec/tls',
-            value: [],
-          }
-          override.clusterOverrides.push(tlsCod)
-        }
-        tlsCod.value = tls
-      } else {
-        override.clusterOverrides = override.clusterOverrides.filter(
-          cod => cod.path !== '/spec/tls'
-        )
-      }
+            value: tls.filter(item => item.clusters.includes(cluster.name)),
+          },
+        ],
+      })
     })
 
-    set(formTemplate, 'spec.overrides', overrides)
-    this.updateComponentKind()
-    this.hideAdd()
-  }
-
-  handleFederatedDelete = rule => {
-    const formTemplate = this.state.ingress
-    const overrides = get(formTemplate, 'spec.overrides', [])
-    const override = overrides.find(
-      item => item.clusterName === rule.cluster.name
-    )
-    override.clusterOverrides = override.clusterOverrides.filter(
-      item => !['/spec/rules', '/spec/tls'].includes(item.path)
-    )
-
-    this.setState({ ingress: { ...formTemplate } })
+    set(ingress, 'spec.overrides', overrides)
   }
 
   render() {
@@ -334,7 +228,13 @@ export default class Routes extends React.Component {
       isFederated,
       projectDetail,
     } = this.props
-    const { showAdd, ingress, services, rulesError, selectRule } = this.state
+    const { showAdd, ingress, services, selectRuleIndex } = this.state
+
+    const template = isFederated ? get(ingress, 'spec.template') : ingress
+
+    const selectRule = get(template, `spec.rules[${selectRuleIndex}]`, {})
+
+    const secrets = toJS(this.secretStore.list.data)
 
     return (
       <div className={styles.wrapper}>
@@ -345,8 +245,7 @@ export default class Routes extends React.Component {
         <div className={styles.title}>{t('Route Rules')}</div>
         <div className={styles.rules}>
           <RuleList
-            error={rulesError}
-            data={ingress}
+            data={template}
             gateway={gateway}
             isFederated={isFederated}
             projectDetail={projectDetail}
@@ -365,6 +264,7 @@ export default class Routes extends React.Component {
           onCancel={this.hideAdd}
           gateway={gateway}
           services={services}
+          secrets={secrets}
         />
       </div>
     )

@@ -1,83 +1,74 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get } from 'lodash'
+import { get, isArray } from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { Buttons, Icon, Columns, Column } from '@pitrix/lego-ui'
-import { Button, Tag } from 'components/Base'
-import { CLUSTER_PROVIDER_ICON, CLUSTER_GROUP_TAG_TYPE } from 'utils/constants'
+import { Button, Columns, Column } from '@juanchi_xd/components'
+import { Text } from 'components/Base'
+
+import ClusterWrapper from 'components/Clusters/ClusterWrapper'
 
 import styles from './index.scss'
 
-const Item = ({ rule, tls = {}, onDelete, onEdit }) => {
-  const protocol = tls.hosts && tls.hosts.includes(rule.host) ? 'https' : 'http'
+const Item = ({ index, rule, tls = [], projectDetail, onDelete, onEdit }) => {
+  const tlsItem = tls.find(item => item.hosts && item.hosts.includes(rule.host))
+  const protocol = tlsItem ? 'https' : 'http'
 
-  const handleDelete = () => onDelete(rule)
+  const handleDelete = () => onDelete(index)
 
-  const handleEdit = () => {
-    if (protocol === 'https') {
-      onEdit({ ...rule, protocol: 'https', secretName: tls.secretName })
-    } else {
-      onEdit({ ...rule, protocol: 'http' })
-    }
-  }
+  const handleEdit = () => onEdit(index)
+
+  const clusters =
+    isArray(rule.clusters) && rule.clusters.map(item => ({ name: item }))
 
   return (
     <div className={styles.item}>
-      <div className={styles.icon}>
-        <Icon name="earth" size={40} />
-      </div>
       <div className={styles.texts}>
-        <div className={styles.text}>
-          <div className={styles.title}>{rule.host}</div>
-          <div className={styles.description}>
-            <span>
-              {t('Protocol')}: {protocol}
-            </span>
-            {protocol === 'https' && (
+        <Text
+          icon="earth"
+          title={rule.host}
+          description={
+            <div className={styles.description}>
               <span>
-                {t('Certificate')}: {tls.secretName}
+                {t('Protocol')}: {protocol}
               </span>
-            )}
-          </div>
-        </div>
-      </div>
-      {rule.cluster && (
-        <div className={styles.clusters}>
-          <div className={styles.text}>
-            <div className={styles.title}>
-              <Tag type={CLUSTER_GROUP_TAG_TYPE[rule.cluster.group]}>
-                <Icon
-                  name={
-                    CLUSTER_PROVIDER_ICON[rule.cluster.provider] || 'kubernetes'
-                  }
-                  type="light"
-                  size={20}
-                />
-                <span>{rule.cluster.name}</span>
-              </Tag>
+              {protocol === 'https' && (
+                <span>
+                  {t('Certificate')}: {tlsItem.secretName}
+                </span>
+              )}
             </div>
-            <div className={styles.description}>{t('Deployment Location')}</div>
-          </div>
-        </div>
-      )}
+          }
+        />
+        {isArray(clusters) && (
+          <Text
+            title={
+              <ClusterWrapper
+                clusters={clusters}
+                clustersDetail={projectDetail.clusters}
+              />
+            }
+            description={t('Deployment Location')}
+          />
+        )}
+      </div>
       <div className={styles.paths}>
         {rule.http.paths.map(path => (
           <div key={path.path} className={styles.path}>
@@ -98,10 +89,10 @@ const Item = ({ rule, tls = {}, onDelete, onEdit }) => {
           </div>
         ))}
       </div>
-      <Buttons>
+      <div className="buttons">
         <Button type="flat" icon="trash" onClick={handleDelete} />
         <Button type="flat" icon="pen" onClick={handleEdit} />
-      </Buttons>
+      </div>
     </div>
   )
 }

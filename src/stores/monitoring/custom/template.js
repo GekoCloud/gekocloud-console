@@ -1,22 +1,22 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { pick, omit } from 'lodash'
+import { get, set, omit } from 'lodash'
 import { observable, action, computed, toJS } from 'mobx'
 import moment from 'moment-mini'
 
@@ -46,6 +46,17 @@ export default class CustomMonitoringTemplate {
    * monitoring timeRange
    */
   @observable time = { from: 'now', to: 'now' }
+
+  getPath({ cluster, namespace } = {}) {
+    let path = ''
+    if (cluster) {
+      path += `/klusters/${cluster}`
+    }
+    if (namespace) {
+      path += `/namespaces/${namespace}`
+    }
+    return path
+  }
 
   /**
    * refresh timestamp convenient for use
@@ -106,6 +117,7 @@ export default class CustomMonitoringTemplate {
     isEditing = false,
     refresh = '',
     name = '',
+    formTemplate,
   }) {
     this.title = title
     this.cluster = cluster
@@ -117,6 +129,7 @@ export default class CustomMonitoringTemplate {
     this.time = time
     this.refresh = refresh
     this.name = name
+    this.formTemplate = formTemplate
 
     this.isEditing = isEditing
 
@@ -328,9 +341,10 @@ export default class CustomMonitoringTemplate {
 
   async fetchMetadata() {
     const { data: targetsMetadata } = (await request.get(
-      `kapis/monitoring.kubesphere.io/v1alpha3${
-        this.cluster ? `/klusters/${this.cluster}` : ''
-      }/namespaces/${this.namespace}/targets/metadata`
+      `kapis/monitoring.kubesphere.io/v1alpha3${this.getPath({
+        cluster: this.cluster,
+        namespace: this.namespace,
+      })}/targets/metadata`
     )) || { data: [] }
     this.targetsMetadata = targetsMetadata || []
   }
@@ -350,20 +364,18 @@ export default class CustomMonitoringTemplate {
       return panels.concat(row.config, monitorConfigs)
     }, [])
 
-    return {
-      ...pick(this, [
-        'title',
-        'cluster',
-        'namespace',
-        'datasource',
-        'description',
-        'templatings',
-        'time',
-        'refresh',
-        'name',
-      ]),
-      time: toJS(this.time),
-      panels: [...unRowPanels, ...inRowPanels],
-    }
+    set(
+      this.formTemplate,
+      'spec',
+      Object.assign(get(this.formTemplate, 'spec', {}), {
+        title: this.title,
+        templatings: this.templatings,
+        refresh: this.refresh,
+        time: toJS(this.time),
+        panels: [...unRowPanels, ...inRowPanels],
+      })
+    )
+
+    return this.formTemplate
   }
 }

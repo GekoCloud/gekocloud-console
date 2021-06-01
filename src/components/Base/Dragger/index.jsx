@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -22,7 +22,7 @@ import classNames from 'classnames'
 import { set } from 'lodash'
 import { observer } from 'mobx-react'
 import { observable, computed, action, reaction, toJS } from 'mobx'
-import { Icon, Slider } from '@pitrix/lego-ui'
+import { Icon } from '@juanchi_xd/components'
 
 import {
   enterFullScreen,
@@ -333,26 +333,15 @@ export default class Dragger extends React.Component {
               />
             </div>
           ) : null}
+
           <div className={style.control} onClick={this.handleZoomOut}>
             <Icon name="add" clickable />
           </div>
-          <div className={style['slider-wrapper']}>
-            <Slider
-              value={this.scale * 100}
-              className="zoom-slider"
-              step={1}
-              max={100}
-              min={20}
-              onChange={this.handleChangeScale}
-              vertical
-            />
-          </div>
+
           <div className={style.control} onClick={this.handleZoomIn}>
             <Icon name="substract" clickable />
           </div>
-          <div className={style.control} onClick={this.handleNormalSize}>
-            <span className={style.normalSize}>1:1</span>
-          </div>
+
           {onRefresh && (
             <div className={style.control} onClick={onRefresh}>
               <Icon name="refresh" clickable />

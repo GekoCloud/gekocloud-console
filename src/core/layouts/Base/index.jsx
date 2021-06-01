@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
@@ -25,7 +25,6 @@ import { renderRoutes } from 'utils/router.config'
 
 import { Header, GlobalNav } from 'components/Layout'
 import Tools from 'components/KubeTools'
-import History from 'components/Modals/History'
 import GlobalSVG from 'components/SVG'
 
 import styles from './index.scss'
@@ -55,7 +54,6 @@ class BaseLayout extends Component {
 
   componentDidMount() {
     document.addEventListener('scroll', this.handleScroll)
-    document.addEventListener('keydown', this.handleKeyDown)
   }
 
   componentDidUpdate(prevProps) {
@@ -72,15 +70,6 @@ class BaseLayout extends Component {
 
   componentWillUnmount() {
     document.removeEventListener('scroll', this.throttleScroll)
-    document.removeEventListener('keydown', this.handleKeyDown)
-  }
-
-  handleKeyDown = e => {
-    if (e.code === 'F1' || (e.keyCode === 75 && e.metaKey)) {
-      e.stopPropagation()
-      e.preventDefault()
-      this.props.rootStore.toggleHistory()
-    }
   }
 
   handleScroll = () => {
@@ -140,12 +129,6 @@ class BaseLayout extends Component {
         )}
         <div className={styles.main}>{renderRoutes(this.routes)}</div>
         {globals.user && <Tools />}
-        {globals.user && (
-          <History
-            visible={rootStore.showHistory}
-            onCancel={rootStore.hideHistory}
-          />
-        )}
       </div>
     )
   }

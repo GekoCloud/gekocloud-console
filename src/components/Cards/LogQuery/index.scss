@@ -1,5 +1,5 @@
 .wrapper {
-  background: #3563AD; 
+  background: #242e42; 
   color: #79879c;
   border-radius: 4px;
   height: 612px;
@@ -73,7 +73,7 @@
           padding: 0;
           :global {
             .select-control {
-              background-color: #3563AD;
+              background-color: #242e42;
               border: solid 1px #182236;
               color: inherit;
               font-weight: 400;
@@ -86,7 +86,7 @@
             .option-selected-area {
               display: none;
             }
-            .select-value-label,
+            .select-value,
             .select-value{
               color: #fff !important;
             }
@@ -123,13 +123,13 @@
           li {
             width: 33.3333%;
             font-weight: 600;
-            color: #3563AD;
+            color: #242e42;
             line-height: 24px;
             margin: 4px 0;
             cursor: pointer;
           }
           .select {
-            color: #F18918;
+            color: #55bc8a;
           }
         }
       }

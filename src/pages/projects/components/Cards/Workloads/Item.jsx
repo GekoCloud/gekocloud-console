@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get } from 'lodash'
@@ -21,11 +21,12 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
-import { List } from 'components/Base'
-import { getLocalTime } from 'utils'
-import { getWorkloadStatus } from 'utils/status'
-import { ICON_TYPES, S2I_STATUS_DESC } from 'utils/constants'
+import { Text } from 'components/Base'
 import StatusReason from 'projects/components/StatusReason'
+import WorkloadStatus from 'projects/components/WorkloadStatus'
+import { getLocalTime, getDisplayName } from 'utils'
+import { ICON_TYPES } from 'utils/constants'
+import { getWorkloadStatus } from 'utils/status'
 
 import styles from './index.scss'
 
@@ -41,31 +42,8 @@ export default class WorkloadItem extends React.Component {
     detail: {},
   }
 
-  getStatus = detail => getWorkloadStatus(detail, detail.type)
-
-  getTotal = detail => {
-    let num
-    if (detail.type === 'deployments') {
-      num = detail.podNums || detail.desire || 0
-    } else if (detail.type === 'statefulsets') {
-      num = detail.podNums || detail.desire || 0
-    }
-
-    return num
-  }
-
-  getReady = detail => {
-    let num
-    if (detail.type === 'deployments') {
-      num = detail.availablePodNums || detail.available || 0
-    } else if (detail.type === 'statefulsets') {
-      num = detail.readyPodNums || detail.available || 0
-    }
-
-    return num
-  }
-
-  getDescription(reason, status, detail) {
+  getDescription(detail) {
+    const { status, reason } = getWorkloadStatus(detail, detail.module)
     if (reason) {
       return <StatusReason status={status} reason={t(reason)} data={detail} />
     }
@@ -78,8 +56,6 @@ export default class WorkloadItem extends React.Component {
     return `${t('Created at')} ${getLocalTime(createTime).fromNow()}`
   }
 
-  renderExtra() {}
-
   render() {
     const { detail, prefix } = this.props
 
@@ -87,47 +63,31 @@ export default class WorkloadItem extends React.Component {
       return null
     }
 
-    const { status, reason } = this.getStatus(detail)
-
-    const details = [
-      {
-        title: detail.hasS2i ? (
-          <span>{t(S2I_STATUS_DESC[status])}</span>
-        ) : (
-          <span>
-            {t(status)}&nbsp;({this.getReady(detail)}/{this.getTotal(detail)})
-          </span>
-        ),
-        description: t('Status'),
-      },
-    ]
-
     const version = get(
       detail,
       'annotations["deployment.kubernetes.io/revision"]'
     )
 
-    if (version) {
-      details.push({
-        title: `#${version}`,
-        description: t('Version'),
-      })
-    }
-
     return (
-      <List.Item
-        icon={ICON_TYPES[detail.type]}
-        status={status}
-        className={styles.item}
-        title={
-          <Link to={`${prefix}/${detail.type}/${detail.name}`}>
-            {detail.name}
-          </Link>
-        }
-        description={this.getDescription(reason, status, detail)}
-        extra={this.renderExtra()}
-        details={details}
-      />
+      <div className={styles.item}>
+        <Text
+          icon={ICON_TYPES[detail.module]}
+          title={
+            <Link to={`${prefix}/${detail.module}/${detail.name}`}>
+              {getDisplayName(detail)}
+            </Link>
+          }
+          description={this.getDescription(detail)}
+        />
+        <Text
+          title={<WorkloadStatus data={detail} module={detail.module} />}
+          description={t('Status')}
+        />
+        <Text
+          title={version ? `#${version}` : '-'}
+          description={t('Version')}
+        />
+      </div>
     )
   }
 }

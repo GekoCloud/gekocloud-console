@@ -1,23 +1,23 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
-import { observable, action, computed } from 'mobx'
+import { observable, action, computed, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import Card from './Card'
 import Edges from './Edges'
@@ -46,12 +46,12 @@ export default class PipelineNodes extends React.Component {
     this.props.store.handleAddBranch(index)
   }
 
-  onInsertColunm = index => {
-    this.props.store.insertColunm(index)
+  onInsertColumn = index => {
+    this.props.store.insertColumn(index)
   }
 
-  handleFocus = index => colunmIndex => {
-    this.props.store.setFocus(index, colunmIndex)
+  handleFocus = index => columnIndex => {
+    this.props.store.setFocus(index, columnIndex)
   }
 
   @action
@@ -72,7 +72,7 @@ export default class PipelineNodes extends React.Component {
     if (!stages.length && isEditMode) {
       return (
         <Edges
-          onInsertColunm={this.onInsertColunm}
+          onInsertColumn={this.onInsertColumn}
           isEditMode={isEditMode}
           index={-1}
           heights={[]}
@@ -82,7 +82,7 @@ export default class PipelineNodes extends React.Component {
     return (
       <React.Fragment>
         <Edges
-          onInsertColunm={this.onInsertColunm}
+          onInsertColumn={this.onInsertColumn}
           isEditMode={isEditMode}
           index={-1}
           heights={this.sumHeights}
@@ -93,13 +93,13 @@ export default class PipelineNodes extends React.Component {
               onAddBranch={this.handleAddBranch(index)}
               onAddStep={this.onAddStep}
               isEditMode={isEditMode}
-              nodes={stage}
+              nodes={toJS(stage)}
               index={index}
               setHeight={this.setHeight(index)}
               onFocus={this.handleFocus(index)}
             />
             <Edges
-              onInsertColunm={this.onInsertColunm}
+              onInsertColumn={this.onInsertColumn}
               isEditMode={isEditMode}
               index={index}
               heights={this.sumHeights}

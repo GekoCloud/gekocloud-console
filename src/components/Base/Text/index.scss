@@ -7,11 +7,12 @@
 }
 
 .text {
-  & > div {
+  flex: 1;
+  & > div:first-child {
     @include TypographyTitleH6($dark-color07);
   }
 
-  & > p {
+  & > div:last-child {
     @include TypographyParagraph($dark-color01);
   }
 }
@@ -27,9 +28,6 @@
     & > div {
       @include ellipsis;
     }
-    & > p {
-      @include ellipsis;
-    }
   }
 }
 
@@ -42,15 +40,14 @@
 
   &:hover {
     .text {
-      & > div,
-      & > p {
+      & > div {
         color: $primary;
       }
     }
     .icon {
-      :global .qicon {
-        color: #C0690C;
-        fill: #FDF3E7;
+      :global .kubed-icon {
+        color: #00aa72;
+        fill: #90e0c5;
       }
     }
   }

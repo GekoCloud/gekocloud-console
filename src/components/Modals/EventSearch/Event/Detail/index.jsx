@@ -1,23 +1,23 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Fragment } from 'react'
-import { Select, Icon, Tooltip } from '@pitrix/lego-ui'
+import { Select, Icon, Tooltip } from '@juanchi_xd/components'
 import { min } from 'lodash'
 import moment from 'moment-mini'
 import classnames from 'classnames'
@@ -371,15 +371,13 @@ export default class Detail extends React.PureComponent {
     return (
       <div className={styles.searchBar}>
         {globals.app.isMultiCluster && (
-          <span className={styles.clusterSelect}>
-            <Select
-              value={searchInputState.cluster}
-              onChange={this.changeClusterChange}
-              className={styles.queryModeOptions}
-              valueRenderer={this.clusterRenderer}
-              options={clustersOpts}
-            />
-          </span>
+          <Select
+            value={searchInputState.cluster}
+            onChange={this.changeClusterChange}
+            className={styles.select}
+            valueRenderer={this.clusterRenderer}
+            options={clustersOpts}
+          />
         )}
         <SearchInput
           className={styles.searchInput}
@@ -388,14 +386,12 @@ export default class Detail extends React.PureComponent {
           params={searchInputState}
           dropDownItems={dropDownItems}
         />
-        <span className={styles.queryModeSelect}>
-          <Select
-            value={searchInputState.queryMode}
-            onChange={this.changeQueryMode}
-            className={styles.queryModeOptions}
-            options={queryModeOptions}
-          />
-        </span>
+        <Select
+          value={searchInputState.queryMode}
+          onChange={this.changeQueryMode}
+          className={styles.select}
+          options={queryModeOptions}
+        />
       </div>
     )
   }

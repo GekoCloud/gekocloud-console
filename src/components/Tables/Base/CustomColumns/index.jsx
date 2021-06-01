@@ -1,26 +1,26 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import classnames from 'classnames'
 import PropTypes from 'prop-types'
-import { Icon } from '@pitrix/lego-ui'
-import { includes, remove, get, isUndefined } from 'lodash'
+import { Icon, Dropdown, Button } from '@juanchi_xd/components'
+import { includes, remove, get, isUndefined, isEmpty } from 'lodash'
 
 import styles from './index.scss'
 
@@ -30,31 +30,42 @@ class CustomColumns extends Component {
     onChange: PropTypes.func.isRequired,
     className: PropTypes.string,
     title: PropTypes.node,
-    options: PropTypes.array.isRequired,
+    columns: PropTypes.array.isRequired,
   }
 
   static defaultProps = {
     value: [],
-    options: [],
+    columns: [],
+  }
+
+  constructor(props) {
+    super(props)
+
+    this.hideableColumns = props.columns
+      .filter(column => column.isHideable)
+      .map(column => ({
+        label: column.title,
+        value: column.dataIndex || column.key,
+      }))
   }
 
   isVisibleOption(option) {
     const { value } = option
-    const { value: visibleList } = this.props
-    return includes(visibleList, value)
+    const { value: hideColumns } = this.props
+    return !includes(hideColumns, value)
   }
 
-  changeVisibleList = e => {
+  handleOptionClick = e => {
     const value = get(e, 'currentTarget.dataset.value')
-    const { value: visibleList, onChange } = this.props
-    const [...duplicate] = visibleList
+    const { value: hideColumns, onChange } = this.props
+    const duplicate = [...hideColumns]
     includes(duplicate, value)
       ? remove(duplicate, visibleValue => visibleValue === value)
       : duplicate.push(value)
     onChange(duplicate)
   }
 
-  render() {
+  renderContent() {
     const { className } = this.props
     return (
       <div className={classnames(styles.wrapper, className)}>
@@ -70,8 +81,7 @@ class CustomColumns extends Component {
   }
 
   renderOptions() {
-    const { options } = this.props
-    return <ul>{options.map(this.renderOption, this)}</ul>
+    return <ul>{this.hideableColumns.map(this.renderOption, this)}</ul>
   }
 
   renderOption(option) {
@@ -79,10 +89,22 @@ class CustomColumns extends Component {
     const { value, label } = option
     const iconName = isVisible ? 'eye' : 'eye-closed'
     return (
-      <li data-value={value} key={value} onClick={this.changeVisibleList}>
+      <li data-value={value} key={value} onClick={this.handleOptionClick}>
         <Icon name={iconName} />
         {label}
       </li>
+    )
+  }
+
+  render() {
+    if (isEmpty(this.hideableColumns)) {
+      return null
+    }
+
+    return (
+      <Dropdown content={this.renderContent()} placement="bottomRight">
+        <Button type="flat" icon="cogwheel" data-test="table-columns" />
+      </Dropdown>
     )
   }
 }

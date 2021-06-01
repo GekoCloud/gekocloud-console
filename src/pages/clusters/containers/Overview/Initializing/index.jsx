@@ -1,34 +1,48 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get } from 'lodash'
 import React, { Component } from 'react'
 import { toJS, reaction } from 'mobx'
 import { observer, inject } from 'mobx-react'
-import { Loading } from '@pitrix/lego-ui'
-import { Button, Panel, Text, Notify, CodeEditor } from 'components/Base'
+import {
+  Button,
+  Icon,
+  Menu,
+  Loading,
+  Notify,
+  Dropdown,
+} from '@juanchi_xd/components'
+import { Panel, Text, CodeEditor } from 'components/Base'
 import { copyToClipboard } from 'utils/dom'
+import { trigger } from 'utils/action'
+import KubeKeyClusterStore from 'stores/cluster/kubekey'
+
+import KubeKeyCluster from './KubeKeyCluster'
 
 import styles from './index.scss'
 
 @inject('rootStore')
 @observer
+@trigger
 export default class Initializing extends Component {
+  kubekeyClusterStore = new KubeKeyClusterStore()
+
   websocket = this.props.rootStore.websocket
 
   get editOptions() {
@@ -54,8 +68,8 @@ export default class Initializing extends Component {
   }
 
   initWebsocket = () => {
-    const { store } = this.props
-    const url = store.getWatchUrl(store.detail)
+    const { store, match } = this.props
+    const url = store.getWatchUrl({ name: match.params.cluster })
     if (url) {
       this.websocket.watch(url)
 
@@ -75,9 +89,50 @@ export default class Initializing extends Component {
     Notify.success({ content: t('Copy successful') })
   }
 
+  showEditYAML = () => {
+    const store = this.kubekeyClusterStore
+    this.trigger('resource.yaml.edit', {
+      store,
+      detail: toJS(store.detail),
+    })
+  }
+
+  rerun = () => {
+    this.kubekeyClusterStore.patch(this.kubekeyClusterStore.detail, {
+      spec: {
+        rerunTrigger: new Date().getTime(),
+      },
+    })
+  }
+
+  handleMenuClick = (e, key) => {
+    switch (key) {
+      case 'edit-yaml':
+        this.showEditYAML()
+        break
+      case 'rerun':
+        this.rerun()
+        break
+      default:
+    }
+  }
+
+  renderMenu() {
+    return (
+      <Menu onClick={this.handleMenuClick}>
+        <Menu.MenuItem key="edit-yaml">
+          <Icon name="pen" /> {t('Edit YAML')}
+        </Menu.MenuItem>
+        <Menu.MenuItem key="rerun">
+          <Icon name="refresh" /> {t('Rerun')}
+        </Menu.MenuItem>
+      </Menu>
+    )
+  }
+
   render() {
     const { detail, isAgentLoading, agent } = this.props.store
-    const { conditions, connectionType } = detail
+    const { kkName, conditions, connectionType } = detail
 
     if (get(conditions, 'Initialized.status') === 'False') {
       return (
@@ -89,6 +144,30 @@ export default class Initializing extends Component {
               description={get(conditions, 'Initialized.reason')}
             />
           </div>
+        </Panel>
+      )
+    }
+
+    if (kkName) {
+      return (
+        <Panel className={styles.wrapper}>
+          <div className={styles.title}>
+            <Text
+              icon="cluster"
+              title={t('CLUSTER_CREATING')}
+              description={t.html('CLUSTER_CREATING_TIP')}
+            />
+            <div className={styles.action}>
+              <Dropdown
+                theme="dark"
+                content={this.renderMenu()}
+                placement="bottomRight"
+              >
+                <Button type="flat" icon="more" />
+              </Dropdown>
+            </div>
+          </div>
+          <KubeKeyCluster name={kkName} store={this.kubekeyClusterStore} />
         </Panel>
       )
     }
@@ -138,6 +217,7 @@ export default class Initializing extends Component {
             </div>
           </div>
         )}
+        {kkName && <KubeKeyCluster name={kkName} />}
       </Panel>
     )
   }

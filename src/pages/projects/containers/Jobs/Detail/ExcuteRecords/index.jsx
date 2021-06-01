@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
@@ -23,15 +23,17 @@ import { observer, inject } from 'mobx-react'
 import { getLocalTime } from 'utils'
 
 import {
+  Button,
   Columns,
   Column,
   Level,
   LevelLeft,
   LevelRight,
   Table,
+  InputSearch,
   Pagination,
-} from '@pitrix/lego-ui'
-import { Button, Card, Status, Search } from 'components/Base'
+} from '@juanchi_xd/components'
+import { Card, Status } from 'components/Base'
 
 import styles from './index.scss'
 
@@ -54,7 +56,10 @@ class ExcuteRecords extends React.Component {
     super(props)
 
     this.fetchData()
-    this.disposer = reaction(() => this.store.detail, () => this.fetchData())
+    this.disposer = reaction(
+      () => this.store.detail,
+      () => this.fetchData()
+    )
   }
 
   componentWillUnmount() {
@@ -125,9 +130,9 @@ class ExcuteRecords extends React.Component {
     <div className={styles.nav}>
       <Columns>
         <Column>
-          <Search
+          <InputSearch
             name="search"
-            placeholder={t('Please input a keyword to filter')}
+            placeholder={t('Filter by keyword')}
             onSearch={this.handleSearch}
           />
         </Column>
@@ -143,9 +148,9 @@ class ExcuteRecords extends React.Component {
         <LevelLeft>{t('TOTAL_ITEMS', { num: total })}</LevelLeft>
         <LevelRight>
           <Pagination
-            current={page}
+            page={page}
             total={total}
-            pageSize={limit}
+            limit={limit}
             onChange={this.handlePagination}
           />
         </LevelRight>

@@ -6,12 +6,12 @@
 
 .ace_editor.ace-chaos {
   color: #ffffff;
-  background-color: #3563AD;
+  background-color: #242e42;
 }
 
 .ace_editor.ace-chaos .ace_gutter {
   color: #537f7e;
-  background-color: #3563AD;
+  background-color: #242e42;
   border-right: 1px solid #4a5974;
 }
 
@@ -34,7 +34,7 @@
 }
 
 .ace_editor.ace-chaos .ace_marker-layer .ace_active-line {
-  background-color: #3563AD;
+  background-color: #36435c;
 }
 
 .ace_editor.ace-chaos .ace_indent-guide {
@@ -56,4 +56,12 @@
 
 .ace_editor.ace-chaos .ace_line .ace_fold {
   height: auto;
+}
+
+.ace_search {
+  background-color: #f9fbfd;
+}
+
+.ace_search.right {
+  right: 12px;
 }

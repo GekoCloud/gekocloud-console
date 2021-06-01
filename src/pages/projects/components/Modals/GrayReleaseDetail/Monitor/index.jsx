@@ -1,27 +1,27 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import isEqual from 'react-fast-compare'
-import { get } from 'lodash'
+import { get, has } from 'lodash'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
-import { Columns, Column } from '@pitrix/lego-ui'
+import { Columns, Column } from '@juanchi_xd/components'
 import { getSuccessRate } from 'utils/service'
 import Circle from './Circle'
 import Line from './Line'
@@ -104,18 +104,36 @@ export default class Monitor extends React.Component {
         getSuccessRate(item, request_error_count[1][index])
       ),
     ]
-    const request_duration = [
-      get(
-        newMetrics,
-        'histograms.request_duration["0.95"].matrix[0].values',
-        []
-      ).map(([time, value]) => [time, parseFloat(value)]),
-      get(
-        oldMetrics,
-        'histograms.request_duration["0.95"].matrix[0].values',
-        []
-      ).map(([time, value]) => [time, parseFloat(value)]),
-    ]
+
+    let request_duration = []
+    if (has(newMetrics, 'histograms.request_duration_millis')) {
+      request_duration = [
+        get(
+          newMetrics,
+          'histograms.request_duration_millis["avg"].matrix[0].values',
+          []
+        ).map(([time, value]) => [time, parseFloat(value) / 1000]),
+        get(
+          oldMetrics,
+          'histograms.request_duration_millis["avg"].matrix[0].values',
+          []
+        ).map(([time, value]) => [time, parseFloat(value) / 1000]),
+      ]
+    } else {
+      request_duration = [
+        get(
+          newMetrics,
+          'histograms.request_duration["avg"].matrix[0].values',
+          []
+        ).map(([time, value]) => [time, parseFloat(value)]),
+        get(
+          oldMetrics,
+          'histograms.request_duration["avg"].matrix[0].values',
+          []
+        ).map(([time, value]) => [time, parseFloat(value)]),
+      ]
+    }
+
     return [
       {
         type: 'traffic-in',
@@ -138,7 +156,6 @@ export default class Monitor extends React.Component {
         legendData: [detail.newVersion, detail.oldVersion],
         data: request_duration,
         unit: 'ms',
-        tip: t('95% requests duration'),
       },
     ]
   }

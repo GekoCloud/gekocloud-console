@@ -1,41 +1,51 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { get, omit } from 'lodash'
+import { get, omit, isEmpty } from 'lodash'
 import { toJS } from 'mobx'
 import { observer, inject } from 'mobx-react'
 import { parse } from 'qs'
 import { getLocalTime } from 'utils'
-import EmptyTable from 'components/Cards/EmptyTable'
 import Status from 'devops/components/Status'
 import { getPipelineStatus } from 'utils/status'
+import Health from 'devops/components/Health'
 
-import Table from '../../Table'
+import Table from 'components/Tables/List'
+import EmptyCard from 'devops/components/Cards/EmptyCard'
 
-@inject('rootStore')
+@inject('rootStore', 'detailStore')
 @observer
 export default class Pullrequest extends React.Component {
-  constructor(props) {
-    super(props)
-    this.store = props.detailStore || {}
-    this.name = 'PullRequest'
+  name = 'PullRequest'
+
+  store = this.props.detailStore || {}
+
+  refreshTimer = setInterval(() => this.refreshHandler(), 4000)
+
+  get isRuning() {
+    const data = get(toJS(this.store), 'pullRequestList.data', [])
+    const runingData = data.filter(item => {
+      const state = get(item, 'latestRun.state')
+      return state && state !== 'FINISHED' && state !== 'PAUSED'
+    })
+    return !isEmpty(runingData)
   }
 
   componentDidMount() {
@@ -44,18 +54,42 @@ export default class Pullrequest extends React.Component {
     this.unsubscribe = this.routing.history.subscribe(location => {
       if (location.pathname === this.props.match.url) {
         const query = parse(location.search.slice(1))
-        this.getData({ ...params, ...query })
+        this.store.getPullRequest({
+          ...params,
+          ...query,
+        })
       }
     })
   }
 
+  refreshHandler = () => {
+    if (this.isRuning) {
+      this.getData()
+    } else {
+      clearInterval(this.refreshTimer)
+      this.refreshTimer = null
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.refreshTimer === null && this.isRuning) {
+      clearInterval(this.refreshTimer)
+      this.refreshTimer = setInterval(() => this.refreshHandler(), 4000)
+    }
+  }
+
   componentWillUnmount() {
+    clearInterval(this.refreshTimer)
     this.unsubscribe && this.unsubscribe()
   }
 
-  getData(params) {
+  getData() {
+    const { params } = this.props.match
+    const query = parse(location.search.slice(1))
+
     this.store.getPullRequest({
       ...params,
+      ...query,
     })
   }
 
@@ -77,8 +111,7 @@ export default class Pullrequest extends React.Component {
   getColumns = () => [
     {
       title: t('Status'),
-      isHideable: true,
-      width: '12%',
+      width: '15%',
       render: record => (
         <Status {...getPipelineStatus(get(record, 'latestRun', {}))} />
       ),
@@ -86,7 +119,7 @@ export default class Pullrequest extends React.Component {
     {
       title: t('Name'),
       dataIndex: 'displayName',
-      width: '19%',
+      width: '15%',
       render: displayName => (
         <Link
           className="item-name"
@@ -97,20 +130,25 @@ export default class Pullrequest extends React.Component {
       ),
     },
     {
+      title: t('WeatherScore'),
+      dataIndex: 'weatherScore',
+      width: '15%',
+      render: weatherScore => <Health score={weatherScore} />,
+    },
+    {
       title: t('Last Message'),
-      width: '25%',
+      width: '20%',
       render: record => get(record, 'pullRequest.title', ''),
     },
     {
-      title: t('author'),
+      title: t('Author'),
       width: '15%',
       render: record => get(record, 'pullRequest.author', ''),
     },
     {
       title: t('Time'),
       dataIndex: 'latestRun',
-      isHideable: true,
-      width: '15%',
+      width: '20%',
       render: latestRun =>
         getLocalTime(latestRun.startTime).format('YYYY-MM-DD HH:mm:ss'),
     },
@@ -121,16 +159,13 @@ export default class Pullrequest extends React.Component {
   render() {
     const { pullRequestList } = this.store
     const { data, isLoading, total, page, limit, filters } = pullRequestList
-
-    const isEmptyList = isLoading === false && total === 0
-
-    const omitFilters = omit(filters, 'page')
+    const isEmptyList = isLoading === false && total === 0 && data.length > 0
+    const pagination = { total, page, limit }
+    const omitFilters = omit(filters, 'page', 'workspace')
 
     if (isEmptyList && !filters.page) {
-      return <EmptyTable name={this.name} onCreate={this.showCreate} />
+      return <EmptyCard name={this.name} />
     }
-
-    const pagination = { total, page, limit }
 
     return (
       <Table
@@ -141,7 +176,7 @@ export default class Pullrequest extends React.Component {
         pagination={pagination}
         isLoading={isLoading}
         onFetch={this.handleFetch}
-        disableSearch
+        hideSearch
       />
     )
   }

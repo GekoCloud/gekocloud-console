@@ -1,24 +1,24 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import { observer, inject } from 'mobx-react'
-import { computed } from 'mobx'
+import { computed, toJS } from 'mobx'
 import { get } from 'lodash'
 import EditMonitorFormLayou from '../components/EditMonitorFormLayout'
 import { GraphTextInput } from '../components/FormInput'
@@ -27,7 +27,7 @@ import FormGroupCard from '../components/FormGroupCard'
 import SingleStatDataForm from '../components/Form/SingleStatData'
 import ErrorContainer from '../components/ErrorContainer'
 
-@inject('monitoringStore')
+@inject('monitoringStore', 'labelStore')
 @observer
 export default class TextMonitorForm extends Component {
   @computed
@@ -39,7 +39,6 @@ export default class TextMonitorForm extends Component {
   get supportMetrics() {
     return this.props.monitoringStore.targetsMetadata.map(metadata => ({
       value: metadata.metric,
-      label: metadata.metric,
       desc: metadata.help,
       type: metadata.type,
     }))
@@ -54,9 +53,23 @@ export default class TextMonitorForm extends Component {
     this.props.monitoringStore.fetchMetadata()
   }
 
+  handleLabelSearch = metric => {
+    const { cluster, namespace } = this.props.monitoringStore
+    const { from, to } = this.props.monitoringStore.getTimeRange()
+
+    this.props.labelStore.fetchLabelSets({
+      cluster,
+      namespace,
+      metric,
+      start: Math.floor(from.valueOf() / 1000),
+      end: Math.floor(to.valueOf() / 1000),
+    })
+  }
+
   render() {
     const singleState = this.stat
     const title = get(this.monitor, 'config.title', '')
+    const labelsets = toJS(this.props.labelStore.labelsets)
 
     return (
       <EditMonitorFormLayou
@@ -68,7 +81,11 @@ export default class TextMonitorForm extends Component {
         sidebar={<GraphTextInput type="singlestat" />}
         main={
           <FormGroupCard label={t('Data')}>
-            <SingleStatDataForm supportMetrics={this.supportMetrics} />
+            <SingleStatDataForm
+              supportMetrics={this.supportMetrics}
+              labelsets={labelsets}
+              onLabelSearch={this.handleLabelSearch}
+            />
           </FormGroupCard>
         }
       />

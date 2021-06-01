@@ -1,25 +1,24 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react'
 import { observer, inject } from 'mobx-react'
-import { Icon } from '@pitrix/lego-ui'
-import { Button, Notify } from 'components/Base'
+import { Button, Notify, Icon } from '@juanchi_xd/components'
 import CreateModal from 'components/Modals/Create'
 import { GRAY_RELEASE_CATEGORIES } from 'utils/constants'
 import FORM_TEMPLATE from 'utils/form.templates'
@@ -84,14 +83,6 @@ export default class Categories extends React.Component {
     })
   }
 
-  get serviceMeshEnable() {
-    const { cluster } = this.props.match.params
-    return (
-      globals.app.hasClusterModule(cluster, 'servicemesh') &&
-      this.routerStore.gateway.data.serviceMeshEnable
-    )
-  }
-
   showCreate = e => {
     this.setState({
       showCreateModal: true,
@@ -107,7 +98,7 @@ export default class Categories extends React.Component {
     const { workspace, cluster, namespace } = this.props.match.params
     this.store.create(data, { cluster, namespace }).then(() => {
       this.hideCreate()
-      Notify.success({ content: `${t('Created Successfully')}!` })
+      Notify.success({ content: `${t('Created Successfully')}` })
       this.routing.push(
         `/${workspace}/clusters/${cluster}/projects/${namespace}/grayrelease/jobs`
       )
@@ -141,8 +132,6 @@ export default class Categories extends React.Component {
                     type="control"
                     data-type={item.type}
                     onClick={this.showCreate}
-                    disabled={!this.serviceMeshEnable}
-                    noShadow
                   >
                     {t('Create Job')}
                   </Button>

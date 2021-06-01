@@ -1,19 +1,19 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export const WORKLOAD_STATUS = [
@@ -63,12 +63,6 @@ export const NODE_STATUS = [
   { text: 'NODE_STATUS_WARNING', value: 'warning' },
 ]
 
-export const ALERT_MESSAGE_STATUS = [
-  { text: 'All', value: 'resumed,triggered' },
-  { text: 'Resumed', value: 'resumed' },
-  { text: 'Triggered', value: 'triggered' },
-]
-
 export const ACCESS_MODES = {
   ReadWriteOnce: 'RWO',
   ReadOnlyMany: 'ROX',
@@ -85,7 +79,7 @@ export const SERVICE_TYPES = {
 export const VOLUME_SNAPSHOT_STATUS = [
   { text: 'VOLUME_SNAPSHOT_STATUS_CREATING', value: 'creating' },
   { text: 'VOLUME_SNAPSHOT_STATUS_READY', value: 'ready' },
-  { text: 'VOLUME_SNAPSHOT_STATUS_FAILED', value: 'failed' },
+  { text: 'VOLUME_SNAPSHOT_STATUS_DELETING', value: 'deleting' },
 ]
 
 export const INGRESS_ANNOTATIONS = [
@@ -197,6 +191,7 @@ export const ICON_TYPES = {
   persistentvolumeclaims: 'storage',
   storageclasses: 'database',
   nodes: 'nodes',
+  edgenodes: 'nodes',
   devops: 'strategy-group',
   projects: 'project',
   namespaces: 'project',
@@ -209,6 +204,7 @@ export const ICON_TYPES = {
   components: 'components',
   accounts: 'human',
   workspaces: 'enterprise',
+  clusters: 'cluster',
   pods: 'pod',
   containers: 'container',
   'limits.cpu': 'cpu',
@@ -216,6 +212,7 @@ export const ICON_TYPES = {
   'requests.cpu': 'cpu',
   'requests.memory': 'memory',
   configmaps: 'hammer',
+  serviceaccounts: 'client',
   secrets: 'key',
   'alert-messages': 'loudspeaker',
   'alert-policies': 'wrench',
@@ -229,6 +226,9 @@ export const ICON_TYPES = {
   network: 'eip-group',
   networkpolicies: 'firewall',
   namespacenetworkpolicies: 'firewall',
+  pipelines: 'blockchain',
+  ippools: 'eip-group',
+  cluster: 'cluster',
 }
 
 export const MODULE_KIND_MAP = {
@@ -244,16 +244,22 @@ export const MODULE_KIND_MAP = {
   storageclasses: 'StorageClass',
   'alert-policies': 'AlertingPolicy',
   configmaps: 'ConfigMap',
+  serviceaccounts: 'ServiceAccount',
   secrets: 'Secret',
   s2ibuilders: 'S2iBuilder',
   nodes: 'Node',
-  volumesnapshots: 'VolumeSnapshot',
+  volumesnapshots: 'Volume Snapshot',
   namespaces: 'Namespace',
   workspaces: 'WorkspaceTemplate',
+  clusters: 'Cluster',
   dashboards: 'Dashboard',
+  clusterdashboards: 'ClusterDashboard',
   applications: 'Application',
   users: 'User',
   devops: 'DevOpsProject',
+  pipelines: 'Pipelines',
+  ippools: 'IPPool',
+  groups: 'Group',
 }
 
 export const QUOTAS_MAP = {
@@ -319,11 +325,31 @@ export const QUOTAS_MAP = {
   },
 }
 
+export const WORKSPACE_QUOTAS_MAP = {
+  'limits.cpu': {
+    name: 'limits.cpu',
+    placeholder: 'eg: 1 or 1000m',
+  },
+  'requests.cpu': {
+    name: 'requests.cpu',
+    placeholder: 'eg: 1 or 1000m',
+  },
+  'limits.memory': {
+    name: 'limits.memory',
+    placeholder: 'eg: 100Gi',
+  },
+  'requests.memory': {
+    name: 'requests.memory',
+    placeholder: 'eg: 100Gi',
+  },
+}
+
 export const REPO_TYPES = [
   { name: 'GitHub', value: 'github', icon: 'github' },
+  { name: 'GitLab', value: 'gitlab', icon: 'gitlab' },
+  { name: 'Bitbucket', value: 'bitbucket_server', icon: 'bitbucket' },
   { name: 'Git', value: 'git', icon: 'git' },
   { name: 'SVN', value: 'svn', icon: 'svn' },
-  { name: 'Bitbucket Server', value: 'bitbucket_server', icon: 'bitbucket' },
 ]
 
 export const REPO_KEY_MAP = {
@@ -332,6 +358,7 @@ export const REPO_KEY_MAP = {
   single_svn: 'single_svn_source',
   github: 'github_source',
   bitbucket_server: 'bitbucket_server_source',
+  gitlab: 'gitlab_source',
 }
 
 export const PIPELINE_PARAMS_TYPES = {
@@ -344,8 +371,9 @@ export const PIPELINE_PARAMS_TYPES = {
 
 export const PIPELINE_ACTION_TYPES = {
   discover_branches: 'Discover Branches',
-  discover_pr_from_origin: 'Discover PR form Origin',
-  discover_pr_from_forks: 'Discover PR form Forks',
+  discover_tags: 'Discover Tag Branches',
+  discover_pr_from_origin: 'Discover PR from Origin',
+  discover_pr_from_forks: 'Discover PR from Forks',
 }
 
 export const TIMETRIGGERINTERVALS = [
@@ -451,7 +479,7 @@ export const PATTERN_NAME = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/
 export const PATTERN_SERVICE_NAME = /^[a-z]([-a-z0-9]*[a-z0-9])?$/
 export const PATTERN_SERVICE_VERSION = /^[a-z0-9]*$/
 export const PATTERN_LABEL = /(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?/
-export const PATTERN_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^]{6,}$/
+export const PATTERN_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^]{6,64}$/
 export const PATTERN_IMAGE = /^\S+$/
 export const PATTERN_PORT_NAME = /^[a-z]([-a-z0-9]*[a-z0-9])?$/
 export const PATTERN_COMPONENT_VERSION = /^[a-z0-9]+$/
@@ -459,7 +487,6 @@ export const PATTERN_PIPELINE_NAME = /[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([
 export const PATTERN_HOST = /^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$/
 
 export const PATTERN_URL = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/
-export const PATTERN_VERSION_NO = /^\d+((\.|\d|^\s+|\s|\[)*)+((\d|\])$)/
 export const PATTERN_EMAIL = /\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/
 export const PATTERN_IP = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
 export const PATTERN_IP_MASK = /^[1-9][0-9]*$/
@@ -569,10 +596,10 @@ export const COLORS_MAP = {
   white: '#fff',
   light: '#f9fbfd',
   lightest: '#f9fbfd',
-  dark: '#3563AD',
+  dark: '#242e42',
   grey: '#e3e9ef',
-  green: '#F18918',
-  blue: '#F18918',
+  green: '#55bc8a',
+  blue: '#329dce',
   red: '#ca2621',
   yellow: '#f5a623',
   darkerGreen: '#479e88',
@@ -814,6 +841,7 @@ export const API_VERSIONS = {
   volumes: 'api/v1',
   secrets: 'api/v1',
   configmaps: 'api/v1',
+  serviceaccounts: 'api/v1',
   events: 'api/v1',
   resourcequotas: 'api/v1',
   limitranges: 'api/v1',
@@ -836,9 +864,12 @@ export const API_VERSIONS = {
   pipelines: 'kapis/devops.kubesphere.io/v1alpha3',
   workspaceroles: 'apis/iam.kubesphere.io/v1alpha2',
   dashboards: 'apis/monitoring.kubesphere.io/v1alpha1',
+  clusterdashboards: 'apis/monitoring.kubesphere.io/v1alpha1',
   namespacenetworkpolicies: 'apis/network.kubesphere.io/v1alpha1',
   networkpolicies: 'apis/networking.k8s.io/v1',
+  ippools: 'apis/network.kubesphere.io/v1alpha1',
   storageclasscapabilities: 'apis/storage.kubesphere.io/v1alpha1',
+  meter: 'kapis/metering.kubesphere.io/v1alpha1',
 }
 
 export const MONITOR_GRAPH_COLORS = [
@@ -894,6 +925,12 @@ export const COMPONENT_ICON_MAP = {
   devops: 'jenkins',
   logging: 'record',
   monitoring: 'monitor',
+  alerting: 'loudspeaker',
+  auditing: 'login-servers',
+  events: 'thunder',
+  notification: 'mail',
+  servicemesh: 'istio',
+  metrics_server: 'monitor',
 }
 
 export const CLUSTER_PROVIDER_ICON = {
@@ -965,7 +1002,7 @@ export const CLUSTER_PRESET_GROUPS = [
 
 export const CLUSTER_GROUP_TAG_TYPE = {
   production: 'warning',
-  development: 'secondary',
+  development: 'default',
   testing: 'info',
   demo: 'primary',
 }
@@ -998,6 +1035,13 @@ export const CREDENTIAL_KEY = {
   kubeconfig: 'kubeconfig',
 }
 
+export const CREDENTIAL_TYPE_LIST = [
+  'credential.devops.kubesphere.io/basic-auth',
+  'credential.devops.kubesphere.io/ssh-auth',
+  'credential.devops.kubesphere.io/secret-text',
+  'credential.devops.kubesphere.io/kubeconfig',
+]
+
 export const CREDENTIAL_DISPLAY_KEY = {
   'basic-auth': 'username_password',
   'ssh-auth': 'ssh',
@@ -1023,3 +1067,8 @@ export const APP_LABEL_MODULES = [
   'cronjobs',
   'services',
 ]
+
+export const NODE_ROLE_TAG_TYPE = {
+  master: 'secondary',
+  worker: 'default',
+}

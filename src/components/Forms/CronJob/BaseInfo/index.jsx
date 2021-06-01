@@ -1,26 +1,32 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { get, set, debounce } from 'lodash'
 import React from 'react'
-import { Columns, Column, Input, Select } from '@pitrix/lego-ui'
-import { Form, TextArea } from 'components/Base'
-import { NumberInput, SelectInput, ProjectSelect } from 'components/Inputs'
+import {
+  Column,
+  Columns,
+  Form,
+  Input,
+  Select,
+  TextArea,
+} from '@juanchi_xd/components'
+import { NumberInput, ProjectSelect } from 'components/Inputs'
 import ToggleView from 'components/ToggleView'
 import { MODULE_KIND_MAP, PATTERN_NAME } from 'utils/constants'
 
@@ -89,7 +95,9 @@ export default class BaseInfo extends React.Component {
                 { required: true, message: t('Please input name') },
                 {
                   pattern: PATTERN_NAME,
-                  message: `${t('Invalid name')}, ${t('CRONJOB_NAME_DESC')}`,
+                  message: t('Invalid name', {
+                    message: t('CRONJOB_NAME_DESC'),
+                  }),
                 },
                 { validator: this.nameValidator },
               ]}
@@ -137,9 +145,10 @@ export default class BaseInfo extends React.Component {
                 { required: true, message: t('Please input a schedule.') },
               ]}
             >
-              <SelectInput
+              <Select
                 name="spec.schedule"
                 options={this.getCronOptions()}
+                searchable
               />
             </Form.Item>
           </Column>

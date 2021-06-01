@@ -1,29 +1,29 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { get, isNaN, unset } from 'lodash'
+import { get, isNaN, unset, pick } from 'lodash'
 import React from 'react'
 import { toJS } from 'mobx'
 
 import { PropTypes } from 'prop-types'
 import { safeParseJSON } from 'utils'
 import { ACCESS_MODES } from 'utils/constants'
-import { Form, Slider, SearchSelect } from 'components/Base'
+import { Form, Slider, Select } from '@juanchi_xd/components'
 import { AccessModes } from 'components/Inputs'
 
 import StorageClassStore from 'stores/storageClass'
@@ -149,9 +149,7 @@ export default class VolumeSettings extends React.Component {
 
     unset(this.context.formData, ACCESSMODE_KEY)
 
-    this.setState({
-      storageClass: newStorageClass,
-    })
+    this.setState({ storageClass: newStorageClass })
   }
 
   sizeValidator = (rule, value, callback) => {
@@ -179,19 +177,18 @@ export default class VolumeSettings extends React.Component {
           desc={t('VOLUME_STORAGE_CLASS_DESC')}
           rules={[{ required: true, message: t('This param is required') }]}
         >
-          <SearchSelect
+          <Select
             name={STORAGE_CLASSES_KEY}
             defaultValue={storageClass.name}
-            page={storageClassesList.page}
-            total={storageClassesList.total}
+            pagination={pick(storageClassesList, ['page', 'limit', 'total'])}
             isLoading={storageClassesList.isLoading}
             onChange={this.handleStorageClassChange}
             options={storageClasses}
-            currentLength={storageClassesList.data.length}
             onFetch={this.updateStorageClass}
+            searchable
+            clearable
           />
         </Form.Item>
-
         <Form.Item
           label={t('Access Mode')}
           rules={[{ required: true, message: t('This param is required') }]}
@@ -212,6 +209,7 @@ export default class VolumeSettings extends React.Component {
           <Slider
             name="spec.resources.requests.storage"
             {...this.getSliderProps(storageClass)}
+            withInput
           />
         </Form.Item>
       </>

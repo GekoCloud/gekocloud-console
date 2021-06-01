@@ -36,7 +36,7 @@
     line-height: 1.67;
     color: #ffffff;
     border-radius: 4px;
-    background-color: #3563AD;
+    background-color: #242e42;
     white-space: pre-wrap;
   }
 }
@@ -55,7 +55,7 @@
 
 .running_tips {
   margin-left: 25px;
-  color: #3563AD;
+  color: #242e42;
 }
 
 .runningIcon {
@@ -65,7 +65,7 @@
   animation: rotate 2s linear infinite;
   background-size: 40px;
   background-repeat: no-repeat;
-  background-image: url('/assets/cicd-running.svg');
+  background-image: url('/assets/pipeline-running.svg');
 }
 
 .QueuedIcon {
@@ -75,7 +75,7 @@
   background-size: 40px;
   animation: breath 2s linear infinite;
   background-repeat: no-repeat;
-  background-image: url('/assets/cicd-queued.svg');
+  background-image: url('/assets/pipeline-queued.svg');
 }
 
 .card {
@@ -93,7 +93,7 @@
     line-height: 20px;
     font-size: 14px;
     font-weight: 600;
-    color: #3563AD;
+    color: #242e42;
   }
   .desc {
     margin-bottom: 8px;

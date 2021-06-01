@@ -1,29 +1,29 @@
 /*
- * This file is part of Smartkube Console.
- * Copyright (C) 2019 The Smartkube Console Authors.
+ * This file is part of SmartKube Console.
+ * Copyright (C) 2019 The SmartKube Console Authors.
  *
- * Smartkube Console is free software: you can redistribute it and/or modify
+ * SmartKube Console is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Smartkube Console is distributed in the hope that it will be useful,
+ * SmartKube Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Smartkube Console.  If not, see <https://www.gnu.org/licenses/>.
+ * along with SmartKube Console.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React, { Component } from 'react'
 import { get, set } from 'lodash'
-import { Form, ScrollLoad } from 'components/Base'
+import { ScrollLoad } from 'components/Base'
 import { toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { AccessModes } from 'components/Inputs'
 import classNames from 'classnames'
-import { Icon, Loading } from '@pitrix/lego-ui'
+import { Form, Icon, Loading } from '@juanchi_xd/components'
 import PropTypes from 'prop-types'
 
 import SnapshotStore from 'stores/volumeSnapshot'
@@ -34,8 +34,6 @@ import { safeParseJSON } from 'utils'
 import { ACCESS_MODES } from 'utils/constants'
 
 import styles from './index.scss'
-
-const ACCESSMODE_KEY = 'spec.accessModes[0]'
 
 @observer
 export default class SanpshotForm extends Component {
@@ -54,7 +52,7 @@ export default class SanpshotForm extends Component {
   }
 
   get storageClassName() {
-    return get(this.context.formData, 'storageClassName')
+    return get(this.context.formData, 'spec.storageClassName')
   }
 
   get supportedAccessModes() {
@@ -69,12 +67,21 @@ export default class SanpshotForm extends Component {
 
   fetchSnapshots = (params = { limit: 10 }) => {
     const { namespace, cluster } = this.props
-    this.snapshotStore.fetchList({
-      ...params,
-      namespace,
-      cluster,
-      status: 'ready',
-    })
+    this.snapshotStore
+      .fetchList({
+        ...params,
+        namespace,
+        cluster,
+        status: 'ready',
+      })
+      .then(() => {
+        const { data } = this.snapshotStore.list
+        const name = get(data, '[0].name')
+        if (name) {
+          set(this.context.formData, 'spec.dataSource.name', name)
+          this.handeSnapshotChange(name)
+        }
+      })
   }
 
   fetchStorageClassDetail = () => {
@@ -100,11 +107,15 @@ export default class SanpshotForm extends Component {
     )
     set(
       this.context.formData,
-      'storageClassName',
+      'spec.storageClassName',
       selectSnapshot.snapshotClassName
     )
-    set(this.context.formData, 'dataSource.kind', 'VolumeSnapshot')
-    set(this.context.formData, 'dataSource.apiGroup', 'snapshot.storage.k8s.io')
+    set(this.context.formData, 'spec.dataSource.kind', 'VolumeSnapshot')
+    set(
+      this.context.formData,
+      'spec.dataSource.apiGroup',
+      'snapshot.storage.k8s.io'
+    )
 
     this.fetchStorageClassDetail()
   }
@@ -119,11 +130,11 @@ export default class SanpshotForm extends Component {
         <Form.Item
           label={t('Volume Snapshot')}
           rules={[{ required: true, message: t('This param is required') }]}
-          controlClassName={styles.snapshotContainer}
+          className={styles.snapshotContainer}
         >
           <SnapshotSelect
             className={styles.snapshots}
-            name={'dataSource.name'}
+            name="spec.dataSource.name"
             snapshots={toJS(snapshots)}
             total={total}
             page={page}
@@ -140,7 +151,7 @@ export default class SanpshotForm extends Component {
               rules={[{ required: true, message: t('This param is required') }]}
             >
               <AccessModes
-                name={ACCESSMODE_KEY}
+                name="spec.accessModes[0]"
                 defaultValue={
                   get(supportedAccessModes, '[0]') ||
                   Object.keys(ACCESS_MODES)[0]
