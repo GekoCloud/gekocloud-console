@@ -27,8 +27,8 @@ server:
 
   # backend service gateway server
   apiServer:
-    url: https://ks-apiserver.digio-int.smartkube.cloud
-    wsUrl: ws://ks-apiserver.digio-int.smartkube.cloud
+    url: http://ks-apiserver.kubesphere-system.svc
+    wsUrl: ws://ks-apiserver.kubesphere-system.svc
 
   # docker image search default url
   dockerHubUrl: https://hub.docker.com

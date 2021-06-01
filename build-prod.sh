@@ -1,5 +1,7 @@
 #!/bin/bash
 echo "Build yarn"
+docker volume create nodemodules
+docker-compose -f docker-compose.builder.yaml run install
 docker-compose -f docker-compose.builder.yaml run --rm build
 
 echo "Build docker container"
