@@ -47,7 +47,7 @@
     "path-to-regexp": "^2.2.1",
     "promise-polyfill": "^7.0.0",
     "prop-types": "^15.6.0",
-    "qs": "^6.5.2",
+    "qs": "^6.7.3",
     "react": "16.6.3",
     "react-ace": "^8.0.0",
     "react-copy-to-clipboard": "^5.0.1",
